@@ -118,6 +118,85 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Prestasi Section */}
+      <section className="py-20 bg-brand-blueDark text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent opacity-60"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="text-3xl font-bold">Prestasi Unggulan</h2>
+            <p className="text-slate-300 mt-2 text-lg">Dedikasi dan kerja keras civitas akademika kami membuahkan hasil membanggakan di tingkat nasional maupun internasional.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Prestasi Sekolah */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-colors">
+              <div className="flex items-center gap-4 mb-6 pb-4 border-b border-white/10">
+                <div className="p-3 bg-brand-yellow rounded-xl text-brand-blueDark">
+                  <Award className="h-6 w-6" />
+                </div>
+                <h3 className="text-2xl font-bold">Prestasi Sekolah</h3>
+              </div>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <span className="bg-brand-teal text-white p-1 rounded-full shrink-0 mt-0.5"><Award className="h-3 w-3" /></span>
+                  <div>
+                    <h4 className="font-semibold text-lg">Sekolah Adiwiyata Nasional 2025</h4>
+                    <p className="text-sm text-slate-300">Penghargaan tertinggi di bidang lingkungan hidup dari Kementerian LHK.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="bg-brand-teal text-white p-1 rounded-full shrink-0 mt-0.5"><Award className="h-3 w-3" /></span>
+                  <div>
+                    <h4 className="font-semibold text-lg">Sekolah Penggerak Angkatan 3</h4>
+                    <p className="text-sm text-slate-300">Terpilih sebagai pionir penerapan Kurikulum Merdeka yang inovatif dan terdigitalisasi.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="bg-brand-teal text-white p-1 rounded-full shrink-0 mt-0.5"><Award className="h-3 w-3" /></span>
+                  <div>
+                    <h4 className="font-semibold text-lg">Juara Umum Lomba Inovasi Sekolah Berkemajuan</h4>
+                    <p className="text-sm text-slate-300">Penghargaan Majelis Dikdasmen PP Muhammadiyah.</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            {/* Prestasi Siswa */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-colors">
+              <div className="flex items-center gap-4 mb-6 pb-4 border-b border-white/10">
+                <div className="p-3 bg-brand-teal rounded-xl text-white">
+                  <GraduationCap className="h-6 w-6" />
+                </div>
+                <h3 className="text-2xl font-bold">Prestasi Siswa</h3>
+              </div>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <span className="bg-brand-yellow text-brand-blueDark p-1 rounded-full shrink-0 mt-0.5"><Award className="h-3 w-3" /></span>
+                  <div>
+                    <h4 className="font-semibold text-lg">Medali Emas Olimpiade Sains Nasional (OSN) Fisika</h4>
+                    <p className="text-sm text-slate-300">Diraih oleh Ananda Rizky Pratama (Kelas XI IPA 1) - 2026.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="bg-brand-yellow text-brand-blueDark p-1 rounded-full shrink-0 mt-0.5"><Award className="h-3 w-3" /></span>
+                  <div>
+                    <h4 className="font-semibold text-lg">Juara 1 Lomba Robotik Tingkat Provinsi Jatim</h4>
+                    <p className="text-sm text-slate-300">Tim Robotik SMAS Muhammadiyah 1 Banyuwangi - 2025.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="bg-brand-yellow text-brand-blueDark p-1 rounded-full shrink-0 mt-0.5"><Award className="h-3 w-3" /></span>
+                  <div>
+                    <h4 className="font-semibold text-lg">Medali Perak Kejuaraan Tapak Suci Nasional</h4>
+                    <p className="text-sm text-slate-300">Kontingen Tapak Suci Sekolah - 2025.</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Latest News Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
