@@ -42,12 +42,12 @@ export default function Navbar() {
                 {item.label}
               </NavLink>
             ))}
-            <a 
-              href="#daftar-sekarang"
+            <Link 
+              to="/login"
               className="ml-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
             >
-              Daftar Sekarang
-            </a>
+              Masuk Portal
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -76,12 +76,13 @@ export default function Navbar() {
               {item.label}
             </NavLink>
           ))}
-          <a
-            href="#daftar-sekarang"
+          <Link
+            to="/login"
+            onClick={() => setIsOpen(false)}
             className="block text-center mt-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-4 py-3 rounded-[15px] text-base shadow-sm"
           >
-            Daftar Sekarang
-          </a>
+            Masuk Portal
+          </Link>
         </div>
       )}
     </nav>

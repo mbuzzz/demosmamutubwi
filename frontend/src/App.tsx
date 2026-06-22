@@ -8,6 +8,7 @@ import GuruDirectory from './pages/GuruDirectory';
 import NewsHub from './pages/NewsHub';
 import NewsDetail from './pages/NewsDetail';
 import Downloads from './pages/Downloads';
+import Login from './pages/Login';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/berita" element={<NewsHub />} />
               <Route path="/berita/:id" element={<NewsDetail />} />
               <Route path="/unduhan" element={<Downloads />} />
+              <Route path="/login" element={<Login />} />
             </Routes>
           </main>
         </div>
