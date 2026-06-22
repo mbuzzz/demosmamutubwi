@@ -10,6 +10,7 @@ import NewsDetail from './pages/NewsDetail';
 import Downloads from './pages/Downloads';
 import Login from './pages/Login';
 import SPMB from './pages/SPMB';
+import FormSPMB from './pages/FormSPMB';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
               <Route path="/unduhan" element={<Downloads />} />
               <Route path="/login" element={<Login />} />
               <Route path="/spmb" element={<SPMB />} />
+              <Route path="/spmb/form/:gelombangId" element={<FormSPMB />} />
             </Routes>
           </main>
         </div>
