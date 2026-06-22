@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Menu, X, BookOpen } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,10 +18,10 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
-            <BookOpen className="h-8 w-8 text-brand-teal" />
+            <img src="/logo.png" alt="Logo SMAS Muh 1" className="h-10 w-10 object-contain drop-shadow-sm" />
             <div>
               <span className="font-bold text-base sm:text-lg block leading-none">SMAS MUHAMMADIYAH 1</span>
-              <span className="text-xs text-slate-300 block mt-0.5">BANYUWANGI</span>
+              <span className="text-[10px] text-slate-300 block mt-0.5 tracking-widest uppercase">Banyuwangi</span>
             </div>
           </Link>
           

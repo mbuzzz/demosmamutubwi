@@ -1,71 +1,202 @@
-
-import { Target, Shield, Compass } from 'lucide-react';
+import { useState } from 'react';
+import { Target, Shield, Compass, Clock, BookOpen, Quote } from 'lucide-react';
 
 export default function About() {
+  const [activeTab, setActiveTab] = useState('visi');
+
   return (
-    <div className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Title */}
+    <div className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+      <div className="max-w-5xl mx-auto">
+        {/* Header Profile */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-extrabold text-brand-blueDark mb-4">Profil SMAS Muhammadiyah 1 Banyuwangi</h1>
-          <p className="text-lg text-slate-500">Mengenal lebih dekat visi, misi, dan sejarah perjalanan institusi kami.</p>
-        </div>
-
-        {/* Sejarah */}
-        <div className="bg-white rounded-2xl p-8 shadow-card border border-slate-100 mb-8 leading-relaxed hover:shadow-card-hover transition-shadow">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">Sejarah Singkat</h2>
-          <p className="text-slate-600 mb-4 text-lg">
-            SMAS Muhammadiyah 1 Banyuwangi didirikan di bawah naungan Persyarikatan Muhammadiyah dengan komitmen memberikan kontribusi nyata dalam bidang pendidikan nasional di Kabupaten Banyuwangi. Sejak berdirinya, sekolah ini secara konsisten mendidik putra-putri daerah dengan memadukan kurikulum pendidikan umum dan pendidikan keislaman yang kuat.
-          </p>
-          <p className="text-slate-600 text-lg">
-            Melalui dedikasi tinggi para pendidik dan jajaran manajemen sekolah, SMAS Muhammadiyah 1 Banyuwangi kini terus bertumbuh sebagai lembaga pendidikan modern, berakreditasi A, serta menjadi sekolah rujukan dalam hal pemanfaatan teknologi informasi untuk manajemen pembelajaran (E-Learning dan CBT) serta administrasi sekolah.
-          </p>
-        </div>
-
-        {/* Visi & Misi */}
-        <div className="bg-white rounded-2xl p-8 shadow-card border border-slate-100 mb-8 hover:shadow-card-hover transition-shadow">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6 pb-2 border-b border-slate-100">Visi, Misi & Tujuan</h2>
-          
-          <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row gap-5">
-              <div className="bg-brand-teal/10 p-3 rounded-2xl text-brand-teal shrink-0 h-14 w-14 flex items-center justify-center">
-                <Target className="h-7 w-7" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-xl mb-2">Visi</h3>
-                <p className="text-slate-600 leading-relaxed italic text-lg">
-                  "Menjadi lembaga pendidikan unggulan yang melahirkan lulusan berakhlak mulia, cerdas secara intelektual, kompeten, dan berkemajuan berdasarkan nilai-nilai Islam."
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-5">
-              <div className="bg-brand-blueDark/10 p-3 rounded-2xl text-brand-blueDark shrink-0 h-14 w-14 flex items-center justify-center">
-                <Compass className="h-7 w-7" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-xl mb-3">Misi</h3>
-                <ul className="list-disc pl-5 text-slate-600 space-y-3 leading-relaxed text-lg">
-                  <li>Menyelenggarakan proses pembelajaran yang mengintegrasikan ilmu pengetahuan dengan nilai-nilai akhlakul karimah.</li>
-                  <li>Mengembangkan potensi bakat akademis maupun non-akademis siswa secara optimal melalui program kurikuler dan ekstrakurikuler.</li>
-                  <li>Mengintegrasikan pemanfaatan teknologi informasi modern dalam seluruh kegiatan pembelajaran, evaluasi hasil belajar, dan administrasi sekolah.</li>
-                  <li>Membangun iklim sekolah yang Islami, kondusif, disiplin, toleran, dan berwawasan lingkungan.</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-5">
-              <div className="bg-brand-green/10 p-3 rounded-2xl text-brand-green shrink-0 h-14 w-14 flex items-center justify-center">
-                <Shield className="h-7 w-7" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-xl mb-2">Tujuan</h3>
-                <p className="text-slate-600 leading-relaxed text-lg">
-                  Mencetak alumni mandiri yang siap bersaing memasuki jenjang perguruan tinggi negeri maupun swasta favorit, berkomitmen keagamaan yang kokoh, serta memiliki keterampilan adaptif terhadap perkembangan teknologi abad ke-21.
-                </p>
-              </div>
-            </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blueDark/10 text-xs font-bold text-brand-blueDark uppercase tracking-wider mb-4">
+            <span className="w-2 h-2 rounded-full bg-brand-teal"></span>
+            Mengenal Kami
           </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">Profil Lengkap Sekolah</h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Jelajahi sejarah perjalanan institusi kami, landasan visi-misi, serta sambutan dari kepala sekolah SMAS Muhammadiyah 1 Banyuwangi.
+          </p>
+        </div>
+
+        {/* Tab Navigation Menu */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
+          <button 
+            onClick={() => setActiveTab('visi')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-[15px] font-bold text-sm transition-all duration-200 ${
+              activeTab === 'visi' 
+                ? 'bg-brand-blueDark text-white shadow-card' 
+                : 'bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-800 border border-slate-200'
+            }`}
+          >
+            <Target className="w-4 h-4" /> Visi & Misi
+          </button>
+          <button 
+            onClick={() => setActiveTab('sejarah')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-[15px] font-bold text-sm transition-all duration-200 ${
+              activeTab === 'sejarah' 
+                ? 'bg-brand-blueDark text-white shadow-card' 
+                : 'bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-800 border border-slate-200'
+            }`}
+          >
+            <Clock className="w-4 h-4" /> Sejarah Singkat
+          </button>
+          <button 
+            onClick={() => setActiveTab('sambutan')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-[15px] font-bold text-sm transition-all duration-200 ${
+              activeTab === 'sambutan' 
+                ? 'bg-brand-blueDark text-white shadow-card' 
+                : 'bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-800 border border-slate-200'
+            }`}
+          >
+            <Quote className="w-4 h-4" /> Sambutan Kepsek
+          </button>
+          <button 
+            onClick={() => setActiveTab('struktur')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-[15px] font-bold text-sm transition-all duration-200 ${
+              activeTab === 'struktur' 
+                ? 'bg-brand-blueDark text-white shadow-card' 
+                : 'bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-800 border border-slate-200'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" /> Struktur Organisasi
+          </button>
+        </div>
+
+        {/* Tab Content Container */}
+        <div className="bg-white rounded-[15px] p-8 sm:p-12 shadow-card border border-slate-100 min-h-[400px]">
+          
+          {/* Tab 1: Visi & Misi */}
+          {activeTab === 'visi' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-3xl font-bold text-slate-900 mb-8 border-b pb-4">Landasan Visi, Misi & Tujuan</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="md:col-span-1 space-y-6">
+                  {/* Visi */}
+                  <div className="bg-brand-teal/5 p-6 rounded-[15px] border border-brand-teal/10">
+                    <div className="w-12 h-12 bg-brand-teal rounded-[15px] flex items-center justify-center text-white mb-4 shadow-sm">
+                      <Target className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-bold text-slate-900 text-xl mb-3">Visi Kami</h3>
+                    <p className="text-slate-700 leading-relaxed italic">
+                      "Menjadi lembaga pendidikan unggulan yang melahirkan lulusan berakhlak mulia, cerdas secara intelektual, kompeten, dan berkemajuan berdasarkan nilai-nilai Islam."
+                    </p>
+                  </div>
+                  
+                  {/* Tujuan */}
+                  <div className="bg-brand-blueDark/5 p-6 rounded-[15px] border border-brand-blueDark/10">
+                    <div className="w-12 h-12 bg-brand-blueDark rounded-[15px] flex items-center justify-center text-white mb-4 shadow-sm">
+                      <Shield className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-bold text-slate-900 text-xl mb-3">Tujuan</h3>
+                    <p className="text-slate-700 leading-relaxed text-sm">
+                      Mencetak alumni mandiri yang siap bersaing memasuki perguruan tinggi favorit, berkomitmen keagamaan yang kokoh, serta terampil menguasai teknologi.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Misi */}
+                <div className="md:col-span-2 bg-slate-50 p-6 sm:p-8 rounded-[15px] border border-slate-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-brand-green rounded-[15px] flex items-center justify-center text-white shadow-sm shrink-0">
+                      <Compass className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-bold text-slate-900 text-2xl">Misi Utama</h3>
+                  </div>
+                  <ul className="space-y-5 text-slate-700 leading-relaxed text-lg">
+                    <li className="flex gap-3">
+                      <span className="text-brand-green font-bold">1.</span>
+                      <span>Menyelenggarakan proses pembelajaran yang mengintegrasikan ilmu pengetahuan umum dengan nilai-nilai akhlakul karimah.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-brand-green font-bold">2.</span>
+                      <span>Mengembangkan potensi bakat akademis maupun non-akademis siswa secara optimal melalui program kurikuler dan ekstrakurikuler.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-brand-green font-bold">3.</span>
+                      <span>Mengintegrasikan pemanfaatan teknologi informasi modern (CBT, E-Rapor, SIT) dalam seluruh kegiatan operasional dan evaluasi hasil belajar.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-brand-green font-bold">4.</span>
+                      <span>Membangun iklim ekosistem sekolah yang Islami, kondusif, disiplin, peduli sosial, dan berwawasan lingkungan berkelanjutan.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Sejarah */}
+          {activeTab === 'sejarah' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold text-slate-900 mb-6 border-b pb-4">Sejarah Perjalanan Kami</h2>
+              <div className="prose prose-lg text-slate-600 leading-relaxed">
+                <p>
+                  SMAS Muhammadiyah 1 Banyuwangi didirikan sebagai tonggak penting bagi Persyarikatan Muhammadiyah dalam memberikan kontribusi nyata untuk mencerdaskan kehidupan bangsa, khususnya di area Kabupaten Banyuwangi. Sejak awal berdirinya, sekolah ini selalu teguh pada komitmen mulia: memadukan antara kuatnya pendidikan umum dan kedalaman ilmu agama Islam.
+                </p>
+                <p>
+                  Sepanjang dekade pelayanannya, sekolah ini telah melewati berbagai fase transformasi. Dimulai dari ruang kelas yang sederhana dengan jumlah guru yang terbatas, hingga kini berevolusi menjadi institusi rujukan yang menampung ratusan siswa dari berbagai penjuru daerah dengan fasilitas laboratorium, perpustakaan, hingga infrastruktur digital yang amat memadai.
+                </p>
+                <p>
+                  Hari ini, dengan diraihnya akreditasi A, SMAS Muhammadiyah 1 Banyuwangi beradaptasi dengan disrupsi teknologi abad ke-21. Mengusung konsep sekolah modern berbasis tata kelola terintegrasi (SIT), kami memastikan generasi lulusan tak hanya alim dan saleh dalam beragama, namun amat cakap menguasai teknologi demi kemajuan peradaban.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Sambutan Kepsek */}
+          {activeTab === 'sambutan' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-3xl font-bold text-slate-900 mb-8 border-b pb-4">Sambutan Kepala Sekolah</h2>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                <div className="md:col-span-4 flex justify-center">
+                  <div className="relative p-2 bg-slate-50 border border-slate-200 rounded-[15px] shadow-sm">
+                    <img 
+                      src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80" 
+                      alt="Kepala Sekolah Drs. H. Suwito, M.Pd." 
+                      className="w-full aspect-[3/4] object-cover rounded-[15px]"
+                    />
+                  </div>
+                </div>
+                <div className="md:col-span-8 space-y-6">
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900">Drs. H. Suwito, M.Pd.</h3>
+                    <p className="text-brand-teal font-semibold text-lg">Kepala Sekolah SMAS Muhammadiyah 1 Banyuwangi</p>
+                  </div>
+                  <div className="p-6 bg-slate-50 rounded-[15px] text-slate-700 leading-relaxed text-lg border border-slate-100 relative">
+                    <Quote className="absolute top-6 right-6 w-12 h-12 text-slate-200" />
+                    <p className="font-semibold text-slate-900 mb-4">Assalamu’alaikum Warahmatullahi Wabarakatuh,</p>
+                    <p className="mb-4 relative z-10">
+                      Puji dan syukur senantiasa kita panjatkan ke hadirat Allah SWT. Selamat datang di portal web resmi SMAS Muhammadiyah 1 Banyuwangi. Kami terus berupaya meningkatkan mutu pendidikan tidak hanya lewat kualitas pengajaran konvensional, melainkan adaptasi sistem tata kelola digital (Sistem Informasi Terintegrasi).
+                    </p>
+                    <p className="mb-4 relative z-10">
+                      Sistem ini lahir dari tekad untuk memastikan transparansi nilai, kemudahan pendaftaran, serta pengawasan evaluasi ujian yang berintegritas. Harapan kami, ekosistem modern ini membawa kenyamanan baik untuk peserta didik, guru, maupun orang tua dalam memantau perkembangan anak-anak kita.
+                    </p>
+                    <p className="mb-4 relative z-10">
+                      Semoga ikhtiar kita menjadikan putra-putri bangsa yang saleh, mandiri, dan berdaya saing global mendapat keridhaan-Nya.
+                    </p>
+                    <p className="font-bold text-slate-900 relative z-10">Wassalamu’alaikum Warahmatullahi Wabarakatuh.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 4: Struktur Organisasi */}
+          {activeTab === 'struktur' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-slate-900 mb-6 border-b pb-4">Struktur Organisasi Sekolah</h2>
+              <div className="bg-slate-50 rounded-[15px] border border-slate-200 p-8 flex flex-col items-center justify-center min-h-[300px]">
+                <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
+                <h3 className="text-xl font-bold text-slate-700 mb-2">Bagan Struktur Organisasi</h3>
+                <p className="text-slate-500 mb-6">Dokumen bagan hierarki struktural kepemimpinan sekolah saat ini sedang dalam proses pembaharuan desain visual.</p>
+                <button className="px-6 py-3 bg-brand-blueDark text-white font-semibold rounded-[15px] shadow-sm hover:bg-brand-blueDark/90 transition-colors">
+                  Unduh Dokumen PDF
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
