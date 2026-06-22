@@ -1,6 +1,7 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Search, Edit, Trash2, Filter } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Filter, Upload, Download } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function AdminUserList() {
   const [activeTab, setActiveTab] = useState('semua');
@@ -16,21 +17,31 @@ export default function AdminUserList() {
     <AdminLayout title="Manajemen Pengguna (Users)">
       <div className="bg-white rounded-[15px] shadow-card overflow-hidden">
         
-        {/* Tabs */}
-        <div className="flex border-b border-slate-100 overflow-x-auto">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab.id 
-                  ? 'border-indigo-600 text-indigo-600' 
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              {tab.label}
+        {/* Tabs & Import/Export Buttons */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 px-2 sm:px-0">
+          <div className="flex overflow-x-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
+                  activeTab === tab.id 
+                    ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' 
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2 p-2 sm:p-0 sm:pr-4">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+              <Download className="w-3.5 h-3.5" /> Export Excel
             </button>
-          ))}
+            <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200">
+              <Upload className="w-3.5 h-3.5" /> Import Excel
+            </button>
+          </div>
         </div>
 
         {/* Toolbar */}
@@ -41,16 +52,16 @@ export default function AdminUserList() {
               <input 
                 type="text" 
                 placeholder="Cari nama, email, NIP/NISN..." 
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
               />
             </div>
-            <button className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 transition-colors shrink-0">
+            <button className="p-2.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 transition-colors shrink-0">
               <Filter className="w-4 h-4" />
             </button>
           </div>
-          <button className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0">
-            <Plus className="w-4 h-4" /> Tambah User
-          </button>
+          <Link to="/panel/users/tambah" className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shrink-0 shadow-sm">
+            <Plus className="w-4 h-4" /> Tambah User Baru
+          </Link>
         </div>
         
         {/* Table */}

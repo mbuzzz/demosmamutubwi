@@ -29,6 +29,7 @@ import AdminGelombangList from './pages/admin/spmb/AdminGelombangList';
 import AdminFormBuilder from './pages/admin/spmb/AdminFormBuilder';
 import AdminDownloadsList from './pages/admin/downloads/AdminDownloadsList';
 import AdminUserList from './pages/admin/akademik/AdminUserList';
+import AdminUserForm from './pages/admin/akademik/AdminUserForm';
 import AdminPenugasanList from './pages/admin/akademik/AdminPenugasanList';
 import AdminKurikulumList from './pages/admin/kurikulum/AdminKurikulumList';
 import AdminKurikulumForm from './pages/admin/kurikulum/AdminKurikulumForm';
@@ -36,8 +37,13 @@ import AdminKelasList from './pages/admin/akademik/AdminKelasList';
 import AdminMapelList from './pages/admin/akademik/AdminMapelList';
 import AdminNilaiEntry from './pages/admin/akademik/AdminNilaiEntry';
 import AdminRaporList from './pages/admin/akademik/AdminRaporList';
+import AdminCatatanWali from './pages/admin/akademik/rapor/AdminCatatanWali';
+import AdminCetakRaporDetail from './pages/admin/akademik/rapor/AdminCetakRaporDetail';
+import AdminJadwalPelajaran from './pages/admin/akademik/jadwal/AdminJadwalPelajaran';
+import AdminKehadiranSiswa from './pages/admin/akademik/jadwal/AdminKehadiranSiswa';
 import AdminSettings from './pages/admin/settings/AdminSettings';
 import AdminProfile from './pages/admin/profile/AdminProfile';
+import AdminSPMBDetail from './pages/admin/spmb/detail/AdminSPMBDetail';
 
 // Wrapper for public pages to keep them structured with Navbar and Footer
 function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -79,18 +85,25 @@ export default function App() {
         <Route path="/panel/kategori-berita" element={<ProtectedRoute><AdminKategoriList /></ProtectedRoute>} />
         <Route path="/panel/galeri" element={<ProtectedRoute><AdminGaleriList /></ProtectedRoute>} />
         <Route path="/panel/spmb" element={<ProtectedRoute><AdminSPMBList /></ProtectedRoute>} />
+        <Route path="/panel/spmb/detail/:id" element={<ProtectedRoute><AdminSPMBDetail /></ProtectedRoute>} />
         <Route path="/panel/spmb/gelombang" element={<ProtectedRoute><AdminGelombangList /></ProtectedRoute>} />
         <Route path="/panel/spmb/form-builder" element={<ProtectedRoute><AdminFormBuilder /></ProtectedRoute>} />
         <Route path="/panel/downloads" element={<ProtectedRoute><AdminDownloadsList /></ProtectedRoute>} />
         
         <Route path="/panel/users" element={<ProtectedRoute><AdminUserList /></ProtectedRoute>} />
+        <Route path="/panel/users/tambah" element={<ProtectedRoute><AdminUserForm /></ProtectedRoute>} />
         <Route path="/panel/penugasan" element={<ProtectedRoute><AdminPenugasanList /></ProtectedRoute>} />
+        <Route path="/panel/jadwal" element={<ProtectedRoute><AdminJadwalPelajaran /></ProtectedRoute>} />
+        <Route path="/panel/kehadiran" element={<ProtectedRoute><AdminKehadiranSiswa /></ProtectedRoute>} />
         <Route path="/panel/kurikulum" element={<ProtectedRoute><AdminKurikulumList /></ProtectedRoute>} />
         <Route path="/panel/kurikulum/tambah" element={<ProtectedRoute><AdminKurikulumForm /></ProtectedRoute>} />
         <Route path="/panel/kelas" element={<ProtectedRoute><AdminKelasList /></ProtectedRoute>} />
         <Route path="/panel/mapel" element={<ProtectedRoute><AdminMapelList /></ProtectedRoute>} />
         <Route path="/panel/nilai" element={<ProtectedRoute><AdminNilaiEntry /></ProtectedRoute>} />
+        
         <Route path="/panel/rapor" element={<ProtectedRoute><AdminRaporList /></ProtectedRoute>} />
+        <Route path="/panel/rapor/catatan" element={<ProtectedRoute><AdminCatatanWali /></ProtectedRoute>} />
+        <Route path="/panel/rapor/cetak/:id" element={<ProtectedRoute><AdminCetakRaporDetail /></ProtectedRoute>} />
         
         <Route path="/panel/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
         <Route path="/panel/profile" element={<ProtectedRoute><AdminProfile /></ProtectedRoute>} />

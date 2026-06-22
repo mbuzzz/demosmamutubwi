@@ -15,6 +15,8 @@ import {
   LayoutTemplate,
   Building2,
   MessageSquareQuote,
+  CalendarDays,
+  UserCheck,
   X
 } from 'lucide-react';
 import { useEffect } from 'react';
@@ -81,8 +83,10 @@ export default function AdminSidebar({
         { name: "Kurikulum", path: "/panel/kurikulum", icon: BookOpen },
         { name: "Kelas & Jurusan", path: "/panel/kelas", icon: School },
         { name: "Mata Pelajaran", path: "/panel/mapel", icon: BookOpen },
-        { name: "Nilai", path: "/panel/nilai", icon: LineChart },
-        { name: "Rapor", path: "/panel/rapor", icon: FileText },
+        { name: "Jadwal Pelajaran", path: "/panel/jadwal", icon: CalendarDays },
+        { name: "Presensi Siswa", path: "/panel/kehadiran", icon: UserCheck },
+        { name: "Entry Nilai", path: "/panel/nilai", icon: LineChart },
+        { name: "Cetak Rapor", path: "/panel/rapor", icon: FileText },
       ]
     },
     {

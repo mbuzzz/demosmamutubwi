@@ -1,9 +1,18 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Upload, Download } from 'lucide-react';
 
 export default function AdminKelasList() {
   return (
     <AdminLayout title="Manajemen Kelas & Jurusan">
+      <div className="flex justify-end gap-2 mb-4">
+        <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white shadow-sm border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors">
+          <Download className="w-3.5 h-3.5" /> Export Data
+        </button>
+        <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 shadow-sm rounded-lg transition-colors">
+          <Upload className="w-3.5 h-3.5" /> Import Excel
+        </button>
+      </div>
+      
       <div className="bg-white rounded-[15px] shadow-card overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative max-w-sm w-full">

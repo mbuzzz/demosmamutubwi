@@ -1,5 +1,6 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { Search, Eye, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function AdminSPMBList() {
   return (
@@ -56,7 +57,7 @@ export default function AdminSPMBList() {
                   <span className="px-2.5 py-1 bg-amber-50 text-amber-600 rounded-md text-xs font-medium border border-amber-100">Verifikasi Berkas</span>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button className="p-1.5 text-slate-400 hover:text-indigo-600"><Eye className="w-4 h-4" /></button>
+                  <Link to="/panel/spmb/detail/1" className="inline-flex p-1.5 text-slate-400 hover:text-indigo-600"><Eye className="w-4 h-4" /></Link>
                   <button className="p-1.5 text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                 </td>
               </tr>
