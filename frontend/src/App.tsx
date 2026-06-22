@@ -9,6 +9,7 @@ import NewsHub from './pages/NewsHub';
 import NewsDetail from './pages/NewsDetail';
 import Downloads from './pages/Downloads';
 import Login from './pages/Login';
+import SPMB from './pages/SPMB';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
               <Route path="/berita/:id" element={<NewsDetail />} />
               <Route path="/unduhan" element={<Downloads />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/spmb" element={<SPMB />} />
             </Routes>
           </main>
         </div>

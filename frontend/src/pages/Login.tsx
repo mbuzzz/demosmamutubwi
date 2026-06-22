@@ -79,32 +79,34 @@ export default function Login() {
           </div>
 
           {/* Type Switcher */}
-          <div className="flex p-1.5 bg-slate-100 rounded-[15px] mb-8">
+          <div className="flex bg-slate-100 rounded-[15px] mb-8 p-1.5 shadow-inner">
             <button
               type="button"
               onClick={() => setLoginType('siswa')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                 loginType === 'siswa' 
-                  ? 'bg-white text-brand-blueDark shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                  ? 'bg-white text-brand-blueDark shadow-sm transform scale-100' 
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 scale-95'
               }`}
             >
-              <GraduationCap className="w-5 h-5" /> Siswa & Ortu
+              <GraduationCap className={`w-6 h-6 ${loginType === 'siswa' ? 'text-brand-teal' : 'text-slate-400'}`} />
+              Siswa & Ortu
             </button>
             <button
               type="button"
               onClick={() => setLoginType('guru-admin')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                 loginType === 'guru-admin' 
-                  ? 'bg-brand-blueDark text-white shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                  ? 'bg-brand-blueDark text-white shadow-sm transform scale-100' 
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 scale-95'
               }`}
             >
-              <ShieldCheck className="w-5 h-5" /> Guru & Admin
+              <ShieldCheck className={`w-6 h-6 ${loginType === 'guru-admin' ? 'text-brand-yellow' : 'text-slate-400'}`} />
+              Guru & Admin
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-700 pl-1">
                 {loginType === 'siswa' ? 'NISN / Email Siswa' : 'Email Pegawai / NIP'}

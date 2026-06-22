@@ -113,7 +113,7 @@ export default function Home() {
 
       {/* Sambutan Kepala Sekolah */}
       <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-4 flex justify-center">
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-blueDark to-brand-teal rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-300"></div>

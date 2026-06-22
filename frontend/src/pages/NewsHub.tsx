@@ -49,7 +49,7 @@ export default function NewsHub() {
 
   return (
     <div className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-slate-900 mb-3">Portal Berita & Kabar Sekolah</h1>
           <p className="text-slate-500">Kumpulan cerita, pengumuman resmi, dan pencapaian civitas akademika kami.</p>

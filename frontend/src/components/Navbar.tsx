@@ -10,7 +10,8 @@ export default function Navbar() {
     { path: '/profile', label: 'Profil Sekolah' },
     { path: '/guru', label: 'Direktori Guru' },
     { path: '/berita', label: 'Berita' },
-    { path: '/unduhan', label: 'Unduhan' }
+    { path: '/unduhan', label: 'Unduhan' },
+    { path: '/spmb', label: 'SPMB' }
   ];
 
   return (

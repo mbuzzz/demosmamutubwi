@@ -18,7 +18,7 @@ export default function Downloads() {
 
   return (
     <div className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold text-slate-900 mb-3">Pusat Unduhan Dokumen</h1>
           <p className="text-slate-500">Akses dokumen publik resmi, kalender, brosur, serta panduan administrasi sekolah.</p>
