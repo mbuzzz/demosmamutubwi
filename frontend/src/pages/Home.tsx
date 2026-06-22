@@ -30,81 +30,79 @@ export default function Home() {
 
   return (
     <div className="space-y-0">
-      {/* Minimalist Modern Hero Section with Animation */}
-      <section className="relative min-h-[90vh] flex items-center justify-center bg-slate-50 overflow-hidden">
-        {/* Abstract Background Shapes */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl opacity-50 animate-pulse"></div>
-          <div className="absolute top-40 -left-20 w-72 h-72 rounded-full bg-brand-blueDark/10 blur-3xl opacity-50 animate-pulse" style={{ animationDelay: '2s' }}></div>
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+      {/* Modern Bento Grid Hero Section (Static, No Animations, Mobile-First) */}
+      <section className="bg-slate-50 pt-8 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Mobile-First Grid Container */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)]">
             
-            {/* Text Content */}
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-semibold text-brand-teal uppercase tracking-wide">
-                <span className="w-2 h-2 rounded-full bg-brand-yellow animate-pulse"></span>
-                Penerimaan Siswa Baru 2026 Dibuka
-              </div>
-              
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1]">
-                Pendidikan <span className="text-gradien-biru-hijau">Modern</span> & Berkarakter.
-              </h1>
-              
-              <p className="text-lg sm:text-xl text-slate-600 max-w-xl leading-relaxed">
-                Platform digitalisasi sekolah terpadu yang memadukan keunggulan akademik, integritas Islami, dan teknologi masa depan.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <a 
-                  href="#portal-login"
-                  className="inline-flex justify-center items-center gap-2 bg-brand-blueDark hover:bg-brand-blueDark/90 text-white font-semibold px-8 py-4 rounded-[15px] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
-                >
-                  Masuk Portal SIT <ArrowRight className="w-4 h-4" />
-                </a>
-                <Link 
-                  to="/profile" 
-                  className="inline-flex justify-center items-center bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold px-8 py-4 rounded-[15px] shadow-sm hover:shadow-card transition-all duration-300"
-                >
-                  Jelajahi Profil
-                </Link>
+            {/* Bento Block 1: Main Value Proposition (Span 2 cols on md, 2 cols on lg) */}
+            <div className="md:col-span-2 lg:col-span-2 row-span-2 bg-white rounded-[15px] p-8 md:p-10 shadow-card border border-slate-100 flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-teal/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+              <div className="relative z-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-xs font-bold text-brand-blueDark uppercase tracking-wider mb-6">
+                  <span className="w-2 h-2 rounded-full bg-brand-green"></span>
+                  Penerimaan Siswa Baru Dibuka
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
+                  Pendidikan <span className="text-gradien-biru-hijau">Modern</span> Berbasis Karakter.
+                </h1>
+                <p className="text-slate-600 text-lg leading-relaxed mb-8 max-w-md">
+                  Mengintegrasikan kurikulum unggulan dengan teknologi tata kelola digital untuk melahirkan generasi yang cerdas dan Islami.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a 
+                    href="#daftar-sekarang"
+                    className="inline-flex items-center justify-center bg-brand-blueDark hover:bg-brand-blueDark/90 text-white font-bold px-6 py-3.5 rounded-[15px] shadow-sm transition-colors text-sm sm:text-base"
+                  >
+                    Daftar Sekarang <ArrowRight className="w-4 h-4 ml-2" />
+                  </a>
+                  <Link 
+                    to="/profile" 
+                    className="inline-flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-6 py-3.5 rounded-[15px] transition-colors text-sm sm:text-base"
+                  >
+                    Profil Sekolah
+                  </Link>
+                </div>
               </div>
             </div>
 
-            {/* Visual/Image Content */}
-            <div className="relative lg:h-[600px] flex items-center justify-center animate-in fade-in slide-in-from-right-12 duration-1000 delay-300 fill-mode-both">
-              <div className="relative w-full max-w-md lg:max-w-none">
-                {/* Main Image */}
-                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl z-10 border-4 border-white">
-                  <img 
-                    src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80" 
-                    alt="Siswa Berprestasi" 
-                    className="w-full h-auto object-cover aspect-[4/5] lg:aspect-[3/4]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-blueDark/60 via-transparent to-transparent"></div>
-                </div>
+            {/* Bento Block 2: Featured Image (Span 1 col on md, 2 cols on lg) */}
+            <div className="md:col-span-1 lg:col-span-2 row-span-1 lg:row-span-2 rounded-[15px] overflow-hidden shadow-card relative">
+              <img 
+                src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80" 
+                alt="Kegiatan Belajar" 
+                className="w-full h-full object-cover min-h-[250px]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-blueDark/80 to-transparent flex flex-col justify-end p-6">
+                <span className="text-brand-yellow font-bold text-sm mb-1">Fasilitas Lengkap</span>
+                <span className="text-white font-semibold text-lg">Lingkungan Belajar yang Nyaman</span>
+              </div>
+            </div>
 
-                {/* Floating Card 1 */}
-                <div className="absolute -left-6 bottom-20 z-20 bg-white p-4 rounded-[15px] shadow-card-hover animate-bounce" style={{ animationDuration: '3s' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-brand-green/10 text-brand-green rounded-lg"><Award className="w-6 h-6" /></div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">Akreditasi A</p>
-                      <p className="text-xs text-slate-500">Unggul & Berprestasi</p>
-                    </div>
-                  </div>
-                </div>
+            {/* Bento Block 3: Quick Stat / Mini Feature 1 */}
+            <div className="md:col-span-1 lg:col-span-1 bg-brand-teal text-white rounded-[15px] p-6 shadow-card flex flex-col justify-center">
+              <Award className="w-8 h-8 text-brand-yellow mb-4" />
+              <h3 className="text-2xl font-bold mb-1">Akreditasi A</h3>
+              <p className="text-teal-100 text-sm">Terakreditasi unggul oleh BAN-SM secara konsisten.</p>
+            </div>
 
-                {/* Floating Card 2 */}
-                <div className="absolute -right-6 top-20 z-20 bg-white p-4 rounded-[15px] shadow-card-hover animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-brand-teal/10 text-brand-teal rounded-lg"><GraduationCap className="w-6 h-6" /></div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">Digital Terpadu</p>
-                      <p className="text-xs text-slate-500">Sistem CBT & E-Rapor</p>
-                    </div>
-                  </div>
+            {/* Bento Block 4: Quick Stat / Mini Feature 2 */}
+            <div className="md:col-span-2 lg:col-span-1 bg-brand-yellow text-brand-blueDark rounded-[15px] p-6 shadow-card flex flex-col justify-center">
+              <GraduationCap className="w-8 h-8 mb-4" />
+              <h3 className="text-2xl font-bold mb-1">CBT & E-Rapor</h3>
+              <p className="text-brand-blueDark/80 text-sm">Sistem evaluasi akademik digital terintegrasi anti-curang.</p>
+            </div>
+
+            {/* Bento Block 5: Small Image / Extra context */}
+            <div className="hidden lg:block lg:col-span-2 bg-white rounded-[15px] shadow-card border border-slate-100 overflow-hidden flex items-center">
+              <div className="flex h-full w-full">
+                <div className="w-1/3 h-full">
+                  <img src="https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=400&auto=format&fit=crop&q=80" alt="Masjid" className="w-full h-full object-cover" />
+                </div>
+                <div className="w-2/3 p-6 flex flex-col justify-center">
+                  <h3 className="text-lg font-bold text-slate-900 mb-1">Pembinaan Karakter Islami</h3>
+                  <p className="text-sm text-slate-500 line-clamp-2">Program Baitul Arqam, shalat berjamaah, dan pendalaman Al-Islam Kemuhammadiyahan.</p>
                 </div>
               </div>
             </div>
@@ -143,7 +141,7 @@ export default function Home() {
             <div className="space-y-4 text-slate-600 leading-relaxed text-lg">
               <p className="font-medium text-slate-800">Assalamu’alaikum Warahmatullahi Wabarakatuh,</p>
               <p>
-                Selamat datang di portal informasi resmi SMAS Muhammadiyah 1 Banyuwangi. Melalui peningkatan tata kelola lembaga pendidikan modern, kami menghadirkan <strong className="text-brand-teal">Sistem Informasi Terintegrasi (SIT)</strong>. Platform ini menghubungkan pendaftaran siswa (SPMB), administrasi sekolah, absensi, hingga bilik ujian CBT digital anti-cheat demi masa depan generasi unggulan berakhlak mulia.
+                Selamat datang di portal resmi SMAS Muhammadiyah 1 Banyuwangi. Kami terus berkomitmen memberikan layanan pendidikan unggulan dengan mengintegrasikan sistem akademik modern (SIT). Melalui platform digital ini, kami berharap dapat mewujudkan transparansi dan kemudahan tata kelola sekolah bagi pendidik, siswa, dan wali murid demi membentuk generasi yang cerdas dan berakhlak mulia.
               </p>
               <p className="font-semibold text-slate-900">Wassalamu’alaikum Warahmatullahi Wabarakatuh.</p>
             </div>
