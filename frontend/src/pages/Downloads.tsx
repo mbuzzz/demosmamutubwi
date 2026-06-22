@@ -32,12 +32,12 @@ export default function Downloads() {
             placeholder="Cari nama dokumen..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-slate-800 shadow-sm"
+            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white text-slate-800 shadow-sm"
           />
         </div>
 
         {/* Table List */}
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -65,7 +65,7 @@ export default function Downloads() {
                       <td className="py-4 px-6 text-center text-xs font-medium text-slate-500">{doc.size}</td>
                       <td className="py-4 px-6 text-center text-xs text-slate-500">{doc.date}</td>
                       <td className="py-4 px-6 text-center">
-                        <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2 rounded-lg inline-flex items-center justify-center transition-colors">
+                        <button className="bg-brand-teal hover:bg-brand-teal/90 text-white font-bold p-2.5 rounded-xl inline-flex items-center justify-center transition-colors shadow-sm">
                           <Download className="h-4 w-4" />
                         </button>
                       </td>

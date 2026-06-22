@@ -1,52 +1,50 @@
 import React, { useState } from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import { Menu, X, BookOpen } from 'lucide-react';
 
-interface NavbarProps {
-  currentPage: string;
-  onPageChange: (page: string) => void;
-}
-
-export default function Navbar({ currentPage, onPageChange }: NavbarProps) {
+export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: 'home', label: 'Beranda' },
-    { id: 'about', label: 'Profil Sekolah' },
-    { id: 'guru', label: 'Direktori Guru' },
-    { id: 'news', label: 'Berita' },
-    { id: 'downloads', label: 'Unduhan' }
+    { path: '/', label: 'Beranda' },
+    { path: '/profile', label: 'Profil Sekolah' },
+    { path: '/guru', label: 'Direktori Guru' },
+    { path: '/berita', label: 'Berita' },
+    { path: '/unduhan', label: 'Unduhan' }
   ];
 
   return (
-    <nav className="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
+    <nav className="bg-brand-blueDark text-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onPageChange('home')}>
-            <BookOpen className="h-8 w-8 text-emerald-300" />
+          <Link to="/" className="flex items-center gap-3">
+            <BookOpen className="h-8 w-8 text-brand-teal" />
             <div>
-              <span className="font-bold text-lg block leading-none">SMAS MUHAMMADIYAH 1</span>
-              <span className="text-xs text-emerald-200 block">BANYUWANGI</span>
+              <span className="font-bold text-base sm:text-lg block leading-none">SMAS MUHAMMADIYAH 1</span>
+              <span className="text-xs text-slate-300 block mt-0.5">BANYUWANGI</span>
             </div>
-          </div>
+          </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-2">
             {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onPageChange(item.id)}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentPage === item.id 
-                    ? 'bg-emerald-950 text-white' 
-                    : 'text-emerald-100 hover:bg-emerald-700 hover:text-white'
-                }`}
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-brand-blueSlate/50 text-brand-yellow font-semibold shadow-inner' 
+                      : 'text-slate-100 hover:bg-brand-blueSlate/30 hover:text-white'
+                  }`
+                }
               >
                 {item.label}
-              </button>
+              </NavLink>
             ))}
             <a 
               href="#portal-login"
-              className="ml-4 bg-yellow-500 hover:bg-yellow-600 text-emerald-950 font-semibold px-4 py-2 rounded-md text-sm transition-colors"
+              className="ml-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-4 py-2 rounded-xl text-sm shadow-sm transition-all duration-200"
             >
               Portal SIT
             </a>
@@ -54,10 +52,7 @@ export default function Navbar({ currentPage, onPageChange }: NavbarProps) {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-emerald-100 hover:text-white hover:bg-emerald-700 focus:outline-none"
-            >
+            <button onClick={() => setIsOpen(!isOpen)} className="p-2 rounded-lg hover:bg-brand-blueSlate/30">
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
@@ -66,26 +61,24 @@ export default function Navbar({ currentPage, onPageChange }: NavbarProps) {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-emerald-900 border-t border-emerald-700 px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="md:hidden bg-brand-blueDark/95 backdrop-blur-md border-t border-slate-700 px-2 pt-2 pb-3 space-y-1">
           {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                onPageChange(item.id);
-                setIsOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                currentPage === item.id 
-                  ? 'bg-emerald-950 text-white' 
-                  : 'text-emerald-100 hover:bg-emerald-700 hover:text-white'
-              }`}
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={() => setIsOpen(false)}
+              className={({ isActive }) =>
+                `block px-3 py-2 rounded-lg text-base font-medium ${
+                  isActive ? 'bg-brand-blueSlate text-brand-yellow' : 'text-slate-100 hover:bg-brand-blueSlate/50'
+                }`
+              }
             >
               {item.label}
-            </button>
+            </NavLink>
           ))}
           <a
             href="#portal-login"
-            className="block w-full text-center mt-4 bg-yellow-500 hover:bg-yellow-600 text-emerald-950 font-semibold px-4 py-2 rounded-md text-base transition-colors"
+            className="block text-center mt-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-4 py-2.5 rounded-xl text-base"
           >
             Portal SIT
           </a>

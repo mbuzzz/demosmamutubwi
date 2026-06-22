@@ -43,7 +43,7 @@ export default function GuruDirectory() {
         {filteredTeachers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {filteredTeachers.map((teacher, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border hover:shadow-md transition-shadow flex items-start gap-4">
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-card border border-slate-100 hover:shadow-card-hover transition-shadow flex items-start gap-4">
                 <div className="h-16 w-16 rounded-full overflow-hidden shrink-0 bg-slate-100">
                   <img src={teacher.img} alt={teacher.name} className="w-full h-full object-cover" />
                 </div>

@@ -1,13 +1,11 @@
 import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 
-interface NewsDetailProps {
-  articleId: number;
-  onBack: () => void;
-}
+export default function NewsDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
-export default function NewsDetail({ articleId, onBack }: NewsDetailProps) {
-  // Mock search for single article
   const mockArticles = [
     {
       id: 1,
@@ -35,15 +33,15 @@ export default function NewsDetail({ articleId, onBack }: NewsDetailProps) {
     }
   ];
 
-  const article = mockArticles.find(a => a.id === articleId) || mockArticles[0];
+  const article = mockArticles.find(a => a.id === Number(id)) || mockArticles[0];
 
   return (
     <div className="bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border overflow-hidden p-6 sm:p-8">
+      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden p-6 sm:p-8">
         {/* Back Button */}
         <button 
-          onClick={onBack}
-          className="text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center gap-2 mb-6 transition-colors"
+          onClick={() => navigate('/berita')}
+          className="text-slate-500 hover:text-brand-blueDark font-semibold text-sm flex items-center gap-2 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar Berita
         </button>
@@ -54,7 +52,7 @@ export default function NewsDetail({ articleId, onBack }: NewsDetailProps) {
         </h1>
 
         {/* Metadata */}
-        <div className="flex flex-wrap items-center gap-4 text-slate-400 text-xs sm:text-sm mb-8 pb-4 border-b">
+        <div className="flex flex-wrap items-center gap-4 text-slate-400 text-xs sm:text-sm mb-8 pb-4 border-b border-slate-100">
           <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4 text-slate-400" /> {article.date}</span>
           <span className="flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-medium"><Tag className="h-3 w-3 text-slate-500" /> {article.category}</span>
         </div>
@@ -65,7 +63,7 @@ export default function NewsDetail({ articleId, onBack }: NewsDetailProps) {
         </div>
 
         {/* Body Text */}
-        <div className="prose max-w-none text-slate-600 leading-relaxed text-base space-y-4 whitespace-pre-line">
+        <div className="prose max-w-none text-slate-600 leading-relaxed text-lg space-y-4 whitespace-pre-line">
           {article.content}
         </div>
       </div>

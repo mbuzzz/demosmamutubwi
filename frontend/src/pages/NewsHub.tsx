@@ -1,10 +1,9 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
-interface NewsHubProps {
-  onSelectArticle: (articleId: number) => void;
-}
-
-export default function NewsHub({ onSelectArticle }: NewsHubProps) {
+export default function NewsHub() {
+  const navigate = useNavigate();
   const articles = [
     {
       id: 1,
@@ -58,29 +57,26 @@ export default function NewsHub({ onSelectArticle }: NewsHubProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {articles.map((article) => (
-            <div key={article.id} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border flex flex-col justify-between">
+            <div key={article.id} className="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 border border-slate-100 flex flex-col justify-between cursor-pointer" onClick={() => navigate(`/berita/${article.id}`)}>
               <div>
                 <div className="h-48 overflow-hidden bg-slate-200 relative">
-                  <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
-                  <span className="absolute top-3 left-3 bg-emerald-700 text-white text-xs font-semibold px-2.5 py-1 rounded">
+                  <img src={article.image} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <span className="absolute top-3 left-3 bg-brand-teal text-white text-xs font-semibold px-2.5 py-1 rounded">
                     {article.category}
                   </span>
                 </div>
                 <div className="p-6">
                   <span className="text-xs text-slate-400 font-medium block mb-2">{article.date}</span>
-                  <h2 className="font-bold text-slate-900 leading-tight text-lg mb-3 line-clamp-2 hover:text-emerald-700 cursor-pointer" onClick={() => onSelectArticle(article.id)}>
+                  <h2 className="font-bold text-slate-900 leading-tight text-lg mb-3 line-clamp-2 group-hover:text-brand-teal transition-colors">
                     {article.title}
                   </h2>
                   <p className="text-slate-600 text-sm line-clamp-3 leading-relaxed mb-4">{article.excerpt}</p>
                 </div>
               </div>
-              <div className="px-6 pb-6">
-                <button 
-                  onClick={() => onSelectArticle(article.id)}
-                  className="text-emerald-700 hover:text-emerald-800 font-semibold text-sm inline-flex items-center gap-1 transition-colors"
-                >
-                  Baca Lengkap
-                </button>
+              <div className="px-6 pb-6 mt-auto">
+                <div className="text-brand-teal font-semibold text-sm inline-flex items-center gap-1 transition-colors">
+                  Baca Lengkap <ArrowRight className="h-4 w-4" />
+                </div>
               </div>
             </div>
           ))}
