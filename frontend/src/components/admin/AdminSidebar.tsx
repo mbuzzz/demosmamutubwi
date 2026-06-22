@@ -50,7 +50,6 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         title: "Akademik & LMS",
         items: [
           { name: "Jadwal Pelajaran", path: "/panel/jadwal", icon: CalendarDays },
-          { name: "Buku Nilai Harian", path: "/panel/nilai-harian", icon: FileText },
           { name: "Presensi / Absensi", path: "/panel/kehadiran", icon: UserCheck },
           { name: "Users & Pegawai", path: "/panel/users", icon: Users },
           { name: "Penugasan", path: "/panel/penugasan", icon: ClipboardList },
@@ -114,7 +113,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: CalendarDays },
           { name: "Buku Nilai Harian", path: "/panel/guru/nilai", icon: FileText },
-          { name: "Bank Materi & Tugas", path: "/panel/guru/materi", icon: BookOpen },
+          { name: "Bank Materi", path: "/panel/guru/materi", icon: BookOpen },
+          { name: "Daftar Tugas", path: "/panel/guru/tugas", icon: ClipboardList },
         ]
       },
       {

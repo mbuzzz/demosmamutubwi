@@ -52,7 +52,8 @@ import AdminSPMBDetail from './pages/admin/spmb/detail/AdminSPMBDetail';
 import GuruDashboard from './pages/admin/guru/GuruDashboard';
 import GuruJurnalPresensi from './pages/admin/guru/kbm/GuruJurnalPresensi';
 import GuruBukuNilai from './pages/admin/guru/kbm/GuruBukuNilai';
-import GuruBankMateri from './pages/admin/guru/kbm/GuruBankMateri';
+import GuruBankMateri from './pages/admin/guru/kbm/GuruMateri';
+import GuruTugas from './pages/admin/guru/kbm/GuruTugas';
 import GuruBankSoalEditor from './pages/admin/guru/cbt/GuruBankSoalEditor';
 
 // Wrapper for public pages to keep them structured with Navbar and Footer
@@ -126,6 +127,7 @@ export default function App() {
         <Route path="/panel/guru/jurnal" element={<ProtectedRoute><GuruJurnalPresensi /></ProtectedRoute>} />
         <Route path="/panel/guru/nilai" element={<ProtectedRoute><GuruBukuNilai /></ProtectedRoute>} />
         <Route path="/panel/guru/materi" element={<ProtectedRoute><GuruBankMateri /></ProtectedRoute>} />
+        <Route path="/panel/guru/tugas" element={<ProtectedRoute><GuruTugas /></ProtectedRoute>} />
         <Route path="/panel/guru/soal" element={<ProtectedRoute><GuruBankSoalEditor /></ProtectedRoute>} />
       </Routes>
     </Router>

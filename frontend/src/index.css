@@ -65,6 +65,24 @@
     --card-foreground: 210 40% 98%;
     --border: 217 33% 25%;
   }
+  /* Quill Dark Mode Fixes */
+  .dark .quill-custom-dark .ql-toolbar {
+    border-color: hsl(var(--border)) !important;
+    background-color: hsl(var(--card)) !important;
+  }
+  .dark .quill-custom-dark .ql-container {
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  .dark .quill-custom-dark .ql-stroke {
+    stroke: hsl(var(--foreground)) !important;
+  }
+  .dark .quill-custom-dark .ql-fill {
+    fill: hsl(var(--foreground)) !important;
+  }
+  .dark .quill-custom-dark .ql-picker {
+    color: hsl(var(--foreground)) !important;
+  }
 }
 
 @layer base {
