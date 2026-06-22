@@ -17,160 +17,217 @@ import {
   MessageSquareQuote,
   CalendarDays,
   UserCheck,
-  X
+  ChevronLeft,
+  ChevronRight,
+  MonitorPlay,
+  FileQuestion,
+  GraduationCap
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useRoleSimulator } from '../simulator/RoleContext';
 
-export default function AdminSidebar({ 
-  isOpen, 
-  setIsOpen 
-}: { 
-  isOpen: boolean; 
-  setIsOpen: (v: boolean) => void;
-}) {
+interface SidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (val: boolean) => void;
+}
+
+export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { simulatedRole } = useRoleSimulator();
 
-  // Auto-close sidebar on mobile when path changes
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsOpen(false);
+  // Dynamic Nav Groups based on Role
+  let navGroups: any[] = [];
+
+  if (simulatedRole === 'superadmin') {
+    navGroups = [
+      {
+        title: "Menu Utama",
+        items: [
+          { name: "Dashboard Admin", path: "/panel", icon: LayoutDashboard }
+        ]
+      },
+      {
+        title: "Akademik & LMS",
+        items: [
+          { name: "Jadwal Pelajaran", path: "/panel/jadwal", icon: CalendarDays },
+          { name: "Buku Nilai Harian", path: "/panel/nilai-harian", icon: FileText },
+          { name: "Presensi / Absensi", path: "/panel/kehadiran", icon: UserCheck },
+          { name: "Users & Pegawai", path: "/panel/users", icon: Users },
+          { name: "Penugasan", path: "/panel/penugasan", icon: ClipboardList },
+          { name: "Kelas & Jurusan", path: "/panel/kelas", icon: School },
+          { name: "Mata Pelajaran", path: "/panel/mapel", icon: BookOpen },
+          { name: "Kurikulum & Rumus", path: "/panel/kurikulum", icon: Settings },
+        ]
+      },
+      {
+        title: "Ujian Online (CBT)",
+        items: [
+          { name: "Bank Soal", path: "/panel/cbt/bank-soal", icon: FileQuestion },
+          { name: "Jadwal & Sesi Ujian", path: "/panel/cbt/jadwal", icon: CalendarDays },
+          { name: "Monitor Ujian", path: "/panel/cbt/monitor", icon: MonitorPlay },
+        ]
+      },
+      {
+        title: "Nilai & Rapor Akhir",
+        items: [
+          { name: "Ledger Nilai Akhir", path: "/panel/nilai", icon: LineChart },
+          { name: "Cetak Rapor Master", path: "/panel/rapor", icon: FileText },
+        ]
+      },
+      {
+        title: "Web Profile Publik",
+        items: [
+          { name: "Halaman Beranda", path: "/panel/beranda", icon: LayoutTemplate },
+          { name: "Profil Sekolah", path: "/panel/profil-sekolah", icon: Building2 },
+          { name: "Daftar Berita", path: "/panel/berita", icon: Newspaper },
+          { name: "Kategori Berita", path: "/panel/kategori-berita", icon: Tags },
+          { name: "Galeri Foto", path: "/panel/galeri", icon: ImageIcon },
+          { name: "Pusat Unduhan", path: "/panel/downloads", icon: Download },
+          { name: "Testimoni & FAQ", path: "/panel/faq-testimoni", icon: MessageSquareQuote },
+        ]
+      },
+      {
+        title: "SPMB (Penerimaan)",
+        items: [
+          { name: "Data Pendaftar", path: "/panel/spmb", icon: Users },
+          { name: "Gelombang Daftar", path: "/panel/spmb/gelombang", icon: ClipboardList },
+          { name: "Builder Form", path: "/panel/spmb/form-builder", icon: LayoutDashboard },
+        ]
+      },
+      {
+        title: "Sistem Admin",
+        items: [
+          { name: "Pengaturan Web", path: "/panel/settings", icon: Settings },
+        ]
       }
-    };
-    
-    // Close on mobile navigation
-    if (window.innerWidth < 1024) {
-      setIsOpen(false);
-    }
+    ];
+  } else if (simulatedRole === 'guru' || simulatedRole === 'walikelas') {
+    navGroups = [
+      {
+        title: "Ruang Guru",
+        items: [
+          { name: "Dashboard Guru", path: "/panel/guru", icon: LayoutDashboard }
+        ]
+      },
+      {
+        title: "KBM & Penilaian",
+        items: [
+          { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: CalendarDays },
+          { name: "Buku Nilai Harian", path: "/panel/guru/nilai", icon: FileText },
+          { name: "Bank Materi & Tugas", path: "/panel/guru/materi", icon: BookOpen },
+        ]
+      },
+      {
+        title: "Ujian Online (CBT)",
+        items: [
+          { name: "Bank Soal Saya", path: "/panel/guru/soal", icon: FileQuestion },
+          { name: "Monitor Ujian Kelas", path: "/panel/cbt/monitor", icon: MonitorPlay },
+        ]
+      }
+    ];
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [currentPath, setIsOpen]);
-
-  const navGroups = [
-    {
-      title: "Menu Utama",
-      items: [
-        { name: "Dashboard", path: "/panel", icon: LayoutDashboard }
-      ]
-    },
-    {
-      title: "Web Profile (Frontend)",
-      items: [
-        { name: "Halaman Beranda", path: "/panel/beranda", icon: LayoutTemplate },
-        { name: "Profil Sekolah", path: "/panel/profil-sekolah", icon: Building2 },
-        { name: "Daftar Berita", path: "/panel/berita", icon: Newspaper },
-        { name: "Kategori Berita", path: "/panel/kategori-berita", icon: Tags },
-        { name: "Galeri", path: "/panel/galeri", icon: ImageIcon },
-        { name: "Pusat Unduhan", path: "/panel/downloads", icon: Download },
-        { name: "Testimoni & FAQ", path: "/panel/faq-testimoni", icon: MessageSquareQuote },
-      ]
-    },
-    {
-      title: "SPMB (Penerimaan)",
-      items: [
-        { name: "Data Pendaftar", path: "/panel/spmb", icon: Users },
-        { name: "Gelombang", path: "/panel/spmb/gelombang", icon: ClipboardList },
-        { name: "Form Builder", path: "/panel/spmb/form-builder", icon: LayoutDashboard },
-      ]
-    },
-    {
-      title: "Akademik (LMS & Rapor)",
-      items: [
-        { name: "Users", path: "/panel/users", icon: Users },
-        { name: "Penugasan", path: "/panel/penugasan", icon: ClipboardList },
-        { name: "Kurikulum", path: "/panel/kurikulum", icon: BookOpen },
-        { name: "Kelas & Jurusan", path: "/panel/kelas", icon: School },
-        { name: "Mata Pelajaran", path: "/panel/mapel", icon: BookOpen },
-        { name: "Jadwal Pelajaran", path: "/panel/jadwal", icon: CalendarDays },
-        { name: "Presensi Siswa", path: "/panel/kehadiran", icon: UserCheck },
-        { name: "Entry Nilai", path: "/panel/nilai", icon: LineChart },
-        { name: "Cetak Rapor", path: "/panel/rapor", icon: FileText },
-      ]
-    },
-    {
-      title: "Sistem",
-      items: [
-        { name: "Profil Saya", path: "/panel/profile", icon: Users },
-        { name: "Pengaturan Web", path: "/panel/settings", icon: Settings },
-      ]
+    if (simulatedRole === 'walikelas') {
+      navGroups.push({
+        title: "Wali Kelas Binaan",
+        items: [
+          { name: "Data Siswa Kelas", path: "/panel/guru/wali-siswa", icon: Users },
+          { name: "Input Catatan Rapor", path: "/panel/guru/catatan-wali", icon: ClipboardList },
+          { name: "Cetak Rapor Kelas", path: "/panel/rapor", icon: GraduationCap },
+        ]
+      });
     }
-  ];
+  }
 
   return (
-    <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 h-full bg-[hsl(var(--sidebar-bg))] text-slate-300 w-64 z-50 
-        transition-transform duration-300 ease-in-out flex flex-col border-r border-slate-800
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        {/* Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0">
-          <Link to="/panel" className="flex items-center gap-3">
-            <div className="bg-white p-1 rounded-lg">
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+    <aside 
+      className={`
+        fixed top-0 left-0 h-full bg-white dark:bg-slate-900 shadow-card z-40 
+        transition-all duration-300 ease-in-out flex flex-col border-r border-slate-100 dark:border-slate-800
+        ${isCollapsed ? 'w-[80px]' : 'w-[260px]'}
+      `}
+    >
+      {/* Header Logo */}
+      <div className={`h-[72px] flex items-center shrink-0 border-b border-slate-100 dark:border-slate-800 transition-all duration-300 ${isCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
+        <Link to="/panel" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-10 justify-center' : 'w-full'}`}>
+          <div className="bg-indigo-600 p-1.5 rounded-xl shrink-0 shadow-sm shadow-indigo-200 dark:shadow-none">
+            <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain brightness-0 invert" />
+          </div>
+          {!isCollapsed && (
+            <div className="flex flex-col whitespace-nowrap animate-in fade-in duration-300">
+              <span className="font-extrabold text-slate-800 dark:text-white text-sm tracking-tight leading-tight">SIT ADMIN</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">SMAS Muh 1 Bwi</span>
             </div>
-            <div>
-              <div className="font-bold text-white text-sm leading-tight">SIT ADMIN</div>
-              <div className="text-[10px] text-slate-400">SMAS Muh 1 Bwi</div>
-            </div>
-          </Link>
-          <button 
-            className="lg:hidden p-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-white"
-            onClick={() => setIsOpen(false)}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          )}
+        </Link>
+      </div>
 
-        {/* Nav Links */}
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 custom-scrollbar">
-          {navGroups.map((group, idx) => (
-            <div key={idx}>
-              <div className="px-3 text-xs font-semibold text-[hsl(var(--sidebar-text))] uppercase tracking-wider mb-2">
+      {/* Collapse Toggle Button - overlapping the border */}
+      <button 
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -right-3.5 top-[26px] w-7 h-7 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all z-50 focus:outline-none"
+      >
+        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+      </button>
+
+      {/* Nav Links */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 space-y-8 custom-scrollbar">
+        {navGroups.map((group, idx) => (
+          <div key={idx} className="px-3">
+            {!isCollapsed && (
+              <div className="px-4 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 whitespace-nowrap">
                 {group.title}
               </div>
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`);
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`
-                        flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200
-                        ${isActive 
-                          ? 'bg-[hsl(var(--sidebar-active))] text-white shadow-sm' 
-                          : 'text-[hsl(var(--sidebar-text))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-white'
-                        }
-                      `}
-                    >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+            )}
+            {isCollapsed && (
+              <div className="w-8 h-px bg-slate-100 dark:bg-slate-800 mx-auto mb-3"></div>
+            )}
 
-        {/* Footer Sidebar */}
-        <div className="p-4 border-t border-white/10 text-xs text-slate-500 text-center">
-          v1.0.0 &copy; {new Date().getFullYear()}
-        </div>
-      </aside>
-    </>
+            <div className="space-y-1.5">
+              {group.items.map((item) => {
+                // strict match for panel dashboard, loose for others
+                const isActive = item.path === '/panel' 
+                  ? currentPath === '/panel'
+                  : currentPath.startsWith(item.path);
+                  
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className="relative group flex items-center w-full"
+                    title={isCollapsed ? item.name : undefined} // native tooltip fallback
+                  >
+                    <div className={`
+                      flex items-center gap-3 w-full py-2.5 rounded-xl font-semibold transition-all duration-200
+                      ${isCollapsed ? 'justify-center px-0 mx-2' : 'px-4 mx-1'}
+                      ${isActive 
+                        ? 'bg-indigo-50/80 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400' 
+                        : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300'
+                      }
+                    `}>
+                      <Icon className={`shrink-0 transition-colors ${isCollapsed ? 'w-5 h-5' : 'w-[18px] h-[18px]'} ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+                      
+                      {!isCollapsed && (
+                        <span className="whitespace-nowrap text-[13px] tracking-wide">{item.name}</span>
+                      )}
+                    </div>
+                    
+                    {/* Tooltip for collapsed mode */}
+                    {isCollapsed && (
+                      <div className="absolute left-14 opacity-0 invisible group-hover:opacity-100 group-hover:visible bg-slate-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap z-50 transition-all translate-x-2 group-hover:translate-x-0">
+                        {item.name}
+                        {/* Triangle pointer */}
+                        <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-slate-800"></div>
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
   );
 }

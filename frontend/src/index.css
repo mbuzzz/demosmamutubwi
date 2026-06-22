@@ -38,16 +38,32 @@
     --radius: 15px;
   }
 
-  /* Tema Admin Panel: Dark Navy (#1E1E2C) & Clean UI */
+  /* Tema Admin Panel: Modern, Fun, Minimalist, Glassmorphism */
   .admin-theme {
-    /* Background slate-50/100 for main content area */
     --admin-bg: 210 40% 98%;
-    /* Dark Navy Sidebar */
-    --sidebar-bg: 235 19% 15%; 
-    --sidebar-hover: 235 19% 20%;
-    --sidebar-active: 236 34% 42%;
-    --sidebar-text: 220 14% 71%;
+    --sidebar-bg: 0 0% 100%; 
+    --sidebar-hover: 226 100% 97%; 
+    --sidebar-active: 236 34% 42%; 
+    --sidebar-text: 215 16% 47%; 
     --sidebar-text-active: 0 0% 100%;
+    --radius: 20px;
+  }
+
+  /* Dark Mode Admin Panel */
+  .dark .admin-theme {
+    --admin-bg: 222 47% 11%;     /* slate-900 */
+    --sidebar-bg: 222 47% 11%;    /* slate-900 */
+    --sidebar-hover: 217 33% 17%; /* slate-800 */
+    --sidebar-active: 236 34% 50%; /* indigo-500 */
+    --sidebar-text: 215 20% 65%;  /* slate-400 */
+    --sidebar-text-active: 0 0% 100%;
+    
+    /* Override Tailwind semantic colors for dark mode */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+    --border: 217 33% 25%;
   }
 }
 

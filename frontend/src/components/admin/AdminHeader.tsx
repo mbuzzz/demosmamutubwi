@@ -1,17 +1,21 @@
-import { Menu, Search, Bell, LogOut, ChevronDown } from 'lucide-react';
+import { Search, Bell, LogOut, ChevronDown, User, Moon, Sun } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../ThemeProvider';
+import RoleSimulator from '../simulator/RoleSimulator';
 
 export default function AdminHeader({ 
-  setSidebarOpen 
+  isMobile,
+  title
 }: { 
-  setSidebarOpen: (v: boolean) => void 
+  isMobile: boolean,
+  title?: string
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
-  // Handle click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -23,75 +27,95 @@ export default function AdminHeader({
   }, []);
 
   const handleLogout = () => {
-    // TODO: Clear token/session
     navigate('/login');
   };
 
-  return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
-      <div className="flex items-center gap-4">
-        <button 
-          onClick={() => setSidebarOpen(true)}
-          className="lg:hidden p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-100"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
-        {/* Optional Search Bar */}
-        <div className="hidden sm:flex items-center relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3" />
-          <input 
-            type="text" 
-            placeholder="Cari..." 
-            className="pl-9 pr-4 py-2 bg-slate-100 border-transparent rounded-lg text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all w-64"
-          />
-        </div>
+  return (
+    <header className="h-[72px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 z-30 sticky top-0 transition-colors">
+      
+      <div className="flex items-center gap-4">
+        {/* Mobile Header Title */}
+        {isMobile && title && (
+          <h1 className="text-lg font-extrabold text-slate-800 dark:text-white tracking-tight truncate max-w-[200px]">{title}</h1>
+        )}
+        
+        {/* Desktop Search */}
+        {!isMobile && (
+          <div className="relative group hidden lg:block">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-500 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Cari siswa, kelas, berita..." 
+              className="pl-10 pr-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 border border-transparent dark:border-slate-700 rounded-full text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-200 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/20 transition-all w-64 placeholder:font-normal dark:text-white"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3 sm:gap-5">
-        <button className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+        
+        {/* Role Simulator Switcher */}
+        <RoleSimulator />
+
+        {/* Theme Toggle Button */}
+        <button 
+          onClick={toggleTheme}
+          className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full"
+          title="Toggle Dark Mode"
+        >
+          {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
         </button>
 
-        <div className="h-8 w-px bg-slate-200 mx-1"></div>
+        <button className="relative p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full">
+          <Bell className="w-[18px] h-[18px]" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+        </button>
+
+        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
 
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2 sm:gap-3 hover:bg-slate-50 p-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-2.5 sm:gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700"
           >
-            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shadow-sm">
               SA
             </div>
-            <div className="hidden sm:block text-left">
-              <div className="text-sm font-semibold text-slate-700 leading-none mb-1">Superadmin</div>
-              <div className="text-xs text-slate-500 leading-none">Admin Utama</div>
+            <div className="hidden sm:flex flex-col text-left">
+              <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200 leading-none mb-1">Superadmin</span>
+              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-none">Admin Utama</span>
             </div>
-            <ChevronDown className="w-4 h-4 text-slate-400" />
+            <ChevronDown className={`w-3 h-3 text-slate-400 dark:text-slate-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''} hidden sm:block`} />
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1 animate-in fade-in slide-in-from-top-2 z-50">
-              <div className="px-4 py-2 border-b border-slate-100 sm:hidden">
-                <div className="text-sm font-semibold text-slate-700">Superadmin</div>
-                <div className="text-xs text-slate-500">Admin Utama</div>
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 py-1.5 animate-in fade-in slide-in-from-top-4 z-50">
+              <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 sm:hidden">
+                <div className="text-sm font-bold text-slate-800 dark:text-white">Superadmin</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Admin Utama</div>
               </div>
-              <button 
-                onClick={() => {
-                  setDropdownOpen(false);
-                  navigate('/panel/profile');
-                }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                Profil Saya
-              </button>
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-slate-100 mt-1 pt-1"
-              >
-                <LogOut className="w-4 h-4" /> Keluar Sistem
-              </button>
+              <div className="p-1.5">
+                <button 
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    navigate('/panel/profile');
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-colors"
+                >
+                  <User className="w-4 h-4" /> Profil Saya
+                </button>
+                <div className="h-px bg-slate-50 dark:bg-slate-700 my-1.5 mx-2"></div>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                >
+                  <LogOut className="w-4 h-4" /> Keluar Sistem
+                </button>
+              </div>
             </div>
           )}
         </div>

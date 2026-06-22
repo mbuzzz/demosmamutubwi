@@ -42,8 +42,18 @@ import AdminCetakRaporDetail from './pages/admin/akademik/rapor/AdminCetakRaporD
 import AdminJadwalPelajaran from './pages/admin/akademik/jadwal/AdminJadwalPelajaran';
 import AdminKehadiranSiswa from './pages/admin/akademik/jadwal/AdminKehadiranSiswa';
 import AdminSettings from './pages/admin/settings/AdminSettings';
+import AdminUjianList from './pages/admin/cbt/AdminUjianList';
+import AdminUjianMonitor from './pages/admin/cbt/AdminUjianMonitor';
+import AdminBankSoalList from './pages/admin/cbt/AdminBankSoalList';
 import AdminProfile from './pages/admin/profile/AdminProfile';
 import AdminSPMBDetail from './pages/admin/spmb/detail/AdminSPMBDetail';
+
+// Guru Panel Pages
+import GuruDashboard from './pages/admin/guru/GuruDashboard';
+import GuruJurnalPresensi from './pages/admin/guru/kbm/GuruJurnalPresensi';
+import GuruBukuNilai from './pages/admin/guru/kbm/GuruBukuNilai';
+import GuruBankMateri from './pages/admin/guru/kbm/GuruBankMateri';
+import GuruBankSoalEditor from './pages/admin/guru/cbt/GuruBankSoalEditor';
 
 // Wrapper for public pages to keep them structured with Navbar and Footer
 function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -73,7 +83,10 @@ export default function App() {
         <Route path="/spmb/form/:gelombangId" element={<PublicLayout><FormSPMB /></PublicLayout>} />
         <Route path="/login" element={<Login />} /> {/* Login has its own layout */}
 
-        {/* Admin Routes */}
+        {/* Admin CBT */}
+        <Route path="/panel/cbt/bank-soal" element={<ProtectedRoute><AdminBankSoalList /></ProtectedRoute>} />
+        <Route path="/panel/cbt/jadwal" element={<ProtectedRoute><AdminUjianList /></ProtectedRoute>} />
+        <Route path="/panel/cbt/monitor" element={<ProtectedRoute><AdminUjianMonitor /></ProtectedRoute>} />
         <Route path="/panel" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         
         {/* Admin Web Profile */}
@@ -107,6 +120,13 @@ export default function App() {
         
         <Route path="/panel/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
         <Route path="/panel/profile" element={<ProtectedRoute><AdminProfile /></ProtectedRoute>} />
+
+        {/* Guru Panel Routes */}
+        <Route path="/panel/guru" element={<ProtectedRoute><GuruDashboard /></ProtectedRoute>} />
+        <Route path="/panel/guru/jurnal" element={<ProtectedRoute><GuruJurnalPresensi /></ProtectedRoute>} />
+        <Route path="/panel/guru/nilai" element={<ProtectedRoute><GuruBukuNilai /></ProtectedRoute>} />
+        <Route path="/panel/guru/materi" element={<ProtectedRoute><GuruBankMateri /></ProtectedRoute>} />
+        <Route path="/panel/guru/soal" element={<ProtectedRoute><GuruBankSoalEditor /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

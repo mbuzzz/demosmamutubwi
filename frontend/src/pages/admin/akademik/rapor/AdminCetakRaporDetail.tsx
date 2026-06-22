@@ -6,7 +6,7 @@ export default function AdminCetakRaporDetail() {
   return (
     <AdminLayout title="Preview Cetak Rapor">
       <div className="mb-6 flex items-center justify-between">
-        <Link to="/panel/rapor" className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm">
+        <Link to="/panel/rapor" className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors font-medium text-sm">
           <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar Cetak
         </Link>
         <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm">
@@ -18,19 +18,19 @@ export default function AdminCetakRaporDetail() {
         
         {/* Status Panel */}
         <div className="w-full lg:w-64 shrink-0 space-y-4">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5">
             <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-3">AS</div>
-            <h3 className="font-bold text-center text-slate-800">Agus Setiawan</h3>
-            <p className="text-center text-xs text-slate-500 mb-4">NISN: 0081234501 • Kelas X-1</p>
+            <h3 className="font-bold text-center text-slate-800 dark:text-white">Agus Setiawan</h3>
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400 mb-4">NISN: 0081234501 • Kelas X-1</p>
             
-            <div className="space-y-3 pt-4 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+            <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
                 <CheckCircle className="w-4 h-4 text-emerald-500" /> Nilai Akademik Lengkap
               </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
                 <CheckCircle className="w-4 h-4 text-emerald-500" /> Catatan Wali Kelas Ada
               </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
                 <CheckCircle className="w-4 h-4 text-emerald-500" /> Kehadiran Terekap
               </div>
             </div>
@@ -43,7 +43,7 @@ export default function AdminCetakRaporDetail() {
 
         {/* Paper Canvas Preview */}
         <div className="flex-1 w-full flex justify-center">
-          <div className="w-full max-w-[800px] bg-white shadow-lg border border-slate-300 p-10 md:p-14 pb-20 relative aspect-[1/1.414] overflow-y-auto custom-scrollbar text-slate-900 font-serif">
+          <div className="w-full max-w-[800px] bg-white dark:bg-slate-900 shadow-lg border border-slate-300 p-10 md:p-14 pb-20 relative aspect-[1/1.414] overflow-y-auto custom-scrollbar text-slate-900 font-serif">
             
             {/* Header Rapor */}
             <div className="text-center border-b-[3px] border-slate-800 pb-4 mb-6">
