@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Target, Shield, Compass } from 'lucide-react';
 
 export default function About() {

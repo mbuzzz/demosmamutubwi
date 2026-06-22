@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link, useNavigate } from 'react-router-dom';
 import { Award, Users, BookOpen, GraduationCap, ArrowRight, Quote } from 'lucide-react';
 
