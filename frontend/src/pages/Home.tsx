@@ -31,10 +31,10 @@ export default function Home() {
   return (
     <div className="space-y-0">
       {/* Modern Bento Grid Hero Section (Static, No Animations, Mobile-First) */}
-      <section className="bg-slate-50 pt-8 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-slate-50 pt-8 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Mobile-First Grid Container */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)]">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6 auto-rows-[minmax(180px,auto)]">
             
             {/* Bento Block 1: Main Value Proposition (Span 2 cols on md, 2 cols on lg) */}
             <div className="md:col-span-2 lg:col-span-2 row-span-2 bg-white rounded-[15px] p-8 md:p-10 shadow-card border border-slate-100 flex flex-col justify-center relative overflow-hidden">
@@ -113,37 +113,39 @@ export default function Home() {
 
       {/* Sambutan Kepala Sekolah */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-4 flex justify-center">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-brand-blueDark to-brand-teal rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
-              <div className="relative bg-white p-2 rounded-2xl border shadow-card hover:shadow-card-hover transition-shadow">
-                <img 
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80" 
-                  alt="Kepala Sekolah Drs. H. Suwito, M.Pd." 
-                  className="w-72 h-80 object-cover rounded-xl"
-                />
-                <div className="mt-4 text-center pb-2">
-                  <h4 className="font-bold text-slate-900 text-lg leading-tight">Drs. H. Suwito, M.Pd.</h4>
-                  <p className="text-brand-teal text-sm font-semibold mt-1">Kepala Sekolah</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-4 flex justify-center">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-brand-blueDark to-brand-teal rounded-[15px] blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
+                <div className="relative bg-white p-2 rounded-[15px] border shadow-card hover:shadow-card-hover transition-shadow">
+                  <img 
+                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80" 
+                    alt="Kepala Sekolah Drs. H. Suwito, M.Pd." 
+                    className="w-72 h-80 object-cover rounded-[15px]"
+                  />
+                  <div className="mt-4 text-center pb-2">
+                    <h4 className="font-bold text-slate-900 text-lg leading-tight">Drs. H. Suwito, M.Pd.</h4>
+                    <p className="text-brand-teal text-sm font-semibold mt-1">Kepala Sekolah</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div className="lg:col-span-8 space-y-6">
-            <div className="inline-flex p-3 bg-brand-blueDark/5 rounded-2xl text-brand-blueDark">
-              <Quote className="h-6 w-6" />
-            </div>
-            <h2 className="text-3xl font-bold text-slate-900 leading-tight">
-              Sambutan Kepala SMAS Muhammadiyah 1 Banyuwangi
-            </h2>
-            <div className="space-y-4 text-slate-600 leading-relaxed text-lg">
-              <p className="font-medium text-slate-800">Assalamu’alaikum Warahmatullahi Wabarakatuh,</p>
-              <p>
-                Selamat datang di portal resmi SMAS Muhammadiyah 1 Banyuwangi. Kami terus berkomitmen memberikan layanan pendidikan unggulan dengan mengintegrasikan sistem akademik modern (SIT). Melalui platform digital ini, kami berharap dapat mewujudkan transparansi dan kemudahan tata kelola sekolah bagi pendidik, siswa, dan wali murid demi membentuk generasi yang cerdas dan berakhlak mulia.
-              </p>
-              <p className="font-semibold text-slate-900">Wassalamu’alaikum Warahmatullahi Wabarakatuh.</p>
+            
+            <div className="lg:col-span-8 space-y-6">
+              <div className="inline-flex p-3 bg-brand-blueDark/5 rounded-[15px] text-brand-blueDark">
+                <Quote className="h-6 w-6" />
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 leading-tight">
+                Sambutan Kepala SMAS Muhammadiyah 1 Banyuwangi
+              </h2>
+              <div className="space-y-4 text-slate-600 leading-relaxed text-lg">
+                <p className="font-medium text-slate-800">Assalamu’alaikum Warahmatullahi Wabarakatuh,</p>
+                <p>
+                  Selamat datang di portal resmi SMAS Muhammadiyah 1 Banyuwangi. Kami terus berkomitmen memberikan layanan pendidikan unggulan dengan mengintegrasikan sistem akademik modern (SIT). Melalui platform digital ini, kami berharap dapat mewujudkan transparansi dan kemudahan tata kelola sekolah bagi pendidik, siswa, dan wali murid demi membentuk generasi yang cerdas dan berakhlak mulia.
+                </p>
+                <p className="font-semibold text-slate-900">Wassalamu’alaikum Warahmatullahi Wabarakatuh.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -151,26 +153,28 @@ export default function Home() {
 
       {/* Stats Widget */}
       <section className="py-12 bg-slate-50 border-t border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div className="p-6 border rounded-2xl shadow-card bg-white hover:shadow-card-hover transition-shadow">
-            <Users className="h-8 w-8 text-brand-blueDark mx-auto mb-2" />
-            <div className="text-3xl font-extrabold text-slate-900">850+</div>
-            <div className="text-sm text-slate-500 font-medium mt-1">Siswa Aktif</div>
-          </div>
-          <div className="p-6 border rounded-2xl shadow-card bg-white hover:shadow-card-hover transition-shadow">
-            <GraduationCap className="h-8 w-8 text-brand-teal mx-auto mb-2" />
-            <div className="text-3xl font-extrabold text-slate-900">45+</div>
-            <div className="text-sm text-slate-500 font-medium mt-1">Guru & Pendidik</div>
-          </div>
-          <div className="p-6 border rounded-2xl shadow-card bg-white hover:shadow-card-hover transition-shadow">
-            <BookOpen className="h-8 w-8 text-brand-blueSlate mx-auto mb-2" />
-            <div className="text-3xl font-extrabold text-slate-900">A</div>
-            <div className="text-sm text-slate-500 font-medium mt-1">Akreditasi BAN-SM</div>
-          </div>
-          <div className="p-6 border rounded-2xl shadow-card bg-white hover:shadow-card-hover transition-shadow">
-            <Award className="h-8 w-8 text-brand-green mx-auto mb-2" />
-            <div className="text-3xl font-extrabold text-slate-900">30+</div>
-            <div className="text-sm text-slate-500 font-medium mt-1">Ekstrakurikuler</div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 text-center">
+            <div className="p-6 border border-slate-100 rounded-[15px] shadow-card bg-white hover:shadow-card-hover transition-shadow">
+              <Users className="h-8 w-8 text-brand-blueDark mx-auto mb-2" />
+              <div className="text-3xl font-extrabold text-slate-900">850+</div>
+              <div className="text-sm text-slate-500 font-medium mt-1">Siswa Aktif</div>
+            </div>
+            <div className="p-6 border border-slate-100 rounded-[15px] shadow-card bg-white hover:shadow-card-hover transition-shadow">
+              <GraduationCap className="h-8 w-8 text-brand-teal mx-auto mb-2" />
+              <div className="text-3xl font-extrabold text-slate-900">45+</div>
+              <div className="text-sm text-slate-500 font-medium mt-1">Guru & Pendidik</div>
+            </div>
+            <div className="p-6 border border-slate-100 rounded-[15px] shadow-card bg-white hover:shadow-card-hover transition-shadow">
+              <BookOpen className="h-8 w-8 text-brand-blueSlate mx-auto mb-2" />
+              <div className="text-3xl font-extrabold text-slate-900">A</div>
+              <div className="text-sm text-slate-500 font-medium mt-1">Akreditasi BAN-SM</div>
+            </div>
+            <div className="p-6 border border-slate-100 rounded-[15px] shadow-card bg-white hover:shadow-card-hover transition-shadow">
+              <Award className="h-8 w-8 text-brand-green mx-auto mb-2" />
+              <div className="text-3xl font-extrabold text-slate-900">30+</div>
+              <div className="text-sm text-slate-500 font-medium mt-1">Ekstrakurikuler</div>
+            </div>
           </div>
         </div>
       </section>
