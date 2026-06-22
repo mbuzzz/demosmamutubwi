@@ -43,10 +43,10 @@ export default function Navbar() {
               </NavLink>
             ))}
             <a 
-              href="#portal-login"
-              className="ml-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-4 py-2 rounded-xl text-sm shadow-sm transition-all duration-200"
+              href="#daftar-sekarang"
+              className="ml-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
             >
-              Portal SIT
+              Daftar Sekarang
             </a>
           </div>
 
@@ -77,10 +77,10 @@ export default function Navbar() {
             </NavLink>
           ))}
           <a
-            href="#portal-login"
-            className="block text-center mt-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-4 py-2.5 rounded-xl text-base"
+            href="#daftar-sekarang"
+            className="block text-center mt-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-4 py-3 rounded-[15px] text-base shadow-sm"
           >
-            Portal SIT
+            Daftar Sekarang
           </a>
         </div>
       )}
