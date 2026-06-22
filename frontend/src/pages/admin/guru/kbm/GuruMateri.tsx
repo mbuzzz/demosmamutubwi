@@ -1,6 +1,7 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Search, Trash2, BookOpen, UploadCloud, Eye, Edit, Plus, ArrowLeft, Save, AlignLeft } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -123,6 +124,7 @@ export default function GuruMateri() {
                 </div>
               </div>
               <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Link to="/panel/guru/materi/detail/1" className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Eye className="w-4 h-4" /></Link>
                 <button className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Edit className="w-4 h-4" /></button>
                 <button className="p-2 text-slate-400 hover:text-red-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Trash2 className="w-4 h-4" /></button>
               </div>
@@ -141,6 +143,7 @@ export default function GuruMateri() {
                 </div>
               </div>
               <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Link to="/panel/guru/materi/detail/1" className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Eye className="w-4 h-4" /></Link>
                 <button className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Edit className="w-4 h-4" /></button>
                 <button className="p-2 text-slate-400 hover:text-red-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Trash2 className="w-4 h-4" /></button>
               </div>

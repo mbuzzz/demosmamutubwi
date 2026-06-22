@@ -1,6 +1,7 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Search, FileText, UploadCloud, Edit, Plus, ArrowLeft, Save, AlignLeft, Calendar } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -132,7 +133,7 @@ export default function GuruTugas() {
                 </div>
               </div>
               <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="p-2 text-slate-400 hover:text-indigo-600 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700" title="Review Jawaban"><Search className="w-4 h-4" /></button>
+                <Link to="/panel/guru/tugas/detail/1" className="p-2 text-slate-400 hover:text-indigo-600 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700" title="Review Jawaban"><Search className="w-4 h-4" /></Link>
                 <button className="p-2 text-slate-400 hover:text-indigo-600 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700" title="Edit Tugas"><Edit className="w-4 h-4" /></button>
               </div>
             </div>
