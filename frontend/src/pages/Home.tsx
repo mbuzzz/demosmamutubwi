@@ -30,26 +30,85 @@ export default function Home() {
 
   return (
     <div className="space-y-0">
-      {/* Hero Section */}
-      <section className="relative bg-gradien-biru-hijau text-white py-28 px-4 sm:px-6 lg:px-8 overflow-hidden rounded-b-[2rem] shadow-lg">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-60"></div>
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6">
-          <span className="bg-white/10 backdrop-blur-md text-brand-yellow px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider inline-block border border-white/20">
-            Penerimaan Siswa Baru (SPMB) Dibuka
-          </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-            Pendidikan Berkualitas dengan Sentuhan Digital Terpadu
-          </h1>
-          <p className="text-lg sm:text-xl text-slate-100 max-w-3xl mx-auto">
-            Membentuk generasi cerdas yang bertakwa, adaptif terhadap teknologi masa kini, dan siap memimpin masa depan.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-            <Link to="/profile" className="bg-brand-teal hover:bg-brand-teal/90 text-white font-bold px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 text-center">
-              Profil Sekolah
-            </Link>
-            <a href="#portal-login" className="bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-8 py-3.5 rounded-xl shadow-md transition-all duration-200 text-center">
-              Daftar Sekarang
-            </a>
+      {/* Minimalist Modern Hero Section with Animation */}
+      <section className="relative min-h-[90vh] flex items-center justify-center bg-slate-50 overflow-hidden">
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+          <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl opacity-50 animate-pulse"></div>
+          <div className="absolute top-40 -left-20 w-72 h-72 rounded-full bg-brand-blueDark/10 blur-3xl opacity-50 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+            
+            {/* Text Content */}
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-semibold text-brand-teal uppercase tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-brand-yellow animate-pulse"></span>
+                Penerimaan Siswa Baru 2026 Dibuka
+              </div>
+              
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1]">
+                Pendidikan <span className="text-gradien-biru-hijau">Modern</span> & Berkarakter.
+              </h1>
+              
+              <p className="text-lg sm:text-xl text-slate-600 max-w-xl leading-relaxed">
+                Platform digitalisasi sekolah terpadu yang memadukan keunggulan akademik, integritas Islami, dan teknologi masa depan.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <a 
+                  href="#portal-login"
+                  className="inline-flex justify-center items-center gap-2 bg-brand-blueDark hover:bg-brand-blueDark/90 text-white font-semibold px-8 py-4 rounded-[15px] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
+                >
+                  Masuk Portal SIT <ArrowRight className="w-4 h-4" />
+                </a>
+                <Link 
+                  to="/profile" 
+                  className="inline-flex justify-center items-center bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold px-8 py-4 rounded-[15px] shadow-sm hover:shadow-card transition-all duration-300"
+                >
+                  Jelajahi Profil
+                </Link>
+              </div>
+            </div>
+
+            {/* Visual/Image Content */}
+            <div className="relative lg:h-[600px] flex items-center justify-center animate-in fade-in slide-in-from-right-12 duration-1000 delay-300 fill-mode-both">
+              <div className="relative w-full max-w-md lg:max-w-none">
+                {/* Main Image */}
+                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl z-10 border-4 border-white">
+                  <img 
+                    src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80" 
+                    alt="Siswa Berprestasi" 
+                    className="w-full h-auto object-cover aspect-[4/5] lg:aspect-[3/4]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-brand-blueDark/60 via-transparent to-transparent"></div>
+                </div>
+
+                {/* Floating Card 1 */}
+                <div className="absolute -left-6 bottom-20 z-20 bg-white p-4 rounded-[15px] shadow-card-hover animate-bounce" style={{ animationDuration: '3s' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-brand-green/10 text-brand-green rounded-lg"><Award className="w-6 h-6" /></div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Akreditasi A</p>
+                      <p className="text-xs text-slate-500">Unggul & Berprestasi</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating Card 2 */}
+                <div className="absolute -right-6 top-20 z-20 bg-white p-4 rounded-[15px] shadow-card-hover animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-brand-teal/10 text-brand-teal rounded-lg"><GraduationCap className="w-6 h-6" /></div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Digital Terpadu</p>
+                      <p className="text-xs text-slate-500">Sistem CBT & E-Rapor</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
