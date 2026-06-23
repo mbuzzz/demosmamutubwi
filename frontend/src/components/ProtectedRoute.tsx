@@ -1,9 +1,10 @@
 import { Navigate } from 'react-router-dom';
 import { useRoleSimulator } from './simulator/RoleContext';
+import { useAuth } from './auth/AuthContext';
 
 export default function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode, requiredRole?: string }) {
+  const { isAuthenticated } = useAuth();
   const { simulatedRole } = useRoleSimulator();
-  const isAuthenticated = true;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

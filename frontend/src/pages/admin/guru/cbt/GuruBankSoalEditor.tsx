@@ -12,7 +12,7 @@ const defaultPaket: PaketSoal[] = JSON.parse(JSON.stringify(MOCK_PAKET_SOAL.map(
 }))));
 
 function generateId() {
-  return Math.random().toString(36).substring(2, 9);
+  return crypto.randomUUID();
 }
 
 export default function GuruBankSoalEditor() {

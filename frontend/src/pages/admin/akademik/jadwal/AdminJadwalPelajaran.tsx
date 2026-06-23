@@ -48,7 +48,7 @@ const slotStyles = [
 ];
 
 function generateId() {
-  return Math.random().toString(36).substring(2, 9);
+  return crypto.randomUUID();
 }
 
 export default function AdminJadwalPelajaran() {

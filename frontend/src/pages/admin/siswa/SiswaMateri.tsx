@@ -1,6 +1,7 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { BookOpen, Search, ArrowLeft, Download, FileText, Send, MessageSquare, Clock, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
+import DOMPurify from 'dompurify';
 
 interface Comment {
   name: string;
@@ -93,7 +94,7 @@ export default function SiswaMateri() {
                 </div>
               </div>
 
-              <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8" dangerouslySetInnerHTML={{ __html: selectedMateri.content }} />
+              <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMateri.content) }} />
 
               {selectedMateri.file && (
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">

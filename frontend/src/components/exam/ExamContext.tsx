@@ -7,6 +7,7 @@ interface ExamContextType {
   updateSession: (id: string, data: Partial<SesiUjian>) => void;
   deleteSession: (id: string) => void;
   regenToken: (id: string) => void;
+  submitExam: (id: string, score: number) => void;
 }
 
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
@@ -30,8 +31,12 @@ export function ExamSessionProvider({ children }: { children: ReactNode }) {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, token: generateToken() } : s));
   };
 
+  const submitExam = (id: string, _score: number) => {
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, status: 'Selesai' as const } : s));
+  };
+
   return (
-    <ExamContext.Provider value={{ sessions, addSession, updateSession, deleteSession, regenToken }}>
+    <ExamContext.Provider value={{ sessions, addSession, updateSession, deleteSession, regenToken, submitExam }}>
       {children}
     </ExamContext.Provider>
   );

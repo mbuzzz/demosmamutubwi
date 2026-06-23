@@ -1,6 +1,7 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { FileText, Search, ArrowLeft, UploadCloud, Download, CheckCircle, MessageSquare, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
+import DOMPurify from 'dompurify';
 
 interface Tugas {
   id: string;
@@ -95,7 +96,7 @@ export default function SiswaTugas() {
 
               <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8">
                 <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-2">Instruksi Tugas:</h4>
-                <div dangerouslySetInnerHTML={{ __html: selectedTugas.instruksi }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedTugas.instruksi) }} />
               </div>
 
               {selectedTugas.lampiranSoal && (
