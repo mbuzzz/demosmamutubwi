@@ -21,7 +21,8 @@ import {
   ChevronRight,
   MonitorPlay,
   FileQuestion,
-  GraduationCap
+  GraduationCap,
+  type LucideIcon
 } from 'lucide-react';
 import { useRoleSimulator } from '../simulator/RoleContext';
 
@@ -30,13 +31,23 @@ interface SidebarProps {
   setIsCollapsed: (val: boolean) => void;
 }
 
+interface NavItem {
+  name: string;
+  path: string;
+  icon: LucideIcon;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
 export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const location = useLocation();
   const currentPath = location.pathname;
   const { simulatedRole } = useRoleSimulator();
 
-  // Dynamic Nav Groups based on Role
-  let navGroups: any[] = [];
+  let navGroups: NavGroup[] = [];
 
   if (simulatedRole === 'superadmin') {
     navGroups = [

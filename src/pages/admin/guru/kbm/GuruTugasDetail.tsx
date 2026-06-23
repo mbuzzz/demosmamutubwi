@@ -1,6 +1,6 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { ArrowLeft, FileText, Download, CheckCircle, Clock, XCircle, Search, Edit, Save, Eye, MessageSquare, UserCheck, BarChart3, X, Send, AlertTriangle } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
 type FilterStatus = 'all' | 'submitted' | 'unsubmitted' | 'graded' | 'ungraded';
@@ -28,7 +28,6 @@ const allSubmissions: Submission[] = [
 ];
 
 export default function GuruTugasDetail() {
-  useParams();
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [search, setSearch] = useState('');
   const [editInstruksi, setEditInstruksi] = useState(false);

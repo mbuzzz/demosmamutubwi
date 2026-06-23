@@ -1,17 +1,16 @@
 import { Navigate } from 'react-router-dom';
+import { useRoleSimulator } from './simulator/RoleContext';
 
-// TODO: Replace with actual auth context check
 export default function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode, requiredRole?: string }) {
-  // Temporary: always allow access for development
+  const { simulatedRole } = useRoleSimulator();
   const isAuthenticated = true;
-  const userRole = 'superadmin';
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && userRole !== requiredRole) {
-    return <Navigate to="/" replace />; // Or to a 403 page
+  if (requiredRole && simulatedRole !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

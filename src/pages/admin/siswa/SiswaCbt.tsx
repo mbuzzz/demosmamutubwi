@@ -1,7 +1,8 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { FileQuestion, Clock, Search, Play, X, Key, HelpCircle, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { type SesiUjian, MOCK_SESI_UJIAN, MOCK_PAKET_SOAL, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
+import { type SesiUjian, MOCK_PAKET_SOAL, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
+import { useExamSessions } from '../../../components/exam/ExamContext';
 
 interface Question {
   id: string;
@@ -53,17 +54,14 @@ function buildExamFromSession(sesi: SesiUjian): Exam {
   };
 }
 
-const availableExams: Exam[] = MOCK_SESI_UJIAN
-  .filter(s => s.status !== 'Selesai')
-  .map(buildExamFromSession);
-
-const completedExams: Exam[] = MOCK_SESI_UJIAN
-  .filter(s => s.status === 'Selesai')
-  .map(buildExamFromSession);
-
 export default function SiswaCbt() {
-  const [exams, setExams] = useState<Exam[]>(availableExams);
-  const [completed, setCompleted] = useState<Exam[]>(completedExams);
+  const { sessions } = useExamSessions();
+  const [exams, setExams] = useState<Exam[]>(() =>
+    sessions.filter(s => s.status !== 'Selesai').map(buildExamFromSession)
+  );
+  const [completed, setCompleted] = useState<Exam[]>(() =>
+    sessions.filter(s => s.status === 'Selesai').map(buildExamFromSession)
+  );
   const [view, setView] = useState<'list' | 'exam' | 'result'>('list');
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
 

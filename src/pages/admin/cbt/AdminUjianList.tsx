@@ -2,12 +2,11 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { Plus, Edit, Trash2, Calendar, Clock, MonitorPlay, KeyRound, X, Save, FileQuestion, Search, GraduationCap, BookOpen, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { type SesiUjian, type TipeUjian, MOCK_SESI_UJIAN, MOCK_PAKET_SOAL, generateToken, TIPE_BADGE } from '../../../types/cbt';
-
-const defaultSesi: SesiUjian[] = [...MOCK_SESI_UJIAN];
+import { type SesiUjian, type TipeUjian, MOCK_PAKET_SOAL, generateToken, TIPE_BADGE } from '../../../types/cbt';
+import { useExamSessions } from '../../../components/exam/ExamContext';
 
 export default function AdminUjianList() {
-  const [sessions, setSessions] = useState<SesiUjian[]>(defaultSesi);
+  const { sessions, addSession, updateSession, deleteSession, regenToken } = useExamSessions();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -62,24 +61,16 @@ export default function AdminUjianList() {
   function saveSession() {
     if (!form.title || !form.mapel || !form.kelas || !form.tanggal || !form.jamMulai) return;
     if (editingId) {
-      setSessions(prev => prev.map(s => s.id === editingId ? { ...s, ...form } : s));
+      updateSession(editingId, form);
     } else {
       const newSesi: SesiUjian = {
         id: Math.random().toString(36).substring(2, 9),
         ...form,
         status: 'Akan Datang',
       };
-      setSessions(prev => [...prev, newSesi]);
+      addSession(newSesi);
     }
     setShowModal(false);
-  }
-
-  function deleteSession(id: string) {
-    setSessions(prev => prev.filter(s => s.id !== id));
-  }
-
-  function regenToken(id: string) {
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, token: generateToken() } : s));
   }
 
   const statusBadge = (status: string) => {

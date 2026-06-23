@@ -1,9 +1,8 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { CalendarDays, ArrowLeft, Save, Printer } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default function GuruJurnalDetail() {
-  useParams();
 
   return (
     <AdminLayout title="Detail Jurnal Mengajar">
