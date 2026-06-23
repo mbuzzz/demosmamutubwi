@@ -1,4 +1,4 @@
-import { Eye, Shield, BookOpen, Crown } from 'lucide-react';
+import { Eye, Shield, BookOpen, Crown, Users } from 'lucide-react';
 import { useRoleSimulator } from './RoleContext';
 
 export default function RoleSimulator() {
@@ -15,7 +15,7 @@ export default function RoleSimulator() {
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
           simulatedRole === 'superadmin' 
             ? 'bg-indigo-600 text-white shadow-sm scale-100' 
-            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 scale-95 hover:scale-100'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 scale-95 hover:scale-100'
         }`}
         title="Superadmin"
       >
@@ -27,7 +27,7 @@ export default function RoleSimulator() {
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
           simulatedRole === 'guru' 
             ? 'bg-emerald-600 text-white shadow-sm scale-100' 
-            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 scale-95 hover:scale-100'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 scale-95 hover:scale-100'
         }`}
         title="Guru Mapel"
       >
@@ -39,11 +39,23 @@ export default function RoleSimulator() {
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
           simulatedRole === 'walikelas' 
             ? 'bg-amber-500 text-white shadow-sm scale-100' 
-            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 scale-95 hover:scale-100'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 scale-95 hover:scale-100'
         }`}
         title="Wali Kelas"
       >
         <Crown className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Wali Kelas</span>
+      </button>
+
+      <button 
+        onClick={() => setSimulatedRole('siswa')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+          simulatedRole === 'siswa' 
+            ? 'bg-violet-600 text-white shadow-sm scale-100' 
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 scale-95 hover:scale-100'
+        }`}
+        title="Siswa"
+      >
+        <Users className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Siswa</span>
       </button>
     </div>
   );

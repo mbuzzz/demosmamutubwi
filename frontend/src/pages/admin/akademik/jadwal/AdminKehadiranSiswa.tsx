@@ -28,7 +28,7 @@ export default function AdminKehadiranSiswa() {
         <div className="bg-white dark:bg-slate-900 rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div>
             <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Tarik Laporan Bulanan</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Export data ke Excel/PDF</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 dark:text-slate-400 mt-1">Export data ke Excel/PDF</p>
           </div>
           <button className="bg-indigo-50 dark:bg-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 text-indigo-600 dark:text-indigo-400 p-3 rounded-xl transition-colors">
             <Download className="w-5 h-5" />
@@ -39,14 +39,14 @@ export default function AdminKehadiranSiswa() {
       <div className="bg-white dark:bg-slate-900 rounded-[20px] shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
         
         {/* Toolbar */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap gap-4 items-end">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/50 flex flex-wrap gap-4 items-end">
           <div className="w-full sm:w-auto">
-            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Tanggal Laporan</label>
-            <input type="date" className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white" />
+            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Tanggal Laporan</label>
+            <input type="date" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white" />
           </div>
           <div className="w-full sm:w-auto">
-            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Filter Kelas</label>
-            <select className="w-full sm:w-32 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-700 dark:text-indigo-400">
+            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Filter Kelas</label>
+            <select className="w-full sm:w-32 px-4 py-2.5 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-700 dark:text-indigo-400">
               <option>Semua</option>
               <option>X-1</option>
               <option>XI-IPA-1</option>
@@ -95,9 +95,9 @@ export default function AdminKehadiranSiswa() {
                   { kelas: 'X-2', wali: 'Budi Santoso, M.Pd', total: 30, h: 30, s: 0, i: 0, a: 0, pct: '100' },
                   { kelas: 'XI-IPA-1', wali: 'Siti Aminah, S.Si', total: 35, h: 32, s: 0, i: 0, a: 3, pct: '91.4' },
                 ].map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4 font-black text-slate-800 dark:text-white">{item.kelas}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">{item.wali}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400">{item.wali}</td>
                     <td className="px-6 py-4 text-center font-bold text-slate-500 dark:text-slate-400">{item.total}</td>
                     <td className="px-6 py-4 text-center font-bold text-emerald-600 dark:text-emerald-400">{item.h}</td>
                     <td className="px-6 py-4 text-center font-bold text-amber-500 dark:text-amber-400">{item.s}</td>

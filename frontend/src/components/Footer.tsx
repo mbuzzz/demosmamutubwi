@@ -11,9 +11,9 @@ export default function Footer() {
             Membentuk generasi unggul berkarakter Islami, cerdas secara akademis, dan terampil menyongsong masa depan.
           </p>
           <div className="flex gap-4">
-            <a href="#" className="bg-white/10 p-2 rounded-full hover:bg-brand-teal hover:text-white transition-colors"><Facebook className="h-4 w-4" /></a>
-            <a href="#" className="bg-white/10 p-2 rounded-full hover:bg-brand-teal hover:text-white transition-colors"><Instagram className="h-4 w-4" /></a>
-            <a href="#" className="bg-white/10 p-2 rounded-full hover:bg-brand-teal hover:text-white transition-colors"><Twitter className="h-4 w-4" /></a>
+            <a href="#" className="bg-white dark:bg-slate-900/10 p-2 rounded-full hover:bg-brand-teal hover:text-white transition-colors"><Facebook className="h-4 w-4" /></a>
+            <a href="#" className="bg-white dark:bg-slate-900/10 p-2 rounded-full hover:bg-brand-teal hover:text-white transition-colors"><Instagram className="h-4 w-4" /></a>
+            <a href="#" className="bg-white dark:bg-slate-900/10 p-2 rounded-full hover:bg-brand-teal hover:text-white transition-colors"><Twitter className="h-4 w-4" /></a>
           </div>
         </div>
 

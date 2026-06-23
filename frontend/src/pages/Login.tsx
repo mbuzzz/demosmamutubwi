@@ -18,14 +18,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl opacity-50"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-brand-blueDark/10 blur-3xl opacity-50"></div>
       </div>
 
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden relative z-10 min-h-[600px]">
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden relative z-10 min-h-[600px]">
         
         {/* Left Side: Bento Brand Info */}
         <div className="hidden md:flex flex-col justify-between bg-gradien-biru-hijau p-10 text-white relative overflow-hidden">
@@ -37,7 +37,7 @@ export default function Login() {
             </Link>
             
             <div className="flex items-center gap-3 mb-6">
-              <img src="/logo.png" alt="Logo SMAS Muh 1" className="h-16 w-16 object-contain bg-white/10 p-2 rounded-[15px] backdrop-blur-md" />
+              <img src="/logo.png" alt="Logo SMAS Muh 1" className="h-16 w-16 object-contain bg-white dark:bg-slate-900/10 p-2 rounded-[15px] backdrop-blur-md" />
               <div>
                 <h2 className="font-extrabold text-2xl leading-tight">SMAS Muhammadiyah 1</h2>
                 <p className="text-brand-yellow font-bold uppercase tracking-widest text-sm">Banyuwangi</p>
@@ -46,7 +46,7 @@ export default function Login() {
           </div>
           
           <div className="relative z-10 space-y-6">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-[15px]">
+            <div className="bg-white dark:bg-slate-900/10 backdrop-blur-md border border-white/20 p-6 rounded-[15px]">
               <h3 className="font-bold text-xl mb-2">Sistem Informasi Terintegrasi</h3>
               <p className="text-white/80 text-sm leading-relaxed">
                 Platform layanan administrasi, pembelajaran e-learning, dan E-Rapor digital terpadu untuk civitas akademika.
@@ -67,29 +67,29 @@ export default function Login() {
         </div>
 
         {/* Right Side: Login Form */}
-        <div className="p-8 sm:p-12 flex flex-col justify-center bg-white relative">
+        <div className="p-8 sm:p-12 flex flex-col justify-center bg-white dark:bg-slate-900 relative">
           {/* Mobile Back Button */}
-          <Link to="/" className="md:hidden inline-flex items-center gap-2 text-slate-500 hover:text-brand-blueDark mb-8 transition-colors font-semibold text-sm">
+          <Link to="/" className="md:hidden inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-blueDark dark:text-brand-yellow mb-8 transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" /> Kembali
           </Link>
 
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Selamat Datang</h1>
-            <p className="text-slate-500">Silakan pilih peran dan masuk ke akun Anda.</p>
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Selamat Datang</h1>
+            <p className="text-slate-500 dark:text-slate-400">Silakan pilih peran dan masuk ke akun Anda.</p>
           </div>
 
           {/* Type Switcher */}
-          <div className="flex bg-slate-100 rounded-[15px] mb-8 p-1.5 shadow-inner">
+          <div className="flex bg-slate-100 dark:bg-slate-800 rounded-[15px] mb-8 p-1.5 shadow-inner">
             <button
               type="button"
               onClick={() => setLoginType('siswa')}
               className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                 loginType === 'siswa' 
-                  ? 'bg-white text-brand-blueDark shadow-sm transform scale-100' 
-                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 scale-95'
+                  ? 'bg-white dark:bg-slate-900 text-brand-blueDark dark:text-brand-yellow shadow-sm transform scale-100' 
+                  : 'text-slate-400 hover:text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700/50 scale-95'
               }`}
             >
-              <GraduationCap className={`w-6 h-6 ${loginType === 'siswa' ? 'text-brand-teal' : 'text-slate-400'}`} />
+              <GraduationCap className={`w-6 h-6 ${loginType === 'siswa' ? 'text-brand-teal dark:text-emerald-400' : 'text-slate-400'}`} />
               Siswa & Ortu
             </button>
             <button
@@ -98,7 +98,7 @@ export default function Login() {
               className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                 loginType === 'guru-admin' 
                   ? 'bg-brand-blueDark text-white shadow-sm transform scale-100' 
-                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 scale-95'
+                  : 'text-slate-400 hover:text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700/50 scale-95'
               }`}
             >
               <ShieldCheck className={`w-6 h-6 ${loginType === 'guru-admin' ? 'text-brand-yellow' : 'text-slate-400'}`} />
@@ -108,7 +108,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700 pl-1">
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">
                 {loginType === 'siswa' ? 'NISN / Email Siswa' : 'Email Pegawai / NIP'}
               </label>
               <div className="relative">
@@ -120,7 +120,7 @@ export default function Login() {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-[15px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent transition-all"
                   placeholder={loginType === 'siswa' ? 'Masukkan NISN atau Email...' : 'Masukkan Email Pegawai...'}
                 />
               </div>
@@ -128,8 +128,8 @@ export default function Login() {
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center pl-1 pr-1">
-                <label className="text-sm font-bold text-slate-700">Password</label>
-                <a href="#" className="text-xs font-semibold text-brand-teal hover:text-brand-blueDark transition-colors">Lupa Password?</a>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Password</label>
+                <a href="#" className="text-xs font-semibold text-brand-teal dark:text-emerald-400 hover:text-brand-blueDark dark:text-brand-yellow transition-colors">Lupa Password?</a>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -140,7 +140,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-[15px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent transition-all"
                   placeholder="Masukkan password Anda..."
                 />
               </div>
@@ -149,15 +149,15 @@ export default function Login() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-extrabold py-4 px-4 rounded-[15px] shadow-sm hover:shadow-card transition-all duration-200"
+                className="w-full flex items-center justify-center gap-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark dark:text-brand-yellow font-extrabold py-4 px-4 rounded-[15px] shadow-sm hover:shadow-card dark:shadow-none transition-all duration-200"
               >
                 <LogIn className="w-5 h-5" /> Masuk Sistem
               </button>
             </div>
             
             {loginType === 'siswa' && (
-              <div className="text-center mt-6 text-sm text-slate-500">
-                Calon siswa baru? <a href="#daftar-sekarang" className="text-brand-teal font-bold hover:underline">Daftar SPMB di sini</a>
+              <div className="text-center mt-6 text-sm text-slate-500 dark:text-slate-400">
+                Calon siswa baru? <a href="#daftar-sekarang" className="text-brand-teal dark:text-emerald-400 font-bold hover:underline">Daftar SPMB di sini</a>
               </div>
             )}
           </form>

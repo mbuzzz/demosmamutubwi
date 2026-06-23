@@ -17,11 +17,11 @@ export default function Downloads() {
   );
 
   return (
-    <div className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8">
+    <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-3">Pusat Unduhan Dokumen</h1>
-          <p className="text-slate-500">Akses dokumen publik resmi, kalender, brosur, serta panduan administrasi sekolah.</p>
+          <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-3">Pusat Unduhan Dokumen</h1>
+          <p className="text-slate-500 dark:text-slate-400">Akses dokumen publik resmi, kalender, brosur, serta panduan administrasi sekolah.</p>
         </div>
 
         {/* Search */}
@@ -32,16 +32,16 @@ export default function Downloads() {
             placeholder="Cari nama dokumen..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white text-slate-800 shadow-sm"
+            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-sm"
           />
         </div>
 
         {/* Table List */}
-        <div className="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-card dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <th className="py-4 px-6">Nama Dokumen</th>
                   <th className="py-4 px-6 text-center">Tipe</th>
                   <th className="py-4 px-6 text-center">Ukuran</th>
@@ -49,21 +49,21 @@ export default function Downloads() {
                   <th className="py-4 px-6 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
+              <tbody className="divide-y divide-slate-100 text-sm text-slate-600 dark:text-slate-400">
                 {filteredDocs.length > 0 ? (
                   filteredDocs.map((doc, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-4 px-6 font-semibold text-slate-900 flex items-center gap-3">
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800dark:hover:bg-slate-800 dark:bg-slate-800 transition-colors">
+                      <td className="py-4 px-6 font-semibold text-slate-900 dark:text-white flex items-center gap-3">
                         <FileText className="h-5 w-5 text-slate-400 shrink-0" />
                         <span>{doc.name}</span>
                       </td>
                       <td className="py-4 px-6 text-center">
-                        <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold px-2 py-0.5 rounded">
                           {doc.type}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-center text-xs font-medium text-slate-500">{doc.size}</td>
-                      <td className="py-4 px-6 text-center text-xs text-slate-500">{doc.date}</td>
+                      <td className="py-4 px-6 text-center text-xs font-medium text-slate-500 dark:text-slate-400">{doc.size}</td>
+                      <td className="py-4 px-6 text-center text-xs text-slate-500 dark:text-slate-400">{doc.date}</td>
                       <td className="py-4 px-6 text-center">
                         <button className="bg-brand-teal hover:bg-brand-teal/90 text-white font-bold p-2.5 rounded-xl inline-flex items-center justify-center transition-colors shadow-sm">
                           <Download className="h-4 w-4" />
@@ -73,7 +73,7 @@ export default function Downloads() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-slate-500">
+                    <td colSpan={5} className="py-12 text-center text-slate-500 dark:text-slate-400">
                       Tidak ada dokumen yang sesuai dengan pencarian "{search}".
                     </td>
                   </tr>

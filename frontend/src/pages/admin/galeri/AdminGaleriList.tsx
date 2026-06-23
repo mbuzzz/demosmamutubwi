@@ -13,7 +13,7 @@ export default function AdminGaleriList() {
     <AdminLayout title="Manajemen Galeri">
       
       {/* Upload Area */}
-      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card p-6 mb-8 border border-slate-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 mb-8 border border-slate-100 dark:border-slate-800">
         <div className="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-50 transition-colors">
           <UploadCloud className="w-10 h-10 text-indigo-500 mb-3" />
           <h3 className="font-semibold text-slate-800 dark:text-white text-lg">Klik atau seret foto ke sini</h3>
@@ -25,7 +25,7 @@ export default function AdminGaleriList() {
       </div>
 
       {/* Gallery Grid */}
-      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card p-6 border border-slate-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-bold text-slate-800 dark:text-white text-lg">Foto Terpublikasi</h2>
           <span className="text-sm text-slate-500 dark:text-slate-400">{photos.length} Foto</span>

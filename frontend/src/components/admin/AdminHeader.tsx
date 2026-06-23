@@ -35,12 +35,12 @@ export default function AdminHeader({
   };
 
   return (
-    <header className="h-[72px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 z-30 sticky top-0 transition-colors">
+    <header className="h-[72px] bg-white dark:bg-slate-900/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 z-30 sticky top-0 transition-colors">
       
       <div className="flex items-center gap-4">
         {/* Mobile Header Title */}
         {isMobile && title && (
-          <h1 className="text-lg font-extrabold text-slate-800 dark:text-white tracking-tight truncate max-w-[200px]">{title}</h1>
+          <h1 className="text-lg font-extrabold text-slate-800 dark:text-slate-100 tracking-tight truncate max-w-[200px]">{title}</h1>
         )}
         
         {/* Desktop Search */}
@@ -50,7 +50,7 @@ export default function AdminHeader({
             <input 
               type="text" 
               placeholder="Cari siswa, kelas, berita..." 
-              className="pl-10 pr-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 border border-transparent dark:border-slate-700 rounded-full text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-200 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/20 transition-all w-64 placeholder:font-normal dark:text-white"
+              className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800/50 dark:bg-slate-800/50 border border-transparent dark:border-slate-700 rounded-full text-sm font-medium focus:bg-white dark:bg-slate-900 dark:focus:bg-slate-800 focus:border-indigo-200 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/20 transition-all w-64 placeholder:font-normal dark:text-white"
             />
           </div>
         )}
@@ -75,27 +75,27 @@ export default function AdminHeader({
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
         </button>
 
-        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
+        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 dark:bg-slate-700 mx-1 hidden sm:block"></div>
 
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2.5 sm:gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700"
+            className="flex items-center gap-2.5 sm:gap-3 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-800 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-slate-100 dark:border-slate-800 dark:hover:border-slate-700"
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shadow-sm">
               SA
             </div>
             <div className="hidden sm:flex flex-col text-left">
-              <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200 leading-none mb-1">Superadmin</span>
-              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-none">Admin Utama</span>
+              <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200 leading-none mb-1">Superadmin</span>
+              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-400 leading-none">Admin Utama</span>
             </div>
-            <ChevronDown className={`w-3 h-3 text-slate-400 dark:text-slate-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''} hidden sm:block`} />
+            <ChevronDown className={`w-3 h-3 text-slate-400 dark:text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''} hidden sm:block`} />
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 py-1.5 animate-in fade-in slide-in-from-top-4 z-50">
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 dark:border-slate-700 py-1.5 animate-in fade-in slide-in-from-top-4 z-50">
               <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 sm:hidden">
-                <div className="text-sm font-bold text-slate-800 dark:text-white">Superadmin</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-100">Superadmin</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Admin Utama</div>
               </div>
               <div className="p-1.5">
@@ -104,11 +104,11 @@ export default function AdminHeader({
                     setDropdownOpen(false);
                     navigate('/panel/profile');
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-colors"
                 >
                   <User className="w-4 h-4" /> Profil Saya
                 </button>
-                <div className="h-px bg-slate-50 dark:bg-slate-700 my-1.5 mx-2"></div>
+                <div className="h-px bg-slate-50 dark:bg-slate-800 dark:bg-slate-700 my-1.5 mx-2"></div>
                 <button 
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"

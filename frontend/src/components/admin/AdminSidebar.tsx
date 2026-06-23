@@ -21,7 +21,8 @@ import {
   ChevronRight,
   MonitorPlay,
   FileQuestion,
-  GraduationCap
+  GraduationCap,
+  type LucideIcon
 } from 'lucide-react';
 import { useRoleSimulator } from '../simulator/RoleContext';
 
@@ -30,13 +31,23 @@ interface SidebarProps {
   setIsCollapsed: (val: boolean) => void;
 }
 
+interface NavItem {
+  name: string;
+  path: string;
+  icon: LucideIcon;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
 export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const location = useLocation();
   const currentPath = location.pathname;
   const { simulatedRole } = useRoleSimulator();
 
-  // Dynamic Nav Groups based on Role
-  let navGroups: any[] = [];
+  let navGroups: NavGroup[] = [];
 
   if (simulatedRole === 'superadmin') {
     navGroups = [
@@ -121,6 +132,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         title: "Ujian Online (CBT)",
         items: [
           { name: "Bank Soal Saya", path: "/panel/guru/soal", icon: FileQuestion },
+          { name: "Jadwal Ujian", path: "/panel/guru/ujian", icon: CalendarDays },
           { name: "Monitor Ujian Kelas", path: "/panel/cbt/monitor", icon: MonitorPlay },
         ]
       }
@@ -136,6 +148,30 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         ]
       });
     }
+  } else if (simulatedRole === 'siswa') {
+    navGroups = [
+      {
+        title: "Menu Utama",
+        items: [
+          { name: "Dashboard Siswa", path: "/panel/siswa", icon: LayoutDashboard }
+        ]
+      },
+      {
+        title: "Kegiatan Belajar (KBM)",
+        items: [
+          { name: "Jadwal Pelajaran", path: "/panel/siswa/jadwal", icon: CalendarDays },
+          { name: "Materi Belajar", path: "/panel/siswa/materi", icon: BookOpen },
+          { name: "Tugas & PR", path: "/panel/siswa/tugas", icon: ClipboardList },
+        ]
+      },
+      {
+        title: "Evaluasi & Rapor",
+        items: [
+          { name: "Ujian Online (CBT)", path: "/panel/siswa/cbt", icon: FileQuestion },
+          { name: "Rapor & Nilai", path: "/panel/siswa/rapor", icon: GraduationCap },
+        ]
+      }
+    ];
   }
 
   return (
@@ -149,12 +185,10 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
       {/* Header Logo */}
       <div className={`h-[72px] flex items-center shrink-0 border-b border-slate-100 dark:border-slate-800 transition-all duration-300 ${isCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
         <Link to="/panel" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-10 justify-center' : 'w-full'}`}>
-          <div className="bg-indigo-600 p-1.5 rounded-xl shrink-0 shadow-sm shadow-indigo-200 dark:shadow-none">
-            <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain brightness-0 invert" />
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain shrink-0" />
           {!isCollapsed && (
             <div className="flex flex-col whitespace-nowrap animate-in fade-in duration-300">
-              <span className="font-extrabold text-slate-800 dark:text-white text-sm tracking-tight leading-tight">SIT ADMIN</span>
+              <span className="font-extrabold text-slate-800 dark:text-slate-100 text-sm tracking-tight leading-tight">SIT ADMIN</span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">SMAS Muh 1 Bwi</span>
             </div>
           )}
@@ -164,7 +198,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
       {/* Collapse Toggle Button - overlapping the border */}
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-[26px] w-7 h-7 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all z-50 focus:outline-none"
+        className="absolute -right-3.5 top-[26px] w-7 h-7 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all z-50 focus:outline-none"
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
@@ -203,10 +237,10 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
                       ${isCollapsed ? 'justify-center px-0 mx-2' : 'px-4 mx-1'}
                       ${isActive 
                         ? 'bg-indigo-50/80 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400' 
-                        : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300'
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-800 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-300'
                       }
                     `}>
-                      <Icon className={`shrink-0 transition-colors ${isCollapsed ? 'w-5 h-5' : 'w-[18px] h-[18px]'} ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+                      <Icon className={`shrink-0 transition-colors ${isCollapsed ? 'w-5 h-5' : 'w-[18px] h-[18px]'} ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300'}`} />
                       
                       {!isCollapsed && (
                         <span className="whitespace-nowrap text-[13px] tracking-wide">{item.name}</span>

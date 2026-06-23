@@ -24,13 +24,13 @@ export default function AdminCetakRaporDetail() {
             <p className="text-center text-xs text-slate-500 dark:text-slate-400 mb-4">NISN: 0081234501 • Kelas X-1</p>
             
             <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
                 <CheckCircle className="w-4 h-4 text-emerald-500" /> Nilai Akademik Lengkap
               </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
                 <CheckCircle className="w-4 h-4 text-emerald-500" /> Catatan Wali Kelas Ada
               </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
                 <CheckCircle className="w-4 h-4 text-emerald-500" /> Kehadiran Terekap
               </div>
             </div>
@@ -43,7 +43,7 @@ export default function AdminCetakRaporDetail() {
 
         {/* Paper Canvas Preview */}
         <div className="flex-1 w-full flex justify-center">
-          <div className="w-full max-w-[800px] bg-white dark:bg-slate-900 shadow-lg border border-slate-300 p-10 md:p-14 pb-20 relative aspect-[1/1.414] overflow-y-auto custom-scrollbar text-slate-900 font-serif">
+          <div className="w-full max-w-[800px] bg-white dark:bg-slate-900 shadow-lg border border-slate-300 dark:border-slate-600 p-10 md:p-14 pb-20 relative aspect-[1/1.414] overflow-y-auto custom-scrollbar text-slate-900 dark:text-white font-serif">
             
             {/* Header Rapor */}
             <div className="text-center border-b-[3px] border-slate-800 pb-4 mb-6">
@@ -71,7 +71,7 @@ export default function AdminCetakRaporDetail() {
             <h3 className="font-bold text-sm mb-2 uppercase">B. Pengetahuan & Keterampilan</h3>
             <table className="w-full border-collapse border border-slate-800 text-xs text-center mb-8">
               <thead>
-                <tr className="bg-slate-100 font-bold">
+                <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
                   <td className="border border-slate-800 p-2 w-10">No</td>
                   <td className="border border-slate-800 p-2 text-left">Mata Pelajaran</td>
                   <td className="border border-slate-800 p-2 w-16">KKM</td>

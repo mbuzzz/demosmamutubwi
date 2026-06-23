@@ -39,17 +39,17 @@ export default function AdminNilaiEntry() {
       <div className="bg-white dark:bg-slate-900 rounded-[20px] shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
         
         {/* Filter Toolbar */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap gap-4 items-end">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/50 flex flex-wrap gap-4 items-end">
           <div className="w-full sm:w-auto">
-            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Tahun & Semester</label>
-            <select className="w-full sm:w-48 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white">
+            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Tahun & Semester</label>
+            <select className="w-full sm:w-48 px-4 py-2.5 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white">
               <option>2023/2024 - Ganjil</option>
               <option>2023/2024 - Genap</option>
             </select>
           </div>
           <div className="w-full sm:w-auto">
-            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Filter Kelas</label>
-            <select className="w-full sm:w-32 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-700 dark:text-indigo-400">
+            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Filter Kelas</label>
+            <select className="w-full sm:w-32 px-4 py-2.5 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-700 dark:text-indigo-400">
               <option>X-1</option>
               <option>XI-IPA-1</option>
             </select>
@@ -67,7 +67,7 @@ export default function AdminNilaiEntry() {
             <input type="text" placeholder="Cari nama siswa..." className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border border-slate-200 dark:border-slate-700">
+            <button className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border border-slate-200 dark:border-slate-700">
               Export Excel
             </button>
           </div>
@@ -92,13 +92,13 @@ export default function AdminNilaiEntry() {
                 { id: 2, nama: 'Budi Raharjo', n1: 74.5, n2: 82.0, n3: 76.5, avg: 77.6 },
                 { id: 3, nama: 'Citra Kirana', n1: 92.0, n2: 88.5, n3: 95.0, avg: 91.8 },
               ].map((siswa) => (
-                <tr key={siswa.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                <tr key={siswa.id} className="hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="px-4 py-3 text-center text-slate-400 font-bold border-r border-slate-100 dark:border-slate-800">{siswa.id}</td>
                   <td className="px-4 py-3 font-bold text-slate-800 dark:text-white border-r border-slate-100 dark:border-slate-800">{siswa.nama}</td>
                   <td className={`px-4 py-3 text-center font-bold border-r border-slate-100 dark:border-slate-800 ${siswa.n1 < 75 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>{siswa.n1}</td>
                   <td className={`px-4 py-3 text-center font-bold border-r border-slate-100 dark:border-slate-800 ${siswa.n2 < 75 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>{siswa.n2}</td>
                   <td className={`px-4 py-3 text-center font-bold border-r border-slate-100 dark:border-slate-800 ${siswa.n3 < 75 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>{siswa.n3}</td>
-                  <td className="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400 border-r border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">{siswa.avg}</td>
+                  <td className="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400 border-r border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/30">{siswa.avg}</td>
                   <td className="px-4 py-3 text-center">
                     <button className="p-1.5 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-colors">
                       <Eye className="w-4 h-4" />

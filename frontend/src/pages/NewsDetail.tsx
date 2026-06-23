@@ -49,13 +49,13 @@ export default function NewsDetail() {
   const shareText = encodeURIComponent(article.title);
 
   return (
-    <div className="bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 min-h-screen">
+    <div className="bg-slate-50 dark:bg-slate-800 py-12 px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="max-w-7xl mx-auto">
         
         {/* Navigation & Breadcrumb */}
         <button 
           onClick={() => navigate('/berita')}
-          className="text-slate-500 hover:text-brand-blueDark font-semibold text-sm flex items-center gap-2 mb-8 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 w-max"
+          className="text-slate-500 dark:text-slate-400 hover:text-brand-blueDark dark:text-brand-yellow font-semibold text-sm flex items-center gap-2 mb-8 transition-colors bg-white dark:bg-slate-900 px-4 py-2 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 w-max"
         >
           <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar Berita
         </button>
@@ -63,9 +63,9 @@ export default function NewsDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Main Article Content (Bento Main Column) */}
-          <div className="lg:col-span-8 bg-white rounded-[15px] shadow-card border border-slate-100 overflow-hidden">
+          <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
             {/* Featured Image Header */}
-            <div className="relative aspect-video bg-slate-100">
+            <div className="relative aspect-video bg-slate-100 dark:bg-slate-800">
               <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
               <div className="absolute top-4 left-4">
                 <span className="flex items-center gap-1.5 bg-brand-teal text-white px-3 py-1.5 rounded-[10px] text-xs font-bold uppercase tracking-wider shadow-md">
@@ -75,24 +75,24 @@ export default function NewsDetail() {
             </div>
 
             <div className="p-8 sm:p-10">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-6">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white leading-tight mb-6">
                 {article.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-slate-500 text-sm mb-8 pb-6 border-b border-slate-100">
+              <div className="flex flex-wrap items-center gap-4 text-slate-500 dark:text-slate-400 text-sm mb-8 pb-6 border-b border-slate-100 dark:border-slate-800">
                 <span className="flex items-center gap-2 font-medium">
-                  <Calendar className="h-4 w-4 text-brand-teal" /> {article.date}
+                  <Calendar className="h-4 w-4 text-brand-teal dark:text-emerald-400" /> {article.date}
                 </span>
                 <span className="flex items-center gap-2 font-medium">
-                  <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold">
+                  <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 text-xs font-bold">
                     {article.author.charAt(0)}
                   </div>
-                  Oleh: <span className="text-slate-700">{article.author}</span>
+                  Oleh: <span className="text-slate-700 dark:text-slate-300">{article.author}</span>
                 </span>
               </div>
 
               {/* Body Text */}
-              <div className="prose prose-lg max-w-none text-slate-600 leading-relaxed whitespace-pre-line">
+              <div className="prose prose-lg max-w-none text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">
                 {article.content}
               </div>
             </div>
@@ -102,9 +102,9 @@ export default function NewsDetail() {
           <div className="lg:col-span-4 space-y-6">
             
             {/* Share Widget Bento */}
-            <div className="bg-white rounded-[15px] p-6 shadow-card border border-slate-100">
-              <h3 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-brand-teal" /> Bagikan Berita
+            <div className="bg-white dark:bg-slate-900 rounded-[15px] p-6 shadow-card dark:shadow-none border border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-slate-900 dark:text-white text-lg mb-4 flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-brand-teal dark:text-emerald-400" /> Bagikan Berita
               </h3>
               
               <div className="grid grid-cols-2 gap-3 mb-4">
@@ -139,7 +139,7 @@ export default function NewsDetail() {
                 <a 
                   href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`}
                   target="_blank" rel="noreferrer"
-                  className="flex flex-col items-center justify-center gap-2 bg-slate-800/10 hover:bg-slate-800/20 text-slate-800 p-3 rounded-[12px] transition-colors font-semibold text-sm"
+                  className="flex flex-col items-center justify-center gap-2 bg-slate-800/10 hover:bg-slate-800/20 text-slate-800 dark:text-slate-200 p-3 rounded-[12px] transition-colors font-semibold text-sm"
                 >
                   <Twitter className="w-6 h-6" /> Twitter
                 </a>
@@ -151,7 +151,7 @@ export default function NewsDetail() {
                 className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-[12px] font-bold text-sm transition-all duration-200 ${
                   copied 
                     ? 'bg-brand-green text-white' 
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700'
                 }`}
               >
                 {copied ? <><Check className="w-4 h-4" /> Tersalin!</> : <><LinkIcon className="w-4 h-4" /> Salin URL Berita</>}
@@ -159,8 +159,8 @@ export default function NewsDetail() {
             </div>
 
             {/* Rekomendasi / Berita Lainnya Bento */}
-            <div className="bg-brand-blueDark rounded-[15px] p-6 shadow-card text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div className="bg-brand-blueDark rounded-[15px] p-6 shadow-card dark:shadow-none text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white dark:bg-slate-900/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
               <h3 className="font-bold text-lg mb-5 relative z-10">Berita Lainnya</h3>
               <div className="space-y-4 relative z-10">
                 {mockArticles.filter(a => a.id !== article.id).slice(0, 3).map((related) => (

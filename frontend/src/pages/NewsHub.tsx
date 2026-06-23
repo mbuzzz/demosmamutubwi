@@ -48,18 +48,18 @@ export default function NewsHub() {
   ];
 
   return (
-    <div className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8">
+    <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-3">Portal Berita & Kabar Sekolah</h1>
-          <p className="text-slate-500">Kumpulan cerita, pengumuman resmi, dan pencapaian civitas akademika kami.</p>
+          <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-3">Portal Berita & Kabar Sekolah</h1>
+          <p className="text-slate-500 dark:text-slate-400">Kumpulan cerita, pengumuman resmi, dan pencapaian civitas akademika kami.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {articles.map((article) => (
-            <div key={article.id} className="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 border border-slate-100 flex flex-col justify-between cursor-pointer" onClick={() => navigate(`/berita/${article.id}`)}>
+            <div key={article.id} className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-card dark:shadow-none hover:shadow-card dark:shadow-none-hover transition-all duration-300 border border-slate-100 dark:border-slate-800 flex flex-col justify-between cursor-pointer" onClick={() => navigate(`/berita/${article.id}`)}>
               <div>
-                <div className="h-48 overflow-hidden bg-slate-200 relative">
+                <div className="h-48 overflow-hidden bg-slate-200 dark:bg-slate-700 relative">
                   <img src={article.image} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                   <span className="absolute top-3 left-3 bg-brand-teal text-white text-xs font-semibold px-2.5 py-1 rounded">
                     {article.category}
@@ -67,14 +67,14 @@ export default function NewsHub() {
                 </div>
                 <div className="p-6">
                   <span className="text-xs text-slate-400 font-medium block mb-2">{article.date}</span>
-                  <h2 className="font-bold text-slate-900 leading-tight text-lg mb-3 line-clamp-2 group-hover:text-brand-teal transition-colors">
+                  <h2 className="font-bold text-slate-900 dark:text-white leading-tight text-lg mb-3 line-clamp-2 group-hover:text-brand-teal dark:text-emerald-400 transition-colors">
                     {article.title}
                   </h2>
-                  <p className="text-slate-600 text-sm line-clamp-3 leading-relaxed mb-4">{article.excerpt}</p>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 leading-relaxed mb-4">{article.excerpt}</p>
                 </div>
               </div>
               <div className="px-6 pb-6 mt-auto">
-                <div className="text-brand-teal font-semibold text-sm inline-flex items-center gap-1 transition-colors">
+                <div className="text-brand-teal dark:text-emerald-400 font-semibold text-sm inline-flex items-center gap-1 transition-colors">
                   Baca Lengkap <ArrowRight className="h-4 w-4" />
                 </div>
               </div>

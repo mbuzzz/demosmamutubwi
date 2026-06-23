@@ -31,9 +31,9 @@ export default function AdminDashboard() {
             Aktivitas Terbaru
           </h2>
           <div className="space-y-4">
-            <div className="text-sm font-medium text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 bg-slate-50/50 dark:bg-slate-800/30 text-center flex flex-col items-center justify-center min-h-[200px]">
+            <div className="text-sm font-medium text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/30 text-center flex flex-col items-center justify-center min-h-[200px]">
               <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-                <ClipboardList className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                <ClipboardList className="w-6 h-6 text-slate-400 dark:text-slate-500 dark:text-slate-400" />
               </div>
               Belum ada aktivitas yang direkam hari ini.
             </div>

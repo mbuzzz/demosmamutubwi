@@ -13,7 +13,7 @@ export default function GuruMateri() {
     return (
       <AdminLayout title="Buat Materi Baru">
         <div className="flex justify-between items-center mb-6">
-          <button onClick={() => setView('list')} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-bold">
+          <button onClick={() => setView('list')} className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors text-sm font-bold">
             <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar
           </button>
           <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
@@ -36,7 +36,7 @@ export default function GuruMateri() {
                 
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Penjelasan / Isi Materi (Opsional)</label>
-                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden quill-custom-dark transition-colors">
+                  <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden quill-custom-dark transition-colors">
                     <ReactQuill theme="snow" value={content} onChange={setContent} className="h-64 pb-10" placeholder="Ketikkan penjelasan teori, rumus, atau tautan video YouTube di sini..." />
                   </div>
                 </div>
@@ -68,7 +68,7 @@ export default function GuruMateri() {
                 <div className="pt-4">
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Lampiran File (PDF/PPT)</label>
                   <div className="border-2 border-dashed border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-2xl p-6 text-center hover:bg-indigo-100/50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer group">
-                    <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform">
                       <UploadCloud className="w-5 h-5 text-indigo-500" />
                     </div>
                     <p className="text-sm font-bold text-indigo-900 dark:text-indigo-400">Pilih atau Seret File</p>
@@ -88,7 +88,7 @@ export default function GuruMateri() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div className="flex gap-4 items-center">
           <div className="w-full sm:w-64">
-            <select className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white shadow-sm">
+            <select className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white shadow-sm">
               <option>Matematika Wajib - X-1</option>
               <option>Matematika Wajib - X-2</option>
             </select>
@@ -100,11 +100,11 @@ export default function GuruMateri() {
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/30 flex justify-between items-center">
           <h3 className="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2"><BookOpen className="w-5 h-5 text-indigo-500" /> Daftar Materi (Kelas X-1)</h3>
           <div className="relative max-w-sm w-64 hidden md:block">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input type="text" placeholder="Cari judul materi..." className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium dark:text-white" />
+            <input type="text" placeholder="Cari judul materi..." className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium dark:text-white" />
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export default function GuruMateri() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
             {/* Card Materi dengan File */}
-            <div className="flex items-start gap-4 p-5 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group bg-white dark:bg-slate-900">
+            <div className="flex items-start gap-4 p-5 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-800/50 transition-colors group bg-white dark:bg-slate-900">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-center shrink-0">
                 <span className="font-black text-[10px] uppercase tracking-wider">PDF</span>
               </div>
@@ -131,7 +131,7 @@ export default function GuruMateri() {
             </div>
 
             {/* Card Materi Teks/Video Saja */}
-            <div className="flex items-start gap-4 p-5 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group bg-white dark:bg-slate-900">
+            <div className="flex items-start gap-4 p-5 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-800/50 transition-colors group bg-white dark:bg-slate-900">
               <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center shrink-0">
                 <span className="font-black text-[10px] uppercase tracking-wider">TEKS</span>
               </div>

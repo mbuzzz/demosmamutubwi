@@ -15,7 +15,7 @@ export default function AdminSPMBDetail() {
         
         {/* Kolom Kiri: Biodata Lengkap */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card overflow-hidden border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-800">
             <div className="bg-indigo-600 p-6 text-white flex justify-between items-start">
               <div>
                 <span className="bg-white dark:bg-slate-900/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block">REG-2024-001</span>
@@ -49,7 +49,7 @@ export default function AdminSPMBDetail() {
           </div>
 
           {/* Kotak Aksi Final */}
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card p-6 border-2 border-indigo-100">
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border-2 border-indigo-100">
             <h3 className="font-bold text-slate-800 dark:text-white mb-2">Aksi Verifikasi Final</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Pilih status penerimaan siswa ini. Pendaftar akan menerima notifikasi via Email/Dashboard mereka.</p>
             
@@ -71,22 +71,22 @@ export default function AdminSPMBDetail() {
         </div>
 
         {/* Kolom Kanan: Document Previewer */}
-        <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card border border-slate-100 dark:border-slate-800 h-full flex flex-col min-h-[600px]">
+        <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none border border-slate-100 dark:border-slate-800 h-full flex flex-col min-h-[600px]">
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 rounded-t-[15px] flex items-center justify-between">
             <h3 className="font-bold text-slate-800 dark:text-white">Lampiran Dokumen</h3>
             <div className="flex gap-2">
               <button className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm">Kartu Keluarga</button>
-              <button className="text-xs bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg font-bold">Rapor SMP</button>
-              <button className="text-xs bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg font-bold">Ijazah/SKL</button>
+              <button className="text-xs bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50 px-3 py-1.5 rounded-lg font-bold">Rapor SMP</button>
+              <button className="text-xs bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50 px-3 py-1.5 rounded-lg font-bold">Ijazah/SKL</button>
             </div>
           </div>
           
           <div className="flex-1 bg-slate-800 p-6 flex flex-col items-center justify-center relative overflow-hidden">
             {/* Mock PDF Viewer */}
-            <div className="w-full max-w-[400px] aspect-[1/1.4] bg-slate-200 rounded-lg shadow-2xl relative border-4 border-white overflow-hidden">
+            <div className="w-full max-w-[400px] aspect-[1/1.4] bg-slate-200 dark:bg-slate-700 rounded-lg shadow-2xl relative border-4 border-white overflow-hidden">
               <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" alt="Dokumen Preview" className="w-full h-full object-cover opacity-80" />
               <div className="absolute inset-0 bg-slate-900/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                <button className="bg-white dark:bg-slate-900/90 text-slate-900 p-3 rounded-full hover:scale-110 transition-transform shadow-lg">
+                <button className="bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white p-3 rounded-full hover:scale-110 transition-transform shadow-lg">
                   <Eye className="w-6 h-6" />
                 </button>
               </div>

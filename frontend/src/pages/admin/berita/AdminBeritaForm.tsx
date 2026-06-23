@@ -49,13 +49,13 @@ export default function AdminBeritaForm() {
         
         {/* Main Content Form */}
         <div className="xl:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card p-6 border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
               <NewspaperIcon className="w-4 h-4 text-indigo-500" /> Konten Utama
             </h3>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Judul Berita</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Judul Berita</label>
                 <input 
                   type="text" 
                   value={title}
@@ -67,7 +67,7 @@ export default function AdminBeritaForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Kutipan Singkat (Excerpt)</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Kutipan Singkat (Excerpt)</label>
                 <textarea 
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
@@ -79,7 +79,7 @@ export default function AdminBeritaForm() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Konten Lengkap Berita</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Konten Lengkap Berita</label>
                 <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
                   <ReactQuill 
                     theme="snow" 
@@ -93,15 +93,15 @@ export default function AdminBeritaForm() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card p-6 border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
               <Settings className="w-4 h-4 text-slate-500 dark:text-slate-400" /> Pengaturan SEO & URL
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><LinkIcon className="w-3.5 h-3.5" /> URL Slug</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5 flex items-center gap-2"><LinkIcon className="w-3.5 h-3.5" /> URL Slug</label>
                 <div className="flex items-center">
-                  <span className="px-3 py-2 bg-slate-100 border border-r-0 border-slate-200 dark:border-slate-700 rounded-l-lg text-sm text-slate-500 dark:text-slate-400">domain.com/berita/</span>
+                  <span className="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-r-0 border-slate-200 dark:border-slate-700 rounded-l-lg text-sm text-slate-500 dark:text-slate-400">domain.com/berita/</span>
                   <input 
                     type="text" 
                     value={slug}
@@ -112,7 +112,7 @@ export default function AdminBeritaForm() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Meta Keywords (Opsional)</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Meta Keywords (Opsional)</label>
                 <input 
                   type="text" 
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -125,12 +125,12 @@ export default function AdminBeritaForm() {
 
         {/* Sidebar Settings */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card p-6 border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Pengaturan Publikasi</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Status Publish</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Status Publish</label>
                 <select className="w-full px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-800 font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option value="published">Langsung Publish</option>
                   <option value="draft">Simpan sbg Draft</option>
@@ -139,7 +139,7 @@ export default function AdminBeritaForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" /> Tanggal Publikasi</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" /> Tanggal Publikasi</label>
                 <input 
                   type="datetime-local" 
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -148,7 +148,7 @@ export default function AdminBeritaForm() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-3">
-              <Link to="/panel/berita" className="flex-1 text-center py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 dark:text-slate-300 font-medium rounded-lg text-sm transition-colors">
+              <Link to="/panel/berita" className="flex-1 text-center py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 font-medium rounded-lg text-sm transition-colors">
                 Batal
               </Link>
               <button type="submit" className="flex-[2] flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm">
@@ -157,12 +157,12 @@ export default function AdminBeritaForm() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card p-6 border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Klasifikasi & Media</h3>
             
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><TagIcon className="w-3.5 h-3.5" /> Kategori</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5 flex items-center gap-2"><TagIcon className="w-3.5 h-3.5" /> Kategori</label>
                 <select 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -176,21 +176,21 @@ export default function AdminBeritaForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Penulis (Author)</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Penulis (Author)</label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-slate-400 dark:text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input type="text" defaultValue="Superadmin SIT" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" readOnly />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Gambar Thumbnail</label>
-                <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 dark:bg-slate-800/50 transition-colors cursor-pointer group bg-slate-50 dark:bg-slate-800/50/50">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Gambar Thumbnail</label>
+                <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50 transition-colors cursor-pointer group bg-slate-50 dark:bg-slate-800/50/50">
                   <div className="w-12 h-12 bg-white dark:bg-slate-900 rounded-full shadow-sm flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                     <ImageIcon className="w-6 h-6 text-indigo-400" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Pilih Thumbnail</p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Maks 2MB (JPG, PNG, WEBP)</p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200">Pilih Thumbnail</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 dark:text-slate-400 mt-1">Maks 2MB (JPG, PNG, WEBP)</p>
                 </div>
               </div>
 
@@ -200,7 +200,7 @@ export default function AdminBeritaForm() {
                     <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" defaultChecked />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 block">Izinkan Komentar</span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 block">Izinkan Komentar</span>
                     <span className="text-xs text-slate-500 dark:text-slate-400 block">Siswa & Guru bisa mengomentari berita ini.</span>
                   </div>
                 </label>

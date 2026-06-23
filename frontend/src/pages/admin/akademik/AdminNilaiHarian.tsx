@@ -9,19 +9,19 @@ export default function AdminNilaiHarian() {
         {/* Toolbar */}
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50/50 flex flex-wrap gap-4 items-end">
           <div className="w-full sm:w-auto">
-            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Tahun & Semester</label>
+            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Tahun & Semester</label>
             <select className="w-full sm:w-48 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
               <option>2024/2025 - Ganjil</option>
             </select>
           </div>
           <div className="w-full sm:w-auto">
-            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Pilih Kelas</label>
+            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Kelas</label>
             <select className="w-full sm:w-32 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-700">
               <option>X-1</option>
             </select>
           </div>
           <div className="w-full sm:w-auto">
-            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Mata Pelajaran</label>
+            <label className="block text-[11px] font-extrabold text-slate-400 dark:text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Mata Pelajaran</label>
             <select className="w-full sm:w-48 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
               <option>Matematika Wajib</option>
             </select>
@@ -53,8 +53,8 @@ export default function AdminNilaiHarian() {
                     <CalendarDays className="w-5 h-5" />
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600"><Edit className="w-4 h-4" /></button>
-                    <button className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                    <button className="p-1.5 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-indigo-600"><Edit className="w-4 h-4" /></button>
+                    <button className="p-1.5 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
                 <h4 className="font-bold text-slate-800 dark:text-white mb-1 leading-tight">{tugas.title}</h4>
@@ -65,7 +65,7 @@ export default function AdminNilaiHarian() {
                     {tugas.status}
                   </span>
                   <div className="text-right">
-                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Rata-Rata</div>
+                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 dark:text-slate-400 uppercase">Rata-Rata</div>
                     <div className="font-black text-indigo-700">{tugas.avg}</div>
                   </div>
                 </div>

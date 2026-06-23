@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-type Role = 'superadmin' | 'guru' | 'walikelas';
+type Role = 'superadmin' | 'guru' | 'walikelas' | 'siswa';
 
 interface RoleContextType {
   simulatedRole: Role;

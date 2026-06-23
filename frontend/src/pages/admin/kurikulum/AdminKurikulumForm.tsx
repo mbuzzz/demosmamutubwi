@@ -74,15 +74,15 @@ export default function AdminKurikulumForm() {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card overflow-hidden border border-slate-100 dark:border-slate-800 mb-6">
+      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-800 mb-6">
         <div className="flex border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
-          <button onClick={() => setActiveTab('umum')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'umum' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('umum')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'umum' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50'}`}>
             <Settings className="w-4 h-4" /> 1. Identitas & Penilaian
           </button>
-          <button onClick={() => setActiveTab('mapel')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'mapel' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('mapel')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'mapel' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50'}`}>
             <BookOpen className="w-4 h-4" /> 2. Struktur Mata Pelajaran
           </button>
-          <button onClick={() => setActiveTab('rapor')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'rapor' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('rapor')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'rapor' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50'}`}>
             <Layout className="w-4 h-4" /> 3. Builder Template Rapor
           </button>
         </div>
@@ -97,15 +97,15 @@ export default function AdminKurikulumForm() {
                   <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Identitas Kurikulum</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Nama Kurikulum</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Nama Kurikulum</label>
                       <input type="text" defaultValue="Kurikulum Merdeka 2024" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Fase / Kelas Target</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Fase / Kelas Target</label>
                       <input type="text" defaultValue="Fase E (Kelas X)" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Status Aktif</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Status Aktif</label>
                       <select className="w-full px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="aktif">Aktif Digunakan</option>
                         <option value="draft">Draft / Nonaktif</option>
@@ -133,9 +133,9 @@ export default function AdminKurikulumForm() {
                         </div>
                         <div className="w-32 relative">
                           <input type="number" value={k.bobot} onChange={(e) => { const n = [...komponen]; n[index].bobot = Number(e.target.value); setKomponen(n); }} className="w-full pl-3 pr-8 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm focus:ring-2 focus:ring-indigo-500 text-right font-bold text-indigo-600" />
-                          <Percent className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute right-3 top-1/2 -translate-y-1/2" />
+                          <Percent className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 dark:text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                         </div>
-                        <button type="button" onClick={() => removeKomponen(k.id)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => removeKomponen(k.id)} className="p-2 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
@@ -157,11 +157,11 @@ export default function AdminKurikulumForm() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Nilai KKM Default</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Nilai KKM Default</label>
                       <input type="number" defaultValue="75" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Metode Remedial</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Metode Remedial</label>
                       <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm">
                         <option>Maksimal setara KKM</option>
                         <option>Nilai murni ujian remedial</option>
@@ -170,7 +170,7 @@ export default function AdminKurikulumForm() {
                   </div>
 
                   <div className="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-xl">
-                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
                       <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
                         <tr>
                           <th className="px-4 py-3 w-16 text-center">Huruf</th>
@@ -185,7 +185,7 @@ export default function AdminKurikulumForm() {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 <input type="number" value={rule.min} className="w-16 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded text-xs text-center" readOnly/>
-                                <span className="text-slate-400 dark:text-slate-500">-</span>
+                                <span className="text-slate-400 dark:text-slate-500 dark:text-slate-400">-</span>
                                 <input type="number" value={rule.max} className="w-16 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded text-xs text-center" readOnly/>
                               </div>
                             </td>
@@ -221,13 +221,13 @@ export default function AdminKurikulumForm() {
                     <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 p-4 flex justify-between items-center">
                       <h4 className="font-bold text-indigo-800 flex items-center gap-2"><Layers className="w-4 h-4" /> {kel.nama}</h4>
                       <div className="flex gap-1">
-                        <button className="p-1 text-slate-400 dark:text-slate-500 hover:text-indigo-600"><Plus className="w-4 h-4" /></button>
-                        <button className="p-1 text-slate-400 dark:text-slate-500 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                        <button className="p-1 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-indigo-600"><Plus className="w-4 h-4" /></button>
+                        <button className="p-1 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
                     <div className="p-4">
-                      <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-                        <thead className="text-xs uppercase font-semibold text-slate-400 dark:text-slate-500">
+                      <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
+                        <thead className="text-xs uppercase font-semibold text-slate-400 dark:text-slate-500 dark:text-slate-400">
                           <tr>
                             <th className="pb-2">Kode</th>
                             <th className="pb-2">Nama Mapel</th>
@@ -272,28 +272,28 @@ export default function AdminKurikulumForm() {
                     <p className="text-[10px] text-indigo-100 mt-1 opacity-90">Seret elemen ini ke kanvas kertas di sebelah kanan.</p>
                   </div>
                   <div className="p-4 space-y-3 bg-slate-50 dark:bg-slate-800/50/50">
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 rounded-lg"><Image className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Kop Surat Sekolah
+                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
+                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><Image className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Kop Surat Sekolah
                     </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 rounded-lg"><AlignLeft className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Biodata Peserta Didik
+                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
+                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><AlignLeft className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Biodata Peserta Didik
                     </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 rounded-lg"><LayoutTemplate className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Tabel Nilai Utama (100)
+                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
+                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><LayoutTemplate className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Tabel Nilai Utama (100)
                     </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 rounded-lg"><FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Teks Paragraf Bebas
+                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
+                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Teks Paragraf Bebas
                     </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 rounded-lg"><PenTool className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Area Tanda Tangan
+                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
+                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><PenTool className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Area Tanda Tangan
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Kanan: Canvas A4 */}
-              <div className="lg:col-span-3 flex justify-center bg-slate-200/50 p-6 rounded-[20px] border border-slate-200 dark:border-slate-700 shadow-inner overflow-x-auto">
-                <div className="w-full max-w-[800px] bg-white dark:bg-slate-900 shadow-2xl relative aspect-[1/1.414] scale-95 origin-top text-slate-900 font-serif border border-slate-300 group">
+              <div className="lg:col-span-3 flex justify-center bg-slate-200 dark:bg-slate-700/50 p-6 rounded-[20px] border border-slate-200 dark:border-slate-700 shadow-inner overflow-x-auto">
+                <div className="w-full max-w-[800px] bg-white dark:bg-slate-900 shadow-2xl relative aspect-[1/1.414] scale-95 origin-top text-slate-900 dark:text-white font-serif border border-slate-300 dark:border-slate-600 group">
                   
                   {/* Action Bar overlay */}
                   <div className="absolute -top-12 left-0 w-full flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -332,7 +332,7 @@ export default function AdminKurikulumForm() {
                     <div className="relative border-2 border-transparent hover:border-indigo-400 p-2 cursor-move transition-colors rounded">
                       <h3 className="font-bold text-sm mb-2 uppercase">A. Nilai Akademik</h3>
                       <table className="w-full border-collapse border border-slate-400 text-xs text-center">
-                        <tr className="bg-slate-100 font-bold">
+                        <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
                           <td className="border border-slate-400 p-2 w-10">No</td>
                           <td className="border border-slate-400 p-2 text-left">Mata Pelajaran</td>
                           <td className="border border-slate-400 p-2">KKM</td>
@@ -340,7 +340,7 @@ export default function AdminKurikulumForm() {
                           <td className="border border-slate-400 p-2">Predikat</td>
                         </tr>
                         <tr>
-                          <td className="border border-slate-400 p-2 text-slate-400 dark:text-slate-500" colSpan={5}>[TABEL DI-GENERATE OTOMATIS OLEH SISTEM BERDASARKAN KELOMPOK MAPEL]</td>
+                          <td className="border border-slate-400 p-2 text-slate-400 dark:text-slate-500 dark:text-slate-400" colSpan={5}>[TABEL DI-GENERATE OTOMATIS OLEH SISTEM BERDASARKAN KELOMPOK MAPEL]</td>
                         </tr>
                         <tr>
                           <td className="border border-slate-400 p-4" colSpan={5}></td>

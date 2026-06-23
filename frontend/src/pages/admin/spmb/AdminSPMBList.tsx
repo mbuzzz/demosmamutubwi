@@ -7,17 +7,17 @@ export default function AdminSPMBList() {
     <AdminLayout title="Data Pendaftar SPMB">
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-card dark:shadow-none border border-transparent dark:border-slate-800 overflow-hidden">
         
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900/50">
           <div className="relative max-w-sm w-full">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
               placeholder="Cari nama, NISN, No Reg..." 
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium dark:text-white transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium dark:text-white transition-all shadow-sm"
             />
           </div>
           <div className="flex gap-3 w-full sm:w-auto">
-            <select className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all">
+            <select className="px-4 py-2.5 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all">
               <option value="">Semua Gelombang</option>
               <option value="1">Gelombang Inden</option>
               <option value="2">Gelombang 1</option>
@@ -29,8 +29,8 @@ export default function AdminSPMBList() {
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-            <thead className="bg-white dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[11px] uppercase font-extrabold tracking-wider border-b border-slate-100 dark:border-slate-800">
+          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
+            <thead className="bg-white dark:bg-slate-900 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[11px] uppercase font-extrabold tracking-wider border-b border-slate-100 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-5">No. Registrasi</th>
                 <th className="px-6 py-5">Data Calon Siswa</th>
@@ -41,7 +41,7 @@ export default function AdminSPMBList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+              <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-800/30 transition-colors group">
                 <td className="px-6 py-4 font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">REG-2024-001</td>
                 <td className="px-6 py-4">
                   <div className="font-bold text-slate-800 dark:text-white text-sm mb-1">Muhammad Rizki</div>
@@ -68,7 +68,7 @@ export default function AdminSPMBList() {
                 </td>
               </tr>
               
-              <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+              <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-800/30 transition-colors group">
                 <td className="px-6 py-4 font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">REG-2024-002</td>
                 <td className="px-6 py-4">
                   <div className="font-bold text-slate-800 dark:text-white text-sm mb-1">Aisyah Nur Fitri</div>

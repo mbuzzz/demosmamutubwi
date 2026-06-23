@@ -49,7 +49,7 @@ export default function AdminLayout({ children, title }: { children: React.React
         <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-[1600px] mx-auto pb-24 lg:pb-8">
           {title && !isMobile && (
             <div className="mb-6 flex items-center justify-between">
-              <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">{title}</h1>
+              <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">{title}</h1>
             </div>
           )}
           

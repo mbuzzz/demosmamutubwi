@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Users, Download } from 'lucide-react';
+import { Menu, X, ChevronDown, Users, Download, Moon, Sun } from 'lucide-react';
+import { useTheme } from './ThemeProvider';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +27,9 @@ export default function Navbar() {
     setIsOpen(false);
     setIsDropdownOpen(false);
   }, [location.pathname]);
+
+  const { theme, setTheme } = useTheme();
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
   const isDirektoriActive = location.pathname === '/guru' || location.pathname === '/unduhan';
 
@@ -83,16 +87,16 @@ export default function Navbar() {
               
               {/* Dropdown Menu */}
               {isDropdownOpen && (
-                <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-[15px] shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-[15px] shadow-lg border border-slate-100 dark:border-slate-800 py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                   <Link 
                     to="/guru" 
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-teal transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-800 hover:text-brand-teal transition-colors"
                   >
                     <Users className="w-4 h-4" /> Guru & Karyawan
                   </Link>
                   <Link 
                     to="/unduhan" 
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-teal transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-800 hover:text-brand-teal transition-colors"
                   >
                     <Download className="w-4 h-4" /> Pusat Unduhan
                   </Link>
@@ -125,9 +129,13 @@ export default function Navbar() {
               SPMB
             </NavLink>
 
+            <button onClick={toggleTheme} className="p-2.5 rounded-lg text-slate-100 hover:bg-brand-blueSlate/30 transition-colors" title={theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}>
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
             <Link 
               to="/login"
-              className="ml-4 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
+              className="ml-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark dark:text-brand-blueDark font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
             >
               Masuk Portal
             </Link>
@@ -216,9 +224,16 @@ export default function Navbar() {
             SPMB
           </NavLink>
 
+          <div className="flex items-center justify-between pt-4 px-4">
+            <button onClick={toggleTheme} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium">
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}
+            </button>
+          </div>
+
           <Link
             to="/login"
-            className="block text-center mt-6 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark font-bold px-4 py-3.5 rounded-[15px] text-base shadow-sm"
+            className="block text-center mt-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark dark:text-brand-blueDark font-bold px-4 py-3.5 rounded-[15px] text-base shadow-sm"
           >
             Masuk Portal
           </Link>

@@ -7,22 +7,22 @@ export default function AdminSettings() {
 
   return (
     <AdminLayout title="Pengaturan Sistem & Tampilan">
-      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card overflow-hidden border border-slate-100 dark:border-slate-800 mb-6">
+      <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-800 mb-6">
         
         {/* Navigation Tabs */}
         <div className="flex border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
-          <button onClick={() => setActiveTab('identitas')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'identitas' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('identitas')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'identitas' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             Identitas Utama Sekolah
           </button>
-          <button onClick={() => setActiveTab('akademik')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'akademik' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('akademik')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'akademik' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             Konfigurasi Akademik
           </button>
-          <button onClick={() => setActiveTab('footer')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'footer' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('footer')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'footer' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             Tampilan & Sosial Media
           </button>
         </div>
 
-        <div className="p-6 bg-slate-50 dark:bg-slate-800/50/30 min-h-[500px]">
+        <div className="p-6 bg-slate-50 dark:bg-slate-800/30 min-h-[500px]">
           
           {activeTab === 'identitas' && (
             <div className="max-w-2xl bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
@@ -30,20 +30,20 @@ export default function AdminSettings() {
               <form className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Nama Sekolah</label>
-                  <input type="text" defaultValue="SMAS Muhammadiyah 1 Banyuwangi" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input type="text" defaultValue="SMAS Muhammadiyah 1 Banyuwangi" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Deskripsi Singkat / Slogan</label>
-                  <textarea rows={3} defaultValue="Membentuk generasi unggul berkarakter Islami, cerdas secara akademis, dan terampil menyongsong masa depan." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                  <textarea rows={3} defaultValue="Membentuk generasi unggul berkarakter Islami, cerdas secara akademis, dan terampil menyongsong masa depan." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Nomor Telepon</label>
-                    <input type="text" defaultValue="(0333) 421382" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <input type="text" defaultValue="(0333) 421382" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Email Sekolah</label>
-                    <input type="email" defaultValue="info@smasmuh1bwi.sch.id" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <input type="email" defaultValue="info@smasmuh1bwi.sch.id" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                 </div>
                 <div className="pt-4">
@@ -84,8 +84,8 @@ export default function AdminSettings() {
                 </form>
               </div>
               <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-sm p-6 border border-slate-200 dark:border-slate-700 border-l-4 border-l-emerald-500">
-                <h3 className="font-bold text-emerald-900 mb-1">Status Environment</h3>
-                <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">SIT Versi 1.0.0 (Production) • Database: PostgreSQL Terkoneksi</div>
+                <h3 className="font-bold text-emerald-900 dark:text-emerald-300 mb-1">Status Environment</h3>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">SIT Versi 1.0.0 (Production) • Database: PostgreSQL Terkoneksi</div>
               </div>
             </div>
           )}
@@ -99,15 +99,15 @@ export default function AdminSettings() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Facebook className="w-4 h-4 text-[#1877F2]" /> Facebook</label>
-                    <input type="url" placeholder="https://facebook.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <input type="url" placeholder="https://facebook.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Instagram className="w-4 h-4 text-[#E4405F]" /> Instagram</label>
-                    <input type="url" placeholder="https://instagram.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <input type="url" placeholder="https://instagram.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Twitter className="w-4 h-4 text-[#1DA1F2]" /> Twitter / X</label>
-                    <input type="url" placeholder="https://twitter.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <input type="url" placeholder="https://twitter.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function AdminSettings() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Alamat Lengkap</label>
-                    <textarea rows={2} defaultValue="Jl. Letkol Istiqlah No.109, Singonegaran, Kec. Banyuwangi, Kabupaten Banyuwangi, Jawa Timur 68415" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <textarea rows={2} defaultValue="Jl. Letkol Istiqlah No.109, Singonegaran, Kec. Banyuwangi, Kabupaten Banyuwangi, Jawa Timur 68415" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Embed Google Maps (URL / iFrame)</label>
