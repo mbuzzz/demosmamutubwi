@@ -1,25 +1,28 @@
 import { useState } from 'react';
 import { ArrowLeft, User, GraduationCap, ShieldCheck, Mail, Lock, LogIn } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/auth/AuthContext';
+import { useRoleSimulator } from '../components/simulator/RoleContext';
 
 export default function Login() {
-  // 'guru-admin' atau 'siswa'
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const { setSimulatedRole } = useRoleSimulator();
   const [loginType, setLoginType] = useState('siswa');
-  
-  // State form
-  const [identifier, setIdentifier] = useState(''); // Email / NISN
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual login logic with Laravel backend
-    console.log(`Login attempt: Type=${loginType}, Identifier=${identifier}`);
-    alert('Fungsi login sedang dalam tahap integrasi dengan backend.');
+    const role = loginType === 'siswa' ? 'siswa' : 'superadmin';
+    const name = loginType === 'siswa' ? 'Agus Setiawan' : 'Admin SMAS Muh 1';
+    login(role, name);
+    setSimulatedRole(role as 'siswa' | 'superadmin');
+    navigate(role === 'siswa' ? '/panel/siswa' : '/panel');
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl opacity-50"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-brand-blueDark/10 blur-3xl opacity-50"></div>
@@ -27,7 +30,6 @@ export default function Login() {
 
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden relative z-10 min-h-[600px]">
         
-        {/* Left Side: Bento Brand Info */}
         <div className="hidden md:flex flex-col justify-between bg-gradien-biru-hijau p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
           
@@ -66,9 +68,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right Side: Login Form */}
         <div className="p-8 sm:p-12 flex flex-col justify-center bg-white dark:bg-slate-900 relative">
-          {/* Mobile Back Button */}
           <Link to="/" className="md:hidden inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-blueDark dark:text-brand-yellow mb-8 transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" /> Kembali
           </Link>
@@ -78,7 +78,6 @@ export default function Login() {
             <p className="text-slate-500 dark:text-slate-400">Silakan pilih peran dan masuk ke akun Anda.</p>
           </div>
 
-          {/* Type Switcher */}
           <div className="flex bg-slate-100 dark:bg-slate-800 rounded-[15px] mb-8 p-1.5 shadow-inner">
             <button
               type="button"

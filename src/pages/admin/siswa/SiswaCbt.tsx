@@ -55,7 +55,7 @@ function buildExamFromSession(sesi: SesiUjian): Exam {
 }
 
 export default function SiswaCbt() {
-  const { sessions } = useExamSessions();
+  const { sessions, submitExam } = useExamSessions();
   const [exams, setExams] = useState<Exam[]>(() =>
     sessions.filter(s => s.status !== 'Selesai').map(buildExamFromSession)
   );
@@ -237,6 +237,9 @@ export default function SiswaCbt() {
     });
     const score = totalQ > 0 ? Math.round((correct / totalQ) * 100) : 0;
     setFinalScore(score);
+
+    // Persist to shared context
+    submitExam(selectedExam.id, score);
 
     // Move to completed
     setExams(prev => prev.filter(e => e.id !== selectedExam.id));

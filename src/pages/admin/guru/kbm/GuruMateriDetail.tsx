@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
 
 export default function GuruMateriDetail() {
   const { id } = useParams();
@@ -83,7 +84,7 @@ export default function GuruMateriDetail() {
                   </div>
                 </div>
 
-                <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8" dangerouslySetInnerHTML={{ __html: content }} />
+                <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }} />
 
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-3 flex items-center gap-2"><FileText className="w-4 h-4 text-indigo-500" /> Lampiran File Pembelajaran</h4>

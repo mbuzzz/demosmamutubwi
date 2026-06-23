@@ -63,7 +63,7 @@ export default function GuruUjianList() {
       updateSession(editingId, form);
     } else {
       const newSesi: SesiUjian = {
-        id: Math.random().toString(36).substring(2, 9),
+        id: crypto.randomUUID(),
         ...form,
         status: 'Akan Datang',
       };

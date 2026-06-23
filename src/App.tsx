@@ -58,6 +58,8 @@ import GuruBankMateri from './pages/admin/guru/kbm/GuruMateri';
 import GuruTugas from './pages/admin/guru/kbm/GuruTugas';
 import GuruBankSoalEditor from './pages/admin/guru/cbt/GuruBankSoalEditor';
 import GuruUjianList from './pages/admin/guru/cbt/GuruUjianList';
+import GuruWaliSiswa from './pages/admin/guru/kbm/GuruWaliSiswa';
+import GuruCatatanWali from './pages/admin/guru/kbm/GuruCatatanWali';
 
 // Siswa Panel Pages
 import SiswaDashboard from './pages/admin/siswa/SiswaDashboard';
@@ -143,6 +145,8 @@ export default function App() {
         <Route path="/panel/guru/tugas" element={<ProtectedRoute requiredRole="guru"><GuruTugas /></ProtectedRoute>} />
         <Route path="/panel/guru/soal" element={<ProtectedRoute requiredRole="guru"><GuruBankSoalEditor /></ProtectedRoute>} />
         <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole="guru"><GuruUjianList /></ProtectedRoute>} />
+        <Route path="/panel/guru/wali-siswa" element={<ProtectedRoute requiredRole="guru"><GuruWaliSiswa /></ProtectedRoute>} />
+        <Route path="/panel/guru/catatan-wali" element={<ProtectedRoute requiredRole="guru"><GuruCatatanWali /></ProtectedRoute>} />
 
         {/* Siswa Panel Routes */}
         <Route path="/panel/siswa" element={<ProtectedRoute requiredRole="siswa"><SiswaDashboard /></ProtectedRoute>} />

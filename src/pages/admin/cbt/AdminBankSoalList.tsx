@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { type PaketSoal, type SoalItem, type TipeUjian, MOCK_PAKET_SOAL, TIPE_BADGE } from '../../../types/cbt';
 
 function generateId() {
-  return Math.random().toString(36).substring(2, 9);
+  return crypto.randomUUID();
 }
 
 const defaultPaket: PaketSoal[] = JSON.parse(JSON.stringify(MOCK_PAKET_SOAL));
