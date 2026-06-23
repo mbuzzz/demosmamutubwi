@@ -1,8 +1,9 @@
-import { Search, Bell, LogOut, ChevronDown, User, Moon, Sun } from 'lucide-react';
+import { Search, LogOut, ChevronDown, User, Moon, Sun } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../ThemeProvider';
 import RoleSimulator from '../simulator/RoleSimulator';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function AdminHeader({ 
   isMobile,
@@ -70,12 +71,10 @@ export default function AdminHeader({
           {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
         </button>
 
-        <button className="relative p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full">
-          <Bell className="w-[18px] h-[18px]" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-        </button>
+        {/* Notifications */}
+        <NotificationDropdown />
 
-        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 dark:bg-slate-700 mx-1 hidden sm:block"></div>
+        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
 
         <div className="relative" ref={dropdownRef}>
           <button 

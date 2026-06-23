@@ -6,6 +6,7 @@ import {
   CheckCircle, Percent, BookOpen, Layers, GripVertical, 
   Layout, Eye, AlignLeft, Image, LayoutTemplate, FileText, PenTool, X
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminKurikulumForm() {
   const navigate = useNavigate();
@@ -56,10 +57,10 @@ export default function AdminKurikulumForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (totalBobot !== 100) {
-      alert('Total Bobot Penilaian harus persis 100%!');
+      toast.error('Total Bobot Penilaian harus persis 100%!');
       return;
     }
-    alert('Konfigurasi Kurikulum Lengkap berhasil disimpan!');
+    toast.success('Konfigurasi Kurikulum Lengkap berhasil disimpan!');
     navigate('/panel/kurikulum');
   };
 

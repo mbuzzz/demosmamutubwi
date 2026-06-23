@@ -4,6 +4,7 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Save, Image as ImageIcon, Calendar, Tag as TagIcon, Settings, Link as LinkIcon, User } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminBeritaForm() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function AdminBeritaForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Berita berhasil disimpan!');
+    toast.success('Berita berhasil disimpan!');
     navigate('/panel/berita');
   };
 
