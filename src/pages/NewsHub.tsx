@@ -61,7 +61,7 @@ export default function NewsHub() {
               <div>
                 <div className="h-48 overflow-hidden bg-slate-200 dark:bg-slate-700 relative">
                   <img src={article.image} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                  <span className="absolute top-3 left-3 bg-brand-teal text-white text-xs font-semibold px-2.5 py-1 rounded">
+                  <span className="absolute top-3 left-3 bg-brand-teal text-white text-xs font-semibold px-2.5 sm:px-3 py-1 rounded whitespace-nowrap">
                     {article.category}
                   </span>
                 </div>

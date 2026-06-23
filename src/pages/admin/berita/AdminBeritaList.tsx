@@ -34,9 +34,9 @@ export default function AdminBeritaList() {
             <tbody className="divide-y divide-slate-100">
               <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50">
                 <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">Prestasi Gemilang Siswa di OSN 2024</td>
-                <td className="px-6 py-4"><span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-md text-xs font-medium">Prestasi</span></td>
+                <td className="px-6 py-4"><span className="px-2.5 sm:px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-xs font-medium whitespace-nowrap">Prestasi</span></td>
                 <td className="px-6 py-4">12 Jan 2024</td>
-                <td className="px-6 py-4"><span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-xs font-medium">Published</span></td>
+                <td className="px-6 py-4"><span className="px-2.5 sm:px-3 py-1 bg-emerald-50 text-emerald-600 rounded-md text-xs font-medium whitespace-nowrap">Published</span></td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button className="p-1.5 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors"><Edit className="w-4 h-4" /></button>

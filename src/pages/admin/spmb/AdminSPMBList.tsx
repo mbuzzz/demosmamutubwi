@@ -54,7 +54,7 @@ export default function AdminSPMBList() {
                   <div className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-600 dark:text-indigo-400">Gelombang Inden</div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg text-xs font-bold border border-amber-200 dark:border-amber-500/20 inline-block">
+                  <span className="px-2.5 sm:px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg text-xs font-bold border border-amber-200 dark:border-amber-500/20 inline-block whitespace-nowrap">
                     Verifikasi Berkas
                   </span>
                 </td>
@@ -81,7 +81,7 @@ export default function AdminSPMBList() {
                   <div className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-600 dark:text-indigo-400">Gelombang 1</div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-bold border border-emerald-200 dark:border-emerald-500/20 inline-flex items-center gap-1.5">
+                  <span className="px-2.5 sm:px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-bold border border-emerald-200 dark:border-emerald-500/20 inline-flex items-center gap-1.5 whitespace-nowrap">
                     <CheckCircle className="w-3 h-3" /> Diterima
                   </span>
                 </td>

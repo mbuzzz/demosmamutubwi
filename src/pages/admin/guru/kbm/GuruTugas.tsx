@@ -125,7 +125,7 @@ export default function GuruTugas() {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="font-bold text-slate-800 dark:text-white leading-tight">PR LKS Hal 24-25</h4>
-                  <span className="text-[10px] bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-bold animate-pulse">Berlangsung</span>
+                  <span className="text-[11px] sm:text-xs bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2.5 sm:px-3 py-1 rounded-full font-bold animate-pulse whitespace-nowrap">Berlangsung</span>
                 </div>
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Tenggat: Besok, 23:59 WIB</div>
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-lg w-fit">
@@ -146,7 +146,7 @@ export default function GuruTugas() {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="font-bold text-slate-800 dark:text-white leading-tight">Tugas Bab 1: Eksponen</h4>
-                  <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold">Ditutup</span>
+                  <span className="text-[11px] sm:text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2.5 sm:px-3 py-1 rounded-full font-bold whitespace-nowrap">Ditutup</span>
                 </div>
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Tenggat: 15 Jul 2024</div>
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg w-fit">

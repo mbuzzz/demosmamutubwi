@@ -91,7 +91,7 @@ export default function GuruDashboard() {
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-bold text-slate-800 dark:text-white text-sm">{c.kelas}</span>
                     {c.status === 'sekarang' ? (
-                      <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md shadow-sm border border-indigo-100 dark:border-indigo-500/20 animate-pulse">Sedang Berlangsung</span>
+                      <span className="text-[11px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-slate-800 px-2.5 sm:px-3 py-1 rounded-md shadow-sm border border-indigo-100 dark:border-indigo-500/20 animate-pulse whitespace-nowrap">Sedang Berlangsung</span>
                     ) : (
                       <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1"><Clock className="w-3 h-3" /> Nanti</span>
                     )}
@@ -173,7 +173,7 @@ export default function GuruDashboard() {
               {announcements.map((a, i) => (
                 <div key={i} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-md">{a.tag}</span>
+                    <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 sm:px-3 py-1 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-md whitespace-nowrap">{a.tag}</span>
                     <span className="text-[10px] text-slate-400">{a.date}</span>
                   </div>
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm leading-relaxed">{a.title}</h4>

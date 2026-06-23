@@ -104,7 +104,7 @@ export default function AdminKehadiranSiswa() {
                     <td className="px-6 py-4 text-center font-bold text-blue-500 dark:text-blue-400">{item.i}</td>
                     <td className="px-6 py-4 text-center font-bold text-red-500 dark:text-red-400">{item.a}</td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${Number(item.pct) < 95 ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'}`}>
+                      <span className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold border whitespace-nowrap ${Number(item.pct) < 95 ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'}`}>
                         {item.pct}%
                       </span>
                     </td>

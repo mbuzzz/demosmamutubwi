@@ -89,9 +89,9 @@ export default function AdminFormBuilder() {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-slate-800 dark:text-white">{field.label}</span>
                       {field.required ? (
-                        <span className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-red-100">Wajib</span>
+                        <span className="text-[11px] sm:text-xs bg-red-50 text-red-600 px-2.5 sm:px-3 py-1 rounded font-bold uppercase tracking-wider border border-red-100 whitespace-nowrap">Wajib</span>
                       ) : (
-                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-slate-200 dark:border-slate-700">Opsional</span>
+                        <span className="text-[11px] sm:text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2.5 sm:px-3 py-1 rounded font-bold uppercase tracking-wider border border-slate-200 dark:border-slate-700 whitespace-nowrap">Opsional</span>
                       )}
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
