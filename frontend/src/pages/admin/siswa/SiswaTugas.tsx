@@ -69,7 +69,7 @@ export default function SiswaTugas() {
       dinilai: { label: 'Selesai Dinilai', style: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
     };
     const c = maps[status];
-    return <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg ${c.style}`}>{c.label}</span>;
+    return <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap ${c.style}`}>{c.label}</span>;
   }
 
   if (view === 'detail' && selectedTugas) {
@@ -216,7 +216,7 @@ export default function SiswaTugas() {
                   <div className="flex items-center gap-2">
                     {statusBadge(t.status)}
                     {t.nilai !== null && (
-                      <span className="text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2 py-1 rounded-lg">Nilai: {t.nilai}</span>
+                      <span className="text-[11px] sm:text-xs font-extrabold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap">Nilai: {t.nilai}</span>
                     )}
                   </div>
                 </div>

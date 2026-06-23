@@ -285,7 +285,7 @@ export default function SiswaCbt() {
           </div>
           <div className="flex items-center gap-3">
             {config.fullscreen && (
-              <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
+              <span className="text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">
                 Mode Fullscreen
               </span>
             )}
@@ -501,13 +501,13 @@ export default function SiswaCbt() {
               <div key={exam.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:shadow-md transition-all group flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-3">
-                    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md ${TIPE_BADGE[exam.tipe].color}`}>
+                    <span className={`text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${TIPE_BADGE[exam.tipe].color}`}>
                       {TIPE_BADGE[exam.tipe].label}
                     </span>
                     {exam.status === 'selesai' ? (
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg">SELESAI</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap">SELESAI</span>
                     ) : (
-                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-lg animate-pulse">AKTIF</span>
+                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap animate-pulse">AKTIF</span>
                     )}
                   </div>
                   <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1">{exam.title}</h4>

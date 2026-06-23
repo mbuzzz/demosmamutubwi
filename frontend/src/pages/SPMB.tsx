@@ -166,7 +166,7 @@ export default function SPMB() {
                 {gelombangData.map((gel) => (
                   <div key={gel.id} className={`rounded-[15px] p-6 border ${gel.isOpen ? 'border-brand-teal/30 dark:border-emerald-500/40 bg-white dark:bg-slate-900 shadow-card dark:shadow-none hover:shadow-card dark:shadow-none-hover transition-shadow' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}`}>
                     <div className="flex justify-between items-start mb-4">
-                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
+                      <span className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${
                         gel.status === 'Hampir Penuh' ? 'bg-orange-100 text-orange-700' :
                         gel.status === 'Dibuka' ? 'bg-brand-green/10 text-brand-green dark:text-emerald-400' :
                         'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'

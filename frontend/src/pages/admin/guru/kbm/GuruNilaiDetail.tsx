@@ -77,7 +77,7 @@ export default function GuruNilaiDetail() {
                   </div>
                   <div className="flex items-center gap-3">
                     {siswa.nilai && siswa.nilai < 80 ? (
-                      <span className="text-[10px] bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded font-bold border border-amber-200 dark:border-amber-500/20">Remedial</span>
+                      <span className="text-[11px] sm:text-xs bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 sm:px-3 py-1 rounded font-bold border border-amber-200 dark:border-amber-500/20 whitespace-nowrap">Remedial</span>
                     ) : siswa.nilai ? (
                       <CheckCircle className="w-4 h-4 text-emerald-500" />
                     ) : null}

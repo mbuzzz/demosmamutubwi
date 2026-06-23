@@ -74,9 +74,9 @@ export default function AdminUjianList() {
   }
 
   const statusBadge = (status: string) => {
-    if (status === 'Sedang Berlangsung') return <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md text-xs font-bold border border-emerald-100 dark:border-emerald-500/20 inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> {status}</span>;
-    if (status === 'Selesai') return <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md text-xs font-bold border border-slate-200 dark:border-slate-700">{status}</span>;
-    return <span className="px-2.5 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-md text-xs font-bold border border-amber-100 dark:border-amber-500/20">{status}</span>;
+    if (status === 'Sedang Berlangsung') return <span className="px-2.5 sm:px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md text-xs font-bold border border-emerald-100 dark:border-emerald-500/20 inline-flex items-center gap-1.5 whitespace-nowrap"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> {status}</span>;
+    if (status === 'Selesai') return <span className="px-2.5 sm:px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md text-xs font-bold border border-slate-200 dark:border-slate-700 whitespace-nowrap">{status}</span>;
+    return <span className="px-2.5 sm:px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-md text-xs font-bold border border-amber-100 dark:border-amber-500/20 whitespace-nowrap">{status}</span>;
   };
 
   return (
@@ -123,7 +123,7 @@ export default function AdminUjianList() {
                       <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">{s.mapel} • {s.kelas}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${TIPE_BADGE[s.tipe].color}`}>
+                      <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${TIPE_BADGE[s.tipe].color}`}>
                         {TIPE_BADGE[s.tipe].label}
                       </span>
                     </td>

@@ -116,11 +116,11 @@ export default function AdminBankSoalList() {
   const tipeBadge = (tipe: SoalItem['tipe']) => {
     const map = { pg: 'PG', pgk: 'PGK', pg_kompleks: 'PGK', bs: 'BS', essay: 'Essay' } as const;
     const colors: Record<string, string> = { pg: 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400', pgk: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400', pg_kompleks: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400', bs: 'bg-purple-50 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400', essay: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' };
-    return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${colors[tipe] || colors.pg}`}>{map[tipe] || 'PG'}</span>;
+    return <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${colors[tipe] || colors.pg}`}>{map[tipe] || 'PG'}</span>;
   };
 
   const badgePaket = (tipe: TipeUjian) => (
-    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${TIPE_BADGE[tipe].color}`}>
+    <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${TIPE_BADGE[tipe].color}`}>
       {TIPE_BADGE[tipe].label}
     </span>
   );

@@ -61,7 +61,7 @@ export default function AdminRaporList() {
                 <td className="px-6 py-4 font-mono text-sm border-r border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">0081234501</td>
                 <td className="px-6 py-4 font-bold text-slate-800 dark:text-white border-r border-slate-100 dark:border-slate-800">Agus Setiawan</td>
                 <td className="px-6 py-4 text-center border-r border-slate-100 dark:border-slate-800">
-                  <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-bold border border-emerald-200 dark:border-emerald-500/20">Lengkap (14 Mapel)</span>
+                  <span className="px-2.5 sm:px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-bold border border-emerald-200 dark:border-emerald-500/20 whitespace-nowrap">Lengkap (14 Mapel)</span>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <Link to="/panel/rapor/cetak/1" className="inline-flex p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-100 dark:border-indigo-500/20" title="Cetak Individu"><Printer className="w-4 h-4" /></Link>
@@ -72,7 +72,7 @@ export default function AdminRaporList() {
                 <td className="px-6 py-4 font-mono text-sm border-r border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">0081234502</td>
                 <td className="px-6 py-4 font-bold text-slate-800 dark:text-white border-r border-slate-100 dark:border-slate-800">Budi Raharjo</td>
                 <td className="px-6 py-4 text-center border-r border-slate-100 dark:border-slate-800">
-                  <span className="px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg text-xs font-bold border border-amber-200 dark:border-amber-500/20">Kurang 2 Mapel</span>
+                  <span className="px-2.5 sm:px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg text-xs font-bold border border-amber-200 dark:border-amber-500/20 whitespace-nowrap">Kurang 2 Mapel</span>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <Link to="/panel/rapor/cetak/2" className="inline-flex p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-100 dark:border-indigo-500/20" title="Cetak Individu"><Printer className="w-4 h-4" /></Link>

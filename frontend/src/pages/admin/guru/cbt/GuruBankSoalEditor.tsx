@@ -268,7 +268,7 @@ export default function GuruBankSoalEditor() {
                   <h4 className="font-bold text-slate-800 dark:text-white mb-1 leading-tight">{paket.title}</h4>
                   <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-3">{paket.mapel} • {paket.kelas}</p>
                   <div className="flex items-center gap-2 mb-4">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${TIPE_BADGE[paket.tipe].color}`}>
+                    <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${TIPE_BADGE[paket.tipe].color}`}>
                       {TIPE_BADGE[paket.tipe].label}
                     </span>
                   </div>

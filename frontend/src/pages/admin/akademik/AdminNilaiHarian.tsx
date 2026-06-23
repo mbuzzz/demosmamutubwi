@@ -61,7 +61,7 @@ export default function AdminNilaiHarian() {
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4">{tugas.date}</p>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${tugas.avg !== '-' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                  <span className={`text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 sm:px-3 py-1 rounded-lg border whitespace-nowrap ${tugas.avg !== '-' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                     {tugas.status}
                   </span>
                   <div className="text-right">

@@ -58,7 +58,7 @@ export default function Downloads() {
                         <span>{doc.name}</span>
                       </td>
                       <td className="py-4 px-6 text-center">
-                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold px-2 py-0.5 rounded">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold px-2.5 sm:px-3 py-1 rounded whitespace-nowrap">
                           {doc.type}
                         </span>
                       </td>
