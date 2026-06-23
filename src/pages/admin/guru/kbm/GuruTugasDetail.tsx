@@ -1,5 +1,5 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { ArrowLeft, FileText, Download, CheckCircle, Clock, XCircle, Search, Edit, Save, Eye, MessageSquare, UserCheck, UserX, BarChart3, Filter, ChevronDown, X, Send, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, FileText, Download, CheckCircle, Clock, XCircle, Search, Edit, Save, Eye, MessageSquare, UserCheck, BarChart3, X, Send, AlertTriangle } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -28,7 +28,7 @@ const allSubmissions: Submission[] = [
 ];
 
 export default function GuruTugasDetail() {
-  const { id } = useParams();
+  useParams();
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [search, setSearch] = useState('');
   const [editInstruksi, setEditInstruksi] = useState(false);
@@ -56,7 +56,6 @@ export default function GuruTugasDetail() {
   const total = allSubmissions.length;
   const avgGrade = graded.length ? Math.round(graded.reduce((a, s) => a + s.grade!, 0) / graded.length) : 0;
   const highestGrade = graded.length ? Math.max(...graded.map(s => s.grade!)) : 0;
-  const lowestGrade = graded.length ? Math.min(...graded.map(s => s.grade!)) : 0;
 
   const filterTabs: { key: FilterStatus; label: string; count: number }[] = [
     { key: 'all', label: 'Semua', count: total },

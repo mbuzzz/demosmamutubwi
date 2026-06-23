@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { FileQuestion, Clock, Search, ArrowRight, Play, X, Key, HelpCircle, CheckCircle, Type, AlertTriangle, AlertCircle } from 'lucide-react';
+import { FileQuestion, Clock, Search, Play, X, Key, HelpCircle, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { type SesiUjian, MOCK_SESI_UJIAN, MOCK_PAKET_SOAL, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
 

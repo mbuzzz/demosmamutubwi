@@ -206,7 +206,7 @@ export default function AdminJadwalPelajaran() {
                         )}
                       </div>
                     </td>
-                    {days.map((day, dayIdx) => {
+                    {days.map((_day, dayIdx) => {
                       const cell = getCell(dayIdx, slotIdx);
                       const s = getStyle(slotIdx);
                       return (

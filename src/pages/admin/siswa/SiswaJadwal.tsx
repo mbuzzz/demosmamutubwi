@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Calendar, Clock, Coffee } from 'lucide-react';
+import { Calendar, Coffee } from 'lucide-react';
 
 interface TimeSlot {
   id: string;
@@ -90,7 +90,7 @@ export default function SiswaJadwal() {
                         )}
                       </div>
                     </td>
-                    {days.map((day, dayIdx) => {
+                    {days.map((_day, dayIdx) => {
                       const cell = getCell(dayIdx, slotIdx);
                       const s = getStyle(slotIdx);
                       return (

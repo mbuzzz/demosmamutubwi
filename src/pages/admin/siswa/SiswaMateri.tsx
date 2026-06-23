@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { BookOpen, Search, Eye, ArrowLeft, Download, FileText, Send, MessageSquare, Clock, ArrowRight } from 'lucide-react';
+import { BookOpen, Search, ArrowLeft, Download, FileText, Send, MessageSquare, Clock, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface Comment {

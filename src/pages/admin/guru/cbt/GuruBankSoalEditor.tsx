@@ -1,9 +1,9 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { Save, Plus, HelpCircle, ImageIcon, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, ListChecks, BookOpen, GraduationCap, X } from 'lucide-react';
+import { Save, Plus, HelpCircle, ImageIcon, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, X } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useState } from 'react';
-import { type PaketSoal, type SoalItem, type TipeUjian, MOCK_PAKET_SOAL, TIPE_BADGE } from '../../../../types/cbt';
+import { type PaketSoal, type TipeUjian, MOCK_PAKET_SOAL, TIPE_BADGE } from '../../../../types/cbt';
 
 const defaultPaket: PaketSoal[] = JSON.parse(JSON.stringify(MOCK_PAKET_SOAL.map(p => ({
   ...p,

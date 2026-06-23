@@ -1,8 +1,8 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Edit, Trash2, Calendar, Clock, MonitorPlay, KeyRound, X, Save, ArrowLeft, FileQuestion, Search, GraduationCap, BookOpen, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Clock, MonitorPlay, KeyRound, X, Save, FileQuestion, Search, GraduationCap, BookOpen, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { type SesiUjian, type TipeUjian, type PaketSoal, MOCK_SESI_UJIAN, MOCK_PAKET_SOAL, generateToken, TIPE_BADGE } from '../../../types/cbt';
+import { type SesiUjian, type TipeUjian, MOCK_SESI_UJIAN, MOCK_PAKET_SOAL, generateToken, TIPE_BADGE } from '../../../types/cbt';
 
 const defaultSesi: SesiUjian[] = [...MOCK_SESI_UJIAN];
 

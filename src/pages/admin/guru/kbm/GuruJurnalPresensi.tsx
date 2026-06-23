@@ -1,5 +1,5 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { CalendarDays, Save, Search, Eye, Edit } from 'lucide-react';
+import { CalendarDays, Save, Search, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function GuruJurnalPresensi() {

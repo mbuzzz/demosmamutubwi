@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { CalendarDays, Clock, FileText, CheckCircle, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award } from 'lucide-react';
+import { CalendarDays, Clock, FileText, Bell, ArrowRight, AlertCircle, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function SiswaDashboard() {

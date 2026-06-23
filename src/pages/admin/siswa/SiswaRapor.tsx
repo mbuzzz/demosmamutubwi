@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { FileText, Printer, Award, BookOpen, Clock, BarChart3, ArrowRight, UserCheck } from 'lucide-react';
+import { FileText, Printer, Award, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 
 interface GradeItem {

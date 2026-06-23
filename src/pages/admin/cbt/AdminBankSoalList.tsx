@@ -162,7 +162,7 @@ export default function AdminBankSoalList() {
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {selectedPaket.soal.map((soal, idx) => (
+              {selectedPaket.soal.map((soal) => (
                 <div key={soal.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1 min-w-0">

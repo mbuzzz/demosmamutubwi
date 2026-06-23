@@ -3,7 +3,7 @@ import { CalendarDays, ArrowLeft, Save, Printer } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 export default function GuruJurnalDetail() {
-  const { id } = useParams();
+  useParams();
 
   return (
     <AdminLayout title="Detail Jurnal Mengajar">
