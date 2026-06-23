@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, MapPin, School, BookOpen } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function FormSPMB() {
   const { gelombangId } = useParams<{ gelombangId: string }>();
@@ -26,7 +27,7 @@ export default function FormSPMB() {
     e.preventDefault();
     // TODO: Send data to API
     console.log('SPMB Form submitted', { gelombangId, ...formData });
-    alert('Pendaftaran Berhasil! Anda akan diarahkan ke halaman login untuk mengunggah dokumen lanjutan.');
+    toast.success('Pendaftaran Berhasil! Anda akan diarahkan ke halaman login untuk mengunggah dokumen lanjutan.');
     navigate('/login');
   };
 

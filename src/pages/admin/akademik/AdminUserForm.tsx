@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { Save, ArrowLeft, User as UserIcon, Lock, Camera, Mail, Phone, MapPin, Building, Shield } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminUserForm() {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ export default function AdminUserForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Data Pengguna berhasil disimpan!');
+    toast.success('Data Pengguna berhasil disimpan!');
     navigate('/panel/users');
   };
 

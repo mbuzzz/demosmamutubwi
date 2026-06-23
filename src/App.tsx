@@ -69,6 +69,8 @@ import SiswaTugas from './pages/admin/siswa/SiswaTugas';
 import SiswaCbt from './pages/admin/siswa/SiswaCbt';
 import SiswaRapor from './pages/admin/siswa/SiswaRapor';
 
+import { Toaster } from 'sonner';
+
 // Wrapper for public pages to keep them structured with Navbar and Footer
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -158,6 +160,7 @@ export default function App() {
         <Route path="/panel/siswa/cbt" element={<ProtectedRoute requiredRole="siswa"><SiswaCbt /></ProtectedRoute>} />
         <Route path="/panel/siswa/rapor" element={<ProtectedRoute requiredRole="siswa"><SiswaRapor /></ProtectedRoute>} />
       </Routes>
-    </Router>
+        <Toaster position="top-right" richColors closeButton />
+      </Router>
   );
 }
