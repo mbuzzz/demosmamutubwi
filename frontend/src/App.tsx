@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -52,7 +51,16 @@ import AdminBankSoalList from './pages/admin/cbt/AdminBankSoalList';
 import AdminProfile from './pages/admin/profile/AdminProfile';
 import AdminSPMBDetail from './pages/admin/spmb/detail/AdminSPMBDetail';
 
-// Guru Panel Pages
+// Absensi & Pembayaran Admin Pages
+import AdminAbsensi from './pages/admin/absensi/AdminAbsensi';
+import AdminRekapAbsensi from './pages/admin/absensi/AdminRekapAbsensi';
+import AdminRfidCards from './pages/admin/absensi/AdminRfidCards';
+import AdminPembayaran from './pages/admin/pembayaran/AdminPembayaran';
+import AdminJenisPembayaran from './pages/admin/pembayaran/AdminJenisPembayaran';
+import AdminPembayaranSiswa from './pages/admin/pembayaran/AdminPembayaranSiswa';
+import AdminSettingsRfid from './pages/admin/settings/AdminSettingsRfid';
+
+// Guru Group Pages (shared by guru, walikelas, kepsek, kurikulum)
 import GuruDashboard from './pages/admin/guru/GuruDashboard';
 import GuruJurnalPresensi from './pages/admin/guru/kbm/GuruJurnalPresensi';
 import GuruJurnalDetail from './pages/admin/guru/kbm/GuruJurnalDetail';
@@ -65,15 +73,11 @@ import GuruUjianList from './pages/admin/guru/cbt/GuruUjianList';
 import GuruWaliSiswa from './pages/admin/guru/kbm/GuruWaliSiswa';
 import GuruCatatanWali from './pages/admin/guru/kbm/GuruCatatanWali';
 import GuruAbsensi from './pages/admin/guru/kbm/GuruAbsensi';
+import KepsekDashboard from './pages/admin/guru/kbm/KepsekDashboard';
+import KurikulumDashboard from './pages/admin/guru/kbm/KurikulumDashboard';
 
-// Absensi & Pembayaran Admin Pages
-import AdminAbsensi from './pages/admin/absensi/AdminAbsensi';
-import AdminRekapAbsensi from './pages/admin/absensi/AdminRekapAbsensi';
-import AdminRfidCards from './pages/admin/absensi/AdminRfidCards';
-import AdminPembayaran from './pages/admin/pembayaran/AdminPembayaran';
-import AdminJenisPembayaran from './pages/admin/pembayaran/AdminJenisPembayaran';
-import AdminPembayaranSiswa from './pages/admin/pembayaran/AdminPembayaranSiswa';
-import AdminSettingsRfid from './pages/admin/settings/AdminSettingsRfid';
+// Bendahara Pages
+import BendaharaDashboard from './pages/admin/bendahara/BendaharaDashboard';
 
 // Siswa Panel Pages
 import SiswaDashboard from './pages/admin/siswa/SiswaDashboard';
@@ -87,7 +91,6 @@ import SiswaPembayaran from './pages/admin/siswa/SiswaPembayaran';
 
 import { Toaster } from 'sonner';
 
-// Wrapper for public pages to keep them structured with Navbar and Footer
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col justify-between font-sans bg-slate-50">
@@ -113,17 +116,12 @@ export default function App() {
         <Route path="/unduhan" element={<PublicLayout><Downloads /></PublicLayout>} />
         <Route path="/spmb" element={<PublicLayout><SPMB /></PublicLayout>} />
         <Route path="/spmb/form/:gelombangId" element={<PublicLayout><FormSPMB /></PublicLayout>} />
-        <Route path="/login" element={<Login />} /> {/* Login has its own layout */}
+        <Route path="/login" element={<Login />} />
         <Route path="/tap/absensi" element={<TapAbsensi />} />
         <Route path="/tap/pembayaran" element={<TapPembayaran />} />
 
-        {/* Admin CBT */}
-        <Route path="/panel/cbt/bank-soal" element={<ProtectedRoute requiredRole="superadmin"><AdminBankSoalList /></ProtectedRoute>} />
-        <Route path="/panel/cbt/jadwal" element={<ProtectedRoute requiredRole="superadmin"><AdminUjianList /></ProtectedRoute>} />
-        <Route path="/panel/cbt/monitor" element={<ProtectedRoute requiredRole="superadmin"><AdminUjianMonitor /></ProtectedRoute>} />
+        {/* ========== SUPERADMIN / ADMIN ========== */}
         <Route path="/panel" element={<ProtectedRoute requiredRole="superadmin"><AdminDashboard /></ProtectedRoute>} />
-        
-        {/* Admin Web Profile */}
         <Route path="/panel/beranda" element={<ProtectedRoute requiredRole="superadmin"><AdminBeranda /></ProtectedRoute>} />
         <Route path="/panel/profil-sekolah" element={<ProtectedRoute requiredRole="superadmin"><AdminProfilSekolah /></ProtectedRoute>} />
         <Route path="/panel/faq-testimoni" element={<ProtectedRoute requiredRole="superadmin"><AdminFaqTestimoni /></ProtectedRoute>} />
@@ -136,7 +134,6 @@ export default function App() {
         <Route path="/panel/spmb/gelombang" element={<ProtectedRoute requiredRole="superadmin"><AdminGelombangList /></ProtectedRoute>} />
         <Route path="/panel/spmb/form-builder" element={<ProtectedRoute requiredRole="superadmin"><AdminFormBuilder /></ProtectedRoute>} />
         <Route path="/panel/downloads" element={<ProtectedRoute requiredRole="superadmin"><AdminDownloadsList /></ProtectedRoute>} />
-        
         <Route path="/panel/users" element={<ProtectedRoute requiredRole="superadmin"><AdminUserList /></ProtectedRoute>} />
         <Route path="/panel/users/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminUserForm /></ProtectedRoute>} />
         <Route path="/panel/penugasan" element={<ProtectedRoute requiredRole="superadmin"><AdminPenugasanList /></ProtectedRoute>} />
@@ -147,11 +144,9 @@ export default function App() {
         <Route path="/panel/kelas" element={<ProtectedRoute requiredRole="superadmin"><AdminKelasList /></ProtectedRoute>} />
         <Route path="/panel/mapel" element={<ProtectedRoute requiredRole="superadmin"><AdminMapelList /></ProtectedRoute>} />
         <Route path="/panel/nilai" element={<ProtectedRoute requiredRole="superadmin"><AdminNilaiEntry /></ProtectedRoute>} />
-        
         <Route path="/panel/rapor" element={<ProtectedRoute requiredRole="superadmin"><AdminRaporList /></ProtectedRoute>} />
         <Route path="/panel/rapor/catatan" element={<ProtectedRoute requiredRole="superadmin"><AdminCatatanWali /></ProtectedRoute>} />
         <Route path="/panel/rapor/cetak/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminCetakRaporDetail /></ProtectedRoute>} />
-        
         <Route path="/panel/settings" element={<ProtectedRoute requiredRole="superadmin"><AdminSettings /></ProtectedRoute>} />
         <Route path="/panel/settings/rfid" element={<ProtectedRoute requiredRole="superadmin"><AdminSettingsRfid /></ProtectedRoute>} />
         <Route path="/panel/profile" element={<ProtectedRoute requiredRole="superadmin"><AdminProfile /></ProtectedRoute>} />
@@ -161,22 +156,40 @@ export default function App() {
         <Route path="/panel/pembayaran" element={<ProtectedRoute requiredRole="superadmin"><AdminPembayaran /></ProtectedRoute>} />
         <Route path="/panel/pembayaran/jenis" element={<ProtectedRoute requiredRole="superadmin"><AdminJenisPembayaran /></ProtectedRoute>} />
         <Route path="/panel/pembayaran/siswa" element={<ProtectedRoute requiredRole="superadmin"><AdminPembayaranSiswa /></ProtectedRoute>} />
+        <Route path="/panel/cbt/bank-soal" element={<ProtectedRoute requiredRole="superadmin"><AdminBankSoalList /></ProtectedRoute>} />
+        <Route path="/panel/cbt/jadwal" element={<ProtectedRoute requiredRole="superadmin"><AdminUjianList /></ProtectedRoute>} />
+        <Route path="/panel/cbt/monitor" element={<ProtectedRoute requiredRole="superadmin"><AdminUjianMonitor /></ProtectedRoute>} />
 
-        {/* Guru Panel Routes */}
-        <Route path="/panel/guru" element={<ProtectedRoute requiredRole="guru"><GuruDashboard /></ProtectedRoute>} />
-        <Route path="/panel/guru/jurnal" element={<ProtectedRoute requiredRole="guru"><GuruJurnalPresensi /></ProtectedRoute>} />
-        <Route path="/panel/guru/jurnal/detail/:id" element={<ProtectedRoute requiredRole="guru"><GuruJurnalDetail /></ProtectedRoute>} />
-        <Route path="/panel/guru/nilai" element={<ProtectedRoute requiredRole="guru"><GuruBukuNilai /></ProtectedRoute>} />
-        <Route path="/panel/guru/nilai/detail/:id" element={<ProtectedRoute requiredRole="guru"><GuruNilaiDetail /></ProtectedRoute>} />
-        <Route path="/panel/guru/materi" element={<ProtectedRoute requiredRole="guru"><GuruBankMateri /></ProtectedRoute>} />
-        <Route path="/panel/guru/tugas" element={<ProtectedRoute requiredRole="guru"><GuruTugas /></ProtectedRoute>} />
-        <Route path="/panel/guru/soal" element={<ProtectedRoute requiredRole="guru"><GuruBankSoalEditor /></ProtectedRoute>} />
-        <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole="guru"><GuruUjianList /></ProtectedRoute>} />
-        <Route path="/panel/guru/wali-siswa" element={<ProtectedRoute requiredRole="guru"><GuruWaliSiswa /></ProtectedRoute>} />
-        <Route path="/panel/guru/catatan-wali" element={<ProtectedRoute requiredRole="guru"><GuruCatatanWali /></ProtectedRoute>} />
-        <Route path="/panel/guru/absensi" element={<ProtectedRoute requiredRole="guru"><GuruAbsensi /></ProtectedRoute>} />
+        {/* ========== GURU / WALIKELAS / KEPSEK / KURIKULUM ========== */}
+        <Route path="/panel/guru" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kepala_sekolah', 'kurikulum']}><GuruDashboard /></ProtectedRoute>} />
+        <Route path="/panel/guru/kepsek" element={<ProtectedRoute requiredRole={['kepala_sekolah']}><KepsekDashboard /></ProtectedRoute>} />
+        <Route path="/panel/guru/kurikulum" element={<ProtectedRoute requiredRole={['kurikulum']}><KurikulumDashboard /></ProtectedRoute>} />
+        <Route path="/panel/guru/jurnal" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruJurnalPresensi /></ProtectedRoute>} />
+        <Route path="/panel/guru/jurnal/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruJurnalDetail /></ProtectedRoute>} />
+        <Route path="/panel/guru/nilai" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruBukuNilai /></ProtectedRoute>} />
+        <Route path="/panel/guru/nilai/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruNilaiDetail /></ProtectedRoute>} />
+        <Route path="/panel/guru/materi" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruBankMateri /></ProtectedRoute>} />
+        <Route path="/panel/guru/tugas" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruTugas /></ProtectedRoute>} />
+        <Route path="/panel/guru/soal" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruBankSoalEditor /></ProtectedRoute>} />
+        <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruUjianList /></ProtectedRoute>} />
+        <Route path="/panel/guru/wali-siswa" element={<ProtectedRoute requiredRole={['walikelas']}><GuruWaliSiswa /></ProtectedRoute>} />
+        <Route path="/panel/guru/catatan-wali" element={<ProtectedRoute requiredRole={['walikelas']}><GuruCatatanWali /></ProtectedRoute>} />
+        <Route path="/panel/guru/absensi" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/guru/absensi/rekap" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas']}><AdminRekapAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/guru/rapor" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas', 'guru', 'kurikulum']}><AdminRaporList /></ProtectedRoute>} />
+        <Route path="/panel/guru/rapor/cetak/:id" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas']}><AdminCetakRaporDetail /></ProtectedRoute>} />
+        <Route path="/panel/guru/jadwal" element={<ProtectedRoute requiredRole={['kurikulum', 'guru', 'walikelas']}><AdminJadwalPelajaran /></ProtectedRoute>} />
+        <Route path="/panel/guru/mapel" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminMapelList /></ProtectedRoute>} />
+        <Route path="/panel/guru/kelas" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminKelasList /></ProtectedRoute>} />
+        <Route path="/panel/guru/kurikulum/rumus" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminKurikulumList /></ProtectedRoute>} />
 
-        {/* Siswa Panel Routes */}
+        {/* ========== BENDAHARA ========== */}
+        <Route path="/panel/bendahara" element={<ProtectedRoute requiredRole="bendahara"><BendaharaDashboard /></ProtectedRoute>} />
+        <Route path="/panel/bendahara/pembayaran" element={<ProtectedRoute requiredRole="bendahara"><AdminPembayaran /></ProtectedRoute>} />
+        <Route path="/panel/bendahara/pembayaran/jenis" element={<ProtectedRoute requiredRole="bendahara"><AdminJenisPembayaran /></ProtectedRoute>} />
+        <Route path="/panel/bendahara/pembayaran/siswa" element={<ProtectedRoute requiredRole="bendahara"><AdminPembayaranSiswa /></ProtectedRoute>} />
+
+        {/* ========== SISWA ========== */}
         <Route path="/panel/siswa" element={<ProtectedRoute requiredRole="siswa"><SiswaDashboard /></ProtectedRoute>} />
         <Route path="/panel/siswa/jadwal" element={<ProtectedRoute requiredRole="siswa"><SiswaJadwal /></ProtectedRoute>} />
         <Route path="/panel/siswa/materi" element={<ProtectedRoute requiredRole="siswa"><SiswaMateri /></ProtectedRoute>} />
@@ -188,7 +201,7 @@ export default function App() {
         <Route path="/panel/siswa/absensi" element={<ProtectedRoute requiredRole="siswa"><SiswaAbsensi /></ProtectedRoute>} />
         <Route path="/panel/siswa/pembayaran" element={<ProtectedRoute requiredRole="siswa"><SiswaPembayaran /></ProtectedRoute>} />
       </Routes>
-        <Toaster position="top-right" richColors closeButton />
-      </Router>
+      <Toaster position="top-right" richColors closeButton />
+    </Router>
   );
 }

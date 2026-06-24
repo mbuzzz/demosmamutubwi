@@ -15,7 +15,8 @@ import {
   MonitorPlay,
   UserCheck,
   CreditCard,
-  ScanLine
+  ScanLine,
+  School
 } from 'lucide-react';
 import { useState } from 'react';
 import { useRoleSimulator } from '../simulator/RoleContext';
@@ -37,12 +38,40 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
         { name: "Ujian", path: "/panel/siswa/cbt", icon: FileQuestion },
         { name: "Rapor", path: "/panel/siswa/rapor", icon: FileText },
       ]
+    : simulatedRole === 'bendahara'
+    ? [
+        { name: "Dashboard", path: "/panel/bendahara", icon: LayoutDashboard },
+        { name: "Bayar", path: "/panel/bendahara/pembayaran", icon: CreditCard },
+        { name: "Siswa", path: "/panel/bendahara/pembayaran/siswa", icon: Users },
+        { name: "Jenis", path: "/panel/bendahara/pembayaran/jenis", icon: FileText },
+      ]
+    : simulatedRole === 'kepala_sekolah'
+    ? [
+        { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
+        { name: "Kepsek", path: "/panel/guru/kepsek", icon: Building2 },
+        { name: "Absensi", path: "/panel/guru/absensi/rekap", icon: UserCheck },
+        { name: "Rapor", path: "/panel/guru/rapor", icon: FileText },
+      ]
+    : simulatedRole === 'kurikulum'
+    ? [
+        { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
+        { name: "Kurikulum", path: "/panel/guru/kurikulum", icon: BookOpen },
+        { name: "Jadwal", path: "/panel/guru/jadwal", icon: FileText },
+        { name: "Nilai", path: "/panel/guru/nilai", icon: ClipboardList },
+      ]
     : simulatedRole === 'guru'
     ? [
         { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
         { name: "Absensi", path: "/panel/guru/absensi", icon: UserCheck },
         { name: "Ujian", path: "/panel/guru/ujian", icon: FileQuestion },
         { name: "Nilai", path: "/panel/guru/nilai", icon: FileText },
+      ]
+    : simulatedRole === 'walikelas'
+    ? [
+        { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
+        { name: "Absensi", path: "/panel/guru/absensi", icon: UserCheck },
+        { name: "Wali", path: "/panel/guru/wali-siswa", icon: Users },
+        { name: "Rapor", path: "/panel/guru/rapor", icon: FileText },
       ]
     : [
         { name: "Beranda", path: "/panel", icon: LayoutDashboard },
@@ -56,9 +85,44 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
         {
           title: "KBM",
           items: [
+            { name: "Jadwal", path: "/panel/siswa/jadwal", icon: LayoutDashboard },
             { name: "Materi Belajar", path: "/panel/siswa/materi", icon: BookOpen },
             { name: "Tugas & PR", path: "/panel/siswa/tugas", icon: ClipboardList },
             { name: "Pembayaran", path: "/panel/siswa/pembayaran", icon: CreditCard },
+          ]
+        }
+      ]
+    : simulatedRole === 'bendahara'
+    ? [
+        {
+          title: "Pembayaran",
+          items: [
+            { name: "Dashboard Bayar", path: "/panel/bendahara/pembayaran", icon: CreditCard },
+            { name: "Jenis Pembayaran", path: "/panel/bendahara/pembayaran/jenis", icon: FileText },
+            { name: "Pembayaran Siswa", path: "/panel/bendahara/pembayaran/siswa", icon: Users },
+          ]
+        }
+      ]
+    : simulatedRole === 'kepala_sekolah'
+    ? [
+        {
+          title: "Laporan",
+          items: [
+            { name: "Rekap Absensi", path: "/panel/guru/absensi/rekap", icon: UserCheck },
+            { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
+          ]
+        }
+      ]
+    : simulatedRole === 'kurikulum'
+    ? [
+        {
+          title: "Akademik",
+          items: [
+            { name: "Kurikulum & Rumus", path: "/panel/guru/kurikulum/rumus", icon: Settings },
+            { name: "Mata Pelajaran", path: "/panel/guru/mapel", icon: BookOpen },
+            { name: "Kelas & Jurusan", path: "/panel/guru/kelas", icon: School },
+            { name: "Rekap Absensi", path: "/panel/guru/absensi/rekap", icon: UserCheck },
+            { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
           ]
         }
       ]
@@ -67,6 +131,25 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
         {
           title: "KBM",
           items: [
+            { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: ClipboardList },
+            { name: "Bank Materi", path: "/panel/guru/materi", icon: BookOpen },
+            { name: "Daftar Tugas", path: "/panel/guru/tugas", icon: ClipboardList },
+            { name: "Bank Soal", path: "/panel/guru/soal", icon: FileQuestion },
+          ]
+        },
+        {
+          title: "Lainnya",
+          items: [
+            { name: "Monitor Ujian", path: "/panel/cbt/monitor", icon: MonitorPlay },
+          ]
+        }
+      ]
+    : simulatedRole === 'walikelas'
+    ? [
+        {
+          title: "KBM",
+          items: [
+            { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: ClipboardList },
             { name: "Bank Materi", path: "/panel/guru/materi", icon: BookOpen },
             { name: "Daftar Tugas", path: "/panel/guru/tugas", icon: ClipboardList },
             { name: "Bank Soal", path: "/panel/guru/soal", icon: FileQuestion },
@@ -75,7 +158,9 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
         {
           title: "Wali Kelas",
           items: [
-            { name: "Monitor Ujian", path: "/panel/cbt/monitor", icon: MonitorPlay },
+            { name: "Data Siswa", path: "/panel/guru/wali-siswa", icon: Users },
+            { name: "Catatan Rapor", path: "/panel/guru/catatan-wali", icon: FileText },
+            { name: "Cetak Rapor", path: "/panel/guru/rapor", icon: FileText },
           ]
         }
       ]
@@ -91,6 +176,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
         {
           title: "Pembayaran",
           items: [
+            { name: "Dashboard Bayar", path: "/panel/pembayaran", icon: CreditCard },
             { name: "Jenis Pembayaran", path: "/panel/pembayaran/jenis", icon: FileText },
             { name: "Pembayaran Siswa", path: "/panel/pembayaran/siswa", icon: Users },
           ]
@@ -196,13 +282,13 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
               
               <div className="pt-4 mt-2">
                 <Link 
-                  to="/panel/settings"
+                  to={simulatedRole === 'superadmin' ? '/panel/settings' : '/panel'}
                   onClick={() => setShowMore(false)}
                   className="w-full bg-slate-800 text-white p-4 rounded-2xl flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
                     <Settings className="w-5 h-5 opacity-80" />
-                    <span className="font-bold text-sm">Pengaturan Sistem Lengkap</span>
+                    <span className="font-bold text-sm">Pengaturan Sistem</span>
                   </div>
                   <ChevronRight className="w-5 h-5 opacity-50" />
                 </Link>

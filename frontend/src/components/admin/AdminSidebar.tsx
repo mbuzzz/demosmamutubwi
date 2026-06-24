@@ -88,6 +88,22 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         ]
       },
       {
+        title: "Absensi & RFID",
+        items: [
+          { name: "Absensi Harian", path: "/panel/absensi", icon: UserCheck },
+          { name: "Rekap Absensi", path: "/panel/absensi/rekap", icon: ClipboardList },
+          { name: "Kartu RFID", path: "/panel/absensi/rfid", icon: ScanLine },
+        ]
+      },
+      {
+        title: "Pembayaran / Keuangan",
+        items: [
+          { name: "Dashboard Bayar", path: "/panel/pembayaran", icon: CreditCard },
+          { name: "Jenis Pembayaran", path: "/panel/pembayaran/jenis", icon: FileText },
+          { name: "Pembayaran Siswa", path: "/panel/pembayaran/siswa", icon: Users },
+        ]
+      },
+      {
         title: "Web Profile Publik",
         items: [
           { name: "Halaman Beranda", path: "/panel/beranda", icon: LayoutTemplate },
@@ -114,20 +130,65 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Pengaturan RFID", path: "/panel/settings/rfid", icon: SmartphoneNfc },
         ]
       },
+    ];
+  } else if (simulatedRole === 'bendahara') {
+    navGroups = [
       {
-        title: "Absensi & RFID",
+        title: "Menu Bendahara",
         items: [
-          { name: "Absensi Harian", path: "/panel/absensi", icon: UserCheck },
-          { name: "Rekap Absensi", path: "/panel/absensi/rekap", icon: ClipboardList },
-          { name: "Kartu RFID", path: "/panel/absensi/rfid", icon: ScanLine },
+          { name: "Dashboard", path: "/panel/bendahara", icon: LayoutDashboard },
         ]
       },
       {
-        title: "Pembayaran / Keuangan",
+        title: "Pembayaran",
         items: [
-          { name: "Dashboard Bayar", path: "/panel/pembayaran", icon: CreditCard },
-          { name: "Jenis Pembayaran", path: "/panel/pembayaran/jenis", icon: FileText },
-          { name: "Pembayaran Siswa", path: "/panel/pembayaran/siswa", icon: Users },
+          { name: "Dashboard Bayar", path: "/panel/bendahara/pembayaran", icon: CreditCard },
+          { name: "Jenis Pembayaran", path: "/panel/bendahara/pembayaran/jenis", icon: FileText },
+          { name: "Pembayaran Siswa", path: "/panel/bendahara/pembayaran/siswa", icon: Users },
+        ]
+      },
+    ];
+  } else if (simulatedRole === 'kepala_sekolah') {
+    navGroups = [
+      {
+        title: "Menu Kepsek",
+        items: [
+          { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
+          { name: "Dashboard Kepsek", path: "/panel/guru/kepsek", icon: Building2 },
+        ]
+      },
+      {
+        title: "Laporan & Monitoring",
+        items: [
+          { name: "Rekap Absensi", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
+          { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
+        ]
+      },
+    ];
+  } else if (simulatedRole === 'kurikulum') {
+    navGroups = [
+      {
+        title: "Menu Kurikulum",
+        items: [
+          { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
+          { name: "Dashboard Kurikulum", path: "/panel/guru/kurikulum", icon: BookOpen },
+        ]
+      },
+      {
+        title: "Akademik",
+        items: [
+          { name: "Jadwal Pelajaran", path: "/panel/guru/jadwal", icon: CalendarDays },
+          { name: "Kurikulum & Rumus", path: "/panel/guru/kurikulum/rumus", icon: Settings },
+          { name: "Mata Pelajaran", path: "/panel/guru/mapel", icon: BookOpen },
+          { name: "Kelas & Jurusan", path: "/panel/guru/kelas", icon: School },
+          { name: "Buku Nilai", path: "/panel/guru/nilai", icon: LineChart },
+        ]
+      },
+      {
+        title: "Laporan",
+        items: [
+          { name: "Rekap Absensi", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
+          { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
         ]
       },
     ];
@@ -165,7 +226,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Data Siswa Kelas", path: "/panel/guru/wali-siswa", icon: Users },
           { name: "Input Catatan Rapor", path: "/panel/guru/catatan-wali", icon: ClipboardList },
-          { name: "Cetak Rapor Kelas", path: "/panel/rapor", icon: GraduationCap },
+          { name: "Cetak Rapor Kelas", path: "/panel/guru/rapor", icon: GraduationCap },
         ]
       });
     }
@@ -205,7 +266,6 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         ${isCollapsed ? 'w-[80px]' : 'w-[260px]'}
       `}
     >
-      {/* Header Logo */}
       <div className={`h-[72px] flex items-center shrink-0 border-b border-slate-100 dark:border-slate-800 transition-all duration-300 ${isCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
         <Link to="/panel" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-10 justify-center' : 'w-full'}`}>
           <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain shrink-0" />
@@ -218,15 +278,13 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         </Link>
       </div>
 
-      {/* Collapse Toggle Button - overlapping the border */}
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-[26px] w-7 h-7 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all z-50 focus:outline-none"
+        className="absolute -right-3.5 top-[26px] w-7 h-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all z-50 focus:outline-none"
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
 
-      {/* Nav Links */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 space-y-8 custom-scrollbar">
         {navGroups.map((group, idx) => (
           <div key={idx} className="px-3">
@@ -241,7 +299,6 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
 
             <div className="space-y-1.5">
               {group.items.map((item) => {
-                // strict match for panel dashboard, loose for others
                 const isActive = item.path === '/panel' 
                   ? currentPath === '/panel'
                   : currentPath.startsWith(item.path);
@@ -253,28 +310,26 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
                     key={item.path}
                     to={item.path}
                     className="relative group flex items-center w-full"
-                    title={isCollapsed ? item.name : undefined} // native tooltip fallback
+                    title={isCollapsed ? item.name : undefined}
                   >
                     <div className={`
                       flex items-center gap-3 w-full py-2.5 rounded-xl font-semibold transition-all duration-200
                       ${isCollapsed ? 'justify-center px-0 mx-2' : 'px-4 mx-1'}
                       ${isActive 
                         ? 'bg-indigo-50/80 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400' 
-                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-800 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-300'
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300'
                       }
                     `}>
-                      <Icon className={`shrink-0 transition-colors ${isCollapsed ? 'w-5 h-5' : 'w-[18px] h-[18px]'} ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300'}`} />
+                      <Icon className={`shrink-0 transition-colors ${isCollapsed ? 'w-5 h-5' : 'w-[18px] h-[18px]'} ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
                       
                       {!isCollapsed && (
                         <span className="whitespace-nowrap text-[13px] tracking-wide">{item.name}</span>
                       )}
                     </div>
                     
-                    {/* Tooltip for collapsed mode */}
                     {isCollapsed && (
                       <div className="absolute left-14 opacity-0 invisible group-hover:opacity-100 group-hover:visible bg-slate-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap z-50 transition-all translate-x-2 group-hover:translate-x-0">
                         {item.name}
-                        {/* Triangle pointer */}
                         <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-slate-800"></div>
                       </div>
                     )}
