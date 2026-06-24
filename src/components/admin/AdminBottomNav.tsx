@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  CalendarDays,
   FileQuestion,
   FileText,
   BookOpen,
@@ -13,7 +12,10 @@ import {
   Building2,
   Newspaper,
   ChevronRight,
-  MonitorPlay
+  MonitorPlay,
+  UserCheck,
+  CreditCard,
+  ScanLine
 } from 'lucide-react';
 import { useState } from 'react';
 import { useRoleSimulator } from '../simulator/RoleContext';
@@ -31,21 +33,21 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
   const mainTabs: NavItem[] = simulatedRole === 'siswa'
     ? [
         { name: "Beranda", path: "/panel/siswa", icon: LayoutDashboard },
-        { name: "Jadwal", path: "/panel/siswa/jadwal", icon: CalendarDays },
+        { name: "Absensi", path: "/panel/siswa/absensi", icon: UserCheck },
         { name: "Ujian", path: "/panel/siswa/cbt", icon: FileQuestion },
         { name: "Rapor", path: "/panel/siswa/rapor", icon: FileText },
       ]
     : simulatedRole === 'guru'
     ? [
         { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
-        { name: "Jurnal", path: "/panel/guru/jurnal", icon: CalendarDays },
+        { name: "Absensi", path: "/panel/guru/absensi", icon: UserCheck },
         { name: "Ujian", path: "/panel/guru/ujian", icon: FileQuestion },
         { name: "Nilai", path: "/panel/guru/nilai", icon: FileText },
       ]
     : [
         { name: "Beranda", path: "/panel", icon: LayoutDashboard },
-        { name: "Akademik", path: "/panel/jadwal", icon: CalendarDays },
-        { name: "Ujian", path: "/panel/cbt/jadwal", icon: FileQuestion },
+        { name: "Absensi", path: "/panel/absensi", icon: UserCheck },
+        { name: "Pembayaran", path: "/panel/pembayaran", icon: CreditCard },
         { name: "Rapor", path: "/panel/rapor", icon: FileText },
       ];
 
@@ -56,6 +58,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
           items: [
             { name: "Materi Belajar", path: "/panel/siswa/materi", icon: BookOpen },
             { name: "Tugas & PR", path: "/panel/siswa/tugas", icon: ClipboardList },
+            { name: "Pembayaran", path: "/panel/siswa/pembayaran", icon: CreditCard },
           ]
         }
       ]
@@ -78,10 +81,31 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
       ]
     : [
         {
+          title: "Absensi & RFID",
+          items: [
+            { name: "Absensi Harian", path: "/panel/absensi", icon: UserCheck },
+            { name: "Rekap Absensi", path: "/panel/absensi/rekap", icon: ClipboardList },
+            { name: "Kartu RFID", path: "/panel/absensi/rfid", icon: ScanLine },
+          ]
+        },
+        {
+          title: "Pembayaran",
+          items: [
+            { name: "Jenis Pembayaran", path: "/panel/pembayaran/jenis", icon: FileText },
+            { name: "Pembayaran Siswa", path: "/panel/pembayaran/siswa", icon: Users },
+          ]
+        },
+        {
           title: "Master Data",
           items: [
             { name: "Users & Pegawai", path: "/panel/users", icon: Users },
             { name: "Pengaturan Kurikulum", path: "/panel/kurikulum", icon: Settings },
+          ]
+        },
+        {
+          title: "Pengaturan",
+          items: [
+            { name: "Pengaturan RFID", path: "/panel/settings/rfid", icon: ScanLine },
           ]
         },
         {

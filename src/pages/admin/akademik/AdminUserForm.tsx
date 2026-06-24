@@ -131,6 +131,10 @@ export default function AdminUserForm() {
                   <input type="text" placeholder="Nomor Induk Siswa Nasional" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-1.5">UID Kartu RFID</label>
+                  <input type="text" placeholder="RF:XX:XX:XX:XX" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+                </div>
+                <div>
                   <label className="block text-sm font-semibold text-indigo-900 mb-1.5">Penempatan Kelas</label>
                   <select className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">-- Belum Ada Kelas --</option>

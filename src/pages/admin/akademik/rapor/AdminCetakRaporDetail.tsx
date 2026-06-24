@@ -128,7 +128,9 @@ export default function AdminCetakRaporDetail() {
                   <tr><td className="border border-slate-800 p-2">Sakit</td><td className="border border-slate-800 p-2 text-center">2 Hari</td></tr>
                   <tr><td className="border border-slate-800 p-2">Izin</td><td className="border border-slate-800 p-2 text-center">-</td></tr>
                   <tr><td className="border border-slate-800 p-2">Tanpa Keterangan</td><td className="border border-slate-800 p-2 text-center">-</td></tr>
+                  <tr><td className="border border-slate-800 p-2 font-bold">Terlambat</td><td className="border border-slate-800 p-2 text-center font-bold">1 Hari</td></tr>
                 </table>
+                <p className="text-[9px] text-slate-500 mt-1">Data absensi dari sistem RFID & manual</p>
               </div>
             </div>
 
