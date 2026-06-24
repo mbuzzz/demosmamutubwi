@@ -12,6 +12,10 @@ import Login from './pages/Login';
 import SPMB from './pages/SPMB';
 import FormSPMB from './pages/FormSPMB';
 
+// RFID & Public Tap Pages
+import TapAbsensi from './pages/TapAbsensi';
+import TapPembayaran from './pages/TapPembayaran';
+
 // Admin Imports
 import ProtectedRoute from './components/ProtectedRoute';
 // Web Profile Admin Pages
@@ -60,6 +64,16 @@ import GuruBankSoalEditor from './pages/admin/guru/cbt/GuruBankSoalEditor';
 import GuruUjianList from './pages/admin/guru/cbt/GuruUjianList';
 import GuruWaliSiswa from './pages/admin/guru/kbm/GuruWaliSiswa';
 import GuruCatatanWali from './pages/admin/guru/kbm/GuruCatatanWali';
+import GuruAbsensi from './pages/admin/guru/kbm/GuruAbsensi';
+
+// Absensi & Pembayaran Admin Pages
+import AdminAbsensi from './pages/admin/absensi/AdminAbsensi';
+import AdminRekapAbsensi from './pages/admin/absensi/AdminRekapAbsensi';
+import AdminRfidCards from './pages/admin/absensi/AdminRfidCards';
+import AdminPembayaran from './pages/admin/pembayaran/AdminPembayaran';
+import AdminJenisPembayaran from './pages/admin/pembayaran/AdminJenisPembayaran';
+import AdminPembayaranSiswa from './pages/admin/pembayaran/AdminPembayaranSiswa';
+import AdminSettingsRfid from './pages/admin/settings/AdminSettingsRfid';
 
 // Siswa Panel Pages
 import SiswaDashboard from './pages/admin/siswa/SiswaDashboard';
@@ -68,6 +82,8 @@ import SiswaMateri from './pages/admin/siswa/SiswaMateri';
 import SiswaTugas from './pages/admin/siswa/SiswaTugas';
 import SiswaCbt from './pages/admin/siswa/SiswaCbt';
 import SiswaRapor from './pages/admin/siswa/SiswaRapor';
+import SiswaAbsensi from './pages/admin/siswa/SiswaAbsensi';
+import SiswaPembayaran from './pages/admin/siswa/SiswaPembayaran';
 
 import { Toaster } from 'sonner';
 
@@ -98,6 +114,8 @@ export default function App() {
         <Route path="/spmb" element={<PublicLayout><SPMB /></PublicLayout>} />
         <Route path="/spmb/form/:gelombangId" element={<PublicLayout><FormSPMB /></PublicLayout>} />
         <Route path="/login" element={<Login />} /> {/* Login has its own layout */}
+        <Route path="/tap/absensi" element={<TapAbsensi />} />
+        <Route path="/tap/pembayaran" element={<TapPembayaran />} />
 
         {/* Admin CBT */}
         <Route path="/panel/cbt/bank-soal" element={<ProtectedRoute requiredRole="superadmin"><AdminBankSoalList /></ProtectedRoute>} />
@@ -135,7 +153,14 @@ export default function App() {
         <Route path="/panel/rapor/cetak/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminCetakRaporDetail /></ProtectedRoute>} />
         
         <Route path="/panel/settings" element={<ProtectedRoute requiredRole="superadmin"><AdminSettings /></ProtectedRoute>} />
+        <Route path="/panel/settings/rfid" element={<ProtectedRoute requiredRole="superadmin"><AdminSettingsRfid /></ProtectedRoute>} />
         <Route path="/panel/profile" element={<ProtectedRoute requiredRole="superadmin"><AdminProfile /></ProtectedRoute>} />
+        <Route path="/panel/absensi" element={<ProtectedRoute requiredRole="superadmin"><AdminAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/absensi/rekap" element={<ProtectedRoute requiredRole="superadmin"><AdminRekapAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/absensi/rfid" element={<ProtectedRoute requiredRole="superadmin"><AdminRfidCards /></ProtectedRoute>} />
+        <Route path="/panel/pembayaran" element={<ProtectedRoute requiredRole="superadmin"><AdminPembayaran /></ProtectedRoute>} />
+        <Route path="/panel/pembayaran/jenis" element={<ProtectedRoute requiredRole="superadmin"><AdminJenisPembayaran /></ProtectedRoute>} />
+        <Route path="/panel/pembayaran/siswa" element={<ProtectedRoute requiredRole="superadmin"><AdminPembayaranSiswa /></ProtectedRoute>} />
 
         {/* Guru Panel Routes */}
         <Route path="/panel/guru" element={<ProtectedRoute requiredRole="guru"><GuruDashboard /></ProtectedRoute>} />
@@ -149,6 +174,7 @@ export default function App() {
         <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole="guru"><GuruUjianList /></ProtectedRoute>} />
         <Route path="/panel/guru/wali-siswa" element={<ProtectedRoute requiredRole="guru"><GuruWaliSiswa /></ProtectedRoute>} />
         <Route path="/panel/guru/catatan-wali" element={<ProtectedRoute requiredRole="guru"><GuruCatatanWali /></ProtectedRoute>} />
+        <Route path="/panel/guru/absensi" element={<ProtectedRoute requiredRole="guru"><GuruAbsensi /></ProtectedRoute>} />
 
         {/* Siswa Panel Routes */}
         <Route path="/panel/siswa" element={<ProtectedRoute requiredRole="siswa"><SiswaDashboard /></ProtectedRoute>} />
@@ -159,6 +185,8 @@ export default function App() {
         <Route path="/panel/siswa/tugas/detail/:id" element={<ProtectedRoute requiredRole="siswa"><SiswaTugas /></ProtectedRoute>} />
         <Route path="/panel/siswa/cbt" element={<ProtectedRoute requiredRole="siswa"><SiswaCbt /></ProtectedRoute>} />
         <Route path="/panel/siswa/rapor" element={<ProtectedRoute requiredRole="siswa"><SiswaRapor /></ProtectedRoute>} />
+        <Route path="/panel/siswa/absensi" element={<ProtectedRoute requiredRole="siswa"><SiswaAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/siswa/pembayaran" element={<ProtectedRoute requiredRole="siswa"><SiswaPembayaran /></ProtectedRoute>} />
       </Routes>
         <Toaster position="top-right" richColors closeButton />
       </Router>

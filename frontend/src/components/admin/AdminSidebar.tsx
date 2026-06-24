@@ -22,6 +22,9 @@ import {
   MonitorPlay,
   FileQuestion,
   GraduationCap,
+  SmartphoneNfc,
+  CreditCard,
+  ScanLine,
   type LucideIcon
 } from 'lucide-react';
 import { useRoleSimulator } from '../simulator/RoleContext';
@@ -108,8 +111,25 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         title: "Sistem Admin",
         items: [
           { name: "Pengaturan Web", path: "/panel/settings", icon: Settings },
+          { name: "Pengaturan RFID", path: "/panel/settings/rfid", icon: SmartphoneNfc },
         ]
-      }
+      },
+      {
+        title: "Absensi & RFID",
+        items: [
+          { name: "Absensi Harian", path: "/panel/absensi", icon: UserCheck },
+          { name: "Rekap Absensi", path: "/panel/absensi/rekap", icon: ClipboardList },
+          { name: "Kartu RFID", path: "/panel/absensi/rfid", icon: ScanLine },
+        ]
+      },
+      {
+        title: "Pembayaran / Keuangan",
+        items: [
+          { name: "Dashboard Bayar", path: "/panel/pembayaran", icon: CreditCard },
+          { name: "Jenis Pembayaran", path: "/panel/pembayaran/jenis", icon: FileText },
+          { name: "Pembayaran Siswa", path: "/panel/pembayaran/siswa", icon: Users },
+        ]
+      },
     ];
   } else if (simulatedRole === 'guru' || simulatedRole === 'walikelas') {
     navGroups = [
@@ -123,6 +143,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         title: "KBM & Penilaian",
         items: [
           { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: CalendarDays },
+          { name: "Absensi Siswa", path: "/panel/guru/absensi", icon: UserCheck },
           { name: "Buku Nilai Harian", path: "/panel/guru/nilai", icon: FileText },
           { name: "Bank Materi", path: "/panel/guru/materi", icon: BookOpen },
           { name: "Daftar Tugas", path: "/panel/guru/tugas", icon: ClipboardList },
@@ -162,6 +183,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Jadwal Pelajaran", path: "/panel/siswa/jadwal", icon: CalendarDays },
           { name: "Materi Belajar", path: "/panel/siswa/materi", icon: BookOpen },
           { name: "Tugas & PR", path: "/panel/siswa/tugas", icon: ClipboardList },
+          { name: "Absensi Saya", path: "/panel/siswa/absensi", icon: UserCheck },
+          { name: "Pembayaran Saya", path: "/panel/siswa/pembayaran", icon: CreditCard },
         ]
       },
       {

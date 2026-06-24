@@ -181,6 +181,26 @@ export default function SiswaRapor() {
                 </button>
               </div>
 
+              <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl p-5 border border-emerald-100 dark:border-emerald-500/20">
+                <h4 className="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2 mb-3">
+                  <Award className="w-4 h-4" /> Rekap Absensi Semester
+                </h4>
+                <div className="grid grid-cols-5 gap-3 text-center">
+                  {[
+                    { label: 'Hadir', value: 42, color: 'text-emerald-600' },
+                    { label: 'Izin', value: 1, color: 'text-blue-600' },
+                    { label: 'Sakit', value: 2, color: 'text-amber-600' },
+                    { label: 'Alpha', value: 0, color: 'text-red-600' },
+                    { label: 'Terlambat', value: 1, color: 'text-orange-600' },
+                  ].map(item => (
+                    <div key={item.label} className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-emerald-100 dark:border-emerald-500/20">
+                      <p className={`text-lg font-black ${item.color}`}>{item.value}</p>
+                      <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-slate-850 text-white text-xs font-bold">
