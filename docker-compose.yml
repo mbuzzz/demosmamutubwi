@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: demolms-app
+    restart: always
+    ports:
+      - "3002:80"
