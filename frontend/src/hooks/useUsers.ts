@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 export interface UserRecord {
   id: string;
   name: string;
+  username: string;
   email: string;
   nip_nisn: string;
   role: 'superadmin' | 'guru' | 'siswa' | 'admin' | 'walikelas' | 'kepala_sekolah' | 'kurikulum' | 'bendahara';

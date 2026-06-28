@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Search, Edit, Trash2, Upload, Download } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Upload, Download, X, FileText, CheckCircle2 } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
@@ -20,6 +20,9 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
 export default function AdminUserList() {
   const [activeTab, setActiveTab] = useState('semua');
   const [search, setSearch] = useState('');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Queries & Mutations
@@ -51,6 +54,7 @@ export default function AdminUserList() {
     }
     const reportData = users.map(u => ({
       'Nama Lengkap': u.name,
+      'Username': u.email.split('@')[0], // simplified fallback
       'Email': u.email,
       'NIP / NISN': u.nip_nisn || '—',
       'Peran (Role)': u.role.toUpperCase(),
@@ -64,14 +68,39 @@ export default function AdminUserList() {
     toast.success('Daftar pengguna berhasil diekspor ke Excel');
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        'Nama Lengkap': 'John Doe',
+        'Username': 'johndoe',
+        'Email': 'johndoe@sekolah.com',
+        'NIP / NISN': '1234567890',
+        'Peran (Role)': 'siswa',
+        'Keterangan / Info': 'X-1'
+      },
+      {
+        'Nama Lengkap': 'Jane Smith, S.Pd',
+        'Username': 'janesmith',
+        'Email': 'janesmith@sekolah.com',
+        'NIP / NISN': '198001012000012001',
+        'Peran (Role)': 'guru',
+        'Keterangan / Info': 'Guru Bahasa Inggris'
+      }
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Template Impor User');
+    XLSX.writeFile(wb, `Template_Impor_User.xlsx`);
   };
 
-  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleProcessImport = () => {
+    if (!selectedFile) {
+      toast.error('Pilih file Excel terlebih dahulu');
+      return;
+    }
 
+    setIsImporting(true);
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
@@ -84,16 +113,17 @@ export default function AdminUserList() {
 
         if (json.length === 0) {
           toast.error('Berkas Excel kosong');
+          setIsImporting(false);
           return;
         }
 
-        toast.info(`Memproses ${json.length} baris data...`);
         let importedCount = 0;
 
         for (let i = 0; i < json.length; i++) {
           const row = json[i];
           const name = row['Nama Lengkap'] || row['Nama'] || row['nama'];
-          const email = row['Email'] || row['email'] || `${Date.now()}-${i}@smasmuh1.sch.id`;
+          const username = row['Username'] || row['username'] || `user_${Date.now()}_${i}`;
+          const email = row['Email'] || row['email'] || `${username}@smasmuh1.sch.id`;
           const nip_nisn = String(row['NIP / NISN'] || row['NIP'] || row['NISN'] || row['nip'] || row['nisn'] || '');
           const rawRole = String(row['Peran (Role)'] || row['Role'] || row['role'] || 'siswa').toLowerCase();
           const info = row['Keterangan / Info'] || row['Info'] || row['info'] || '';
@@ -108,43 +138,42 @@ export default function AdminUserList() {
           else if (rawRole.includes('admin')) role = 'admin';
 
           if (name) {
-            await createUserMutation.mutateAsync({
-              name,
-              email,
-              password: 'password', // default password for imported accounts
-              role,
-              nip_nisn: nip_nisn || null,
-              kelas: role === 'siswa' ? info : null,
-              jabatan: role !== 'siswa' ? info : null,
-              is_active: true
-            });
-            importedCount++;
+            try {
+              await createUserMutation.mutateAsync({
+                name,
+                username,
+                email,
+                password: '1234', // default password for imported accounts
+                role,
+                nip_nisn: nip_nisn || null,
+                kelas: role === 'siswa' ? info : null,
+                jabatan: role !== 'siswa' ? info : null,
+                is_active: true
+              });
+              importedCount++;
+            } catch (e) {
+              console.error('Row failed', row, e);
+            }
           }
         }
 
-        toast.success(`Berhasil mengimpor ${importedCount} pengguna baru ke database!`);
+        toast.success(`Berhasil mengimpor ${importedCount} pengguna baru!`);
+        setShowImportModal(false);
+        setSelectedFile(null);
       } catch (err) {
         console.error(err);
-        toast.error('Gagal membaca berkas Excel atau ada data duplikat (Email/NIP/NISN).');
+        toast.error('Gagal membaca berkas Excel. Pastikan format kolom sesuai template.');
+      } finally {
+        setIsImporting(false);
       }
     };
-    reader.readAsArrayBuffer(file);
-    e.target.value = ''; // clear input
+    reader.readAsArrayBuffer(selectedFile);
   };
 
   return (
     <AdminLayout title="Manajemen Pengguna (Users)">
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-card dark:shadow-none border border-transparent dark:border-slate-800 overflow-hidden">
         
-        {/* Hidden File Input for Import */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleImportExcel} 
-          accept=".xlsx, .xls" 
-          className="hidden" 
-        />
-
         {/* Tabs & Import/Export Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 px-2 sm:px-0 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900/50">
           <div className="flex overflow-x-auto custom-scrollbar">
@@ -166,7 +195,7 @@ export default function AdminUserList() {
             <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm active:scale-95">
               <Download className="w-4 h-4" /> Export Excel
             </button>
-            <button onClick={handleImportClick} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-xl transition-colors border border-indigo-200 dark:border-indigo-500/30 shadow-sm active:scale-95">
+            <button onClick={() => setShowImportModal(true)} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-xl transition-colors border border-indigo-200 dark:border-indigo-500/30 shadow-sm active:scale-95">
               <Upload className="w-4 h-4" /> Import Excel
             </button>
           </div>
@@ -272,6 +301,86 @@ export default function AdminUserList() {
           </div>
         </div>
       </div>
+
+      {/* Import Excel Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => !isImporting && setShowImportModal(false)}>
+          <div className="bg-white dark:bg-slate-900 rounded-[24px] shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-extrabold text-slate-800 dark:text-white text-lg flex items-center gap-2">
+                <Upload className="w-5 h-5 text-indigo-500" /> Impor Pengguna Baru
+              </h3>
+              {!isImporting && (
+                <button onClick={() => setShowImportModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl p-4 flex items-start gap-3">
+                <FileText className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-indigo-900 dark:text-indigo-300">Gunakan Format Template</p>
+                  <p className="text-xs text-indigo-700 dark:text-indigo-400 mt-1 mb-2">Pastikan kolom Excel Anda sesuai dengan template standar kami untuk menghindari error saat proses impor data.</p>
+                  <button onClick={handleDownloadTemplate} className="text-xs font-bold bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg shadow-sm hover:bg-indigo-50 transition-colors flex items-center gap-1.5">
+                    <Download className="w-3.5 h-3.5" /> Unduh Template
+                  </button>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => !isImporting && fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${selectedFile ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10' : 'border-slate-300 dark:border-slate-700 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+              >
+                {selectedFile ? (
+                  <div className="flex flex-col items-center">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500 mb-2" />
+                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{selectedFile.name}</span>
+                    <span className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">Siap untuk diproses</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full flex items-center justify-center mb-3">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Pilih berkas Excel (.xlsx)</span>
+                    <span className="text-xs text-slate-400 mt-1">Klik di sini untuk menelusuri berkas</span>
+                  </div>
+                )}
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} 
+                accept=".xlsx, .xls" 
+                className="hidden" 
+              />
+            </div>
+
+            <div className="mt-6 flex gap-2">
+              <button 
+                onClick={() => { setSelectedFile(null); setShowImportModal(false); }}
+                disabled={isImporting}
+                className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleProcessImport}
+                disabled={isImporting || !selectedFile}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50 shadow-sm flex justify-center items-center gap-2"
+              >
+                {isImporting ? (
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Memproses...</>
+                ) : (
+                  'Mulai Impor'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

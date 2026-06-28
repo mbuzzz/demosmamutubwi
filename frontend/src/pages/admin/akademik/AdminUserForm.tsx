@@ -21,6 +21,7 @@ export default function AdminUserForm() {
   // Form states
   const [role, setRole] = useState('siswa');
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nipNisn, setNipNisn] = useState('');
@@ -35,6 +36,7 @@ export default function AdminUserForm() {
     if (isEdit && user) {
       setRole(user.role);
       setName(user.name);
+      setUsername(user.username || '');
       setEmail(user.email);
       setNipNisn(user.nip_nisn || '');
       setRfidUid(user.uid_rfid || '');
@@ -47,13 +49,14 @@ export default function AdminUserForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) {
-      toast.error('Nama dan Email wajib diisi');
+    if (!name || !email || !username) {
+      toast.error('Nama, Username, dan Email wajib diisi');
       return;
     }
 
     const userData: any = {
       name,
+      username,
       email,
       role,
       nip_nisn: nipNisn || null,
@@ -163,13 +166,17 @@ export default function AdminUserForm() {
               <UserIcon className="w-4 h-4 text-indigo-500" /> Data Pribadi
             </h3>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Lengkap</label>
                   <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Masukkan nama lengkap" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email (Username Login)</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Username (Login)</label>
+                  <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Contoh: agus123" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white font-mono" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Aktif</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@sekolah.com" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required />
