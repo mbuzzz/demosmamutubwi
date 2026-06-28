@@ -7,6 +7,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\MapelController;
 use App\Http\Controllers\EkskulController;
 use App\Http\Controllers\PenugasanController;
+use App\Http\Controllers\JadwalController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -28,12 +29,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('penugasan', PenugasanController::class);
     });
 
-    // 2. KELAS MANAGEMENT (Superadmin, Admin, Kurikulum)
+    // 2. KELAS & JADWAL MANAGEMENT (Superadmin, Admin, Kurikulum)
     Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
         Route::get('/kelas/export/pdf', [KelasController::class, 'exportPdf']);
         Route::get('/kelas/export/xlsx', [KelasController::class, 'exportXlsx']);
         Route::post('/kelas/import/xlsx', [KelasController::class, 'importXlsx']);
         Route::apiResource('kelas', KelasController::class);
+
+        Route::get('/jadwal', [JadwalController::class, 'index']);
+        Route::post('/jadwal/bulk', [JadwalController::class, 'storeBulk']);
     });
 
     // 3. MAPEL MANAGEMENT (Superadmin, Admin, Kurikulum)
