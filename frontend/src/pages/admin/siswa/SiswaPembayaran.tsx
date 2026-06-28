@@ -1,18 +1,24 @@
 import { useState } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { CreditCard, CheckCircle2, Banknote, QrCode } from 'lucide-react';
-import { PEMBAYARAN_SISWA_MOCK, STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa } from '../../../types/pembayaran';
+import { STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa } from '../../../types/pembayaran';
 import { useBankSettings } from '../../../stores/bankSettingsStore';
+import { useTagihanList } from '../../../hooks/usePembayaran';
+import { useUsers } from '../../../hooks/useUsers';
 
 export default function SiswaPembayaran() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | number | null>(null);
 
-  const settings = useBankSettings();
+  const bankSettings = useBankSettings();
+  const settings = bankSettings[0] || { bankName: '-', noRekening: '-', atasNama: '-', qrisImage: '' };
+  
+  const { data: users } = useUsers();
+  const currentUser = users?.find(u => u.role === 'siswa');
+  const { data: tagihanSaya = [] } = useTagihanList(currentUser ? { user_id: currentUser.id } : undefined);
 
-  const tagihanSaya = PEMBAYARAN_SISWA_MOCK.filter(p => p.siswaId === 's1');
-  const totalTagihan = tagihanSaya.reduce((a, p) => a + p.nominal, 0);
-  const totalTerkumpul = tagihanSaya.reduce((a, p) => a + p.terbayar, 0);
-  const totalSisa = tagihanSaya.reduce((a, p) => a + p.sisa, 0);
+  const totalTagihan = tagihanSaya.reduce((a: number, p: any) => a + p.nominal, 0);
+  const totalTerkumpul = tagihanSaya.reduce((a: number, p: any) => a + p.terbayar, 0);
+  const totalSisa = tagihanSaya.reduce((a: number, p: any) => a + p.sisa, 0);
 
   return (
     <AdminLayout title="Pembayaran Saya">
@@ -36,7 +42,7 @@ export default function SiswaPembayaran() {
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Riwayat Tagihan</h3>
         </div>
         <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-          {tagihanSaya.map(p => {
+          {tagihanSaya.map((p: any) => {
             const nominalSetelahBeasiswa = hitungBeasiswa(p.nominal, p.beasiswa);
             return (
               <div key={p.id}>
@@ -45,7 +51,7 @@ export default function SiswaPembayaran() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-indigo-500" />
-                      <span className="font-bold text-slate-800 dark:text-white text-sm">{p.jenisPembayaranNama}</span>
+                      <span className="font-bold text-slate-800 dark:text-white text-sm">{p.jenis_pembayaran?.nama}</span>
                     </div>
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_PEMBAYARAN_BADGE[p.status].color}`}>
                       {STATUS_PEMBAYARAN_BADGE[p.status].label}
@@ -62,10 +68,10 @@ export default function SiswaPembayaran() {
                   )}
                 </div>
 
-                {selectedId === p.id && p.riwayat.length > 0 && (
+                {selectedId === p.id && p.riwayat && p.riwayat.length > 0 && (
                   <div className="px-4 pb-4 pl-10 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Riwayat Pembayaran</p>
-                    {p.riwayat.map(t => (
+                    {p.riwayat.map((t: any) => (
                       <div key={t.id} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800/30 rounded-xl">
                         <div className="flex items-center gap-2">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />

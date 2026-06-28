@@ -2,18 +2,22 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, SmartphoneNfc, CreditCard, CheckCircle2, XCircle, Clock, Receipt, Banknote } from 'lucide-react';
 import { KONFIGURASI_RFID_DEFAULT, MOCK_KARTU_RFID, waktuSekarang, type KonfigurasiRfid } from '../types/rfid';
-import { PEMBAYARAN_SISWA_MOCK, STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa, type PembayaranSiswa, type TransaksiPembayaran } from '../types/pembayaran';
+import { STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa, type Tagihan, type TransaksiPembayaran } from '../types/pembayaran';
+import { useTagihanList, useProsesPembayaran } from '../hooks/usePembayaran';
 import { toast } from 'sonner';
 
 type Step = 'pin' | 'scan' | 'student' | 'confirm' | 'done' | 'error';
 
 export default function TapPembayaran() {
+  const { data: list = [] } = useTagihanList();
+  const bayarMutation = useProsesPembayaran();
+
   const [step, setStep] = useState<Step>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
   const [config] = useState<KonfigurasiRfid>(KONFIGURASI_RFID_DEFAULT);
   const [kartuTerdaftar, setKartuTerdaftar] = useState<typeof MOCK_KARTU_RFID[0] | null>(null);
-  const [tagihan, setTagihan] = useState<PembayaranSiswa[]>([]);
+  const [tagihan, setTagihan] = useState<Tagihan[]>([]);
   const [selectedTagihan, setSelectedTagihan] = useState<string | null>(null);
   const [nominalBayar, setNominalBayar] = useState('');
   const [transaksi, setTransaksi] = useState<TransaksiPembayaran | null>(null);
@@ -39,7 +43,7 @@ export default function TapPembayaran() {
       return;
     }
 
-    const tagihanSiswa = PEMBAYARAN_SISWA_MOCK.filter(p => p.siswaId === kartu.siswaId && p.status !== 'lunas' && p.status !== 'bebas');
+    const tagihanSiswa = list.filter((p: Tagihan) => String(p.siswa_id) === kartu.siswaId && p.status !== 'lunas' && p.status !== 'bebas');
     setKartuTerdaftar(kartu);
     setTagihan(tagihanSiswa);
 
@@ -47,7 +51,7 @@ export default function TapPembayaran() {
       toast.info(`${kartu.nama} — semua tagihan sudah lunas`);
     }
     setStep('student');
-  }, []);
+  }, [list]);
 
   useEffect(() => {
     if (rfidValue.length < 2) return;
@@ -108,16 +112,24 @@ export default function TapPembayaran() {
       return;
     }
 
-    setTransaksi({
-      id: `trx-${Date.now()}`,
-      tanggal: new Date().toISOString().split('T')[0],
+    bayarMutation.mutate({
+      tagihan_id: tagihanDipilih.id,
       nominal,
       metode: 'rfid',
-      petugas: 'Petugas RFID',
-      keterangan: `Bayar ${tagihanDipilih.jenisPembayaranNama} via RFID`,
+      keterangan: `Bayar ${tagihanDipilih.jenis_pembayaran?.nama || 'tagihan'} via RFID`,
+    }, {
+      onSuccess: (data) => {
+        setTransaksi(data.transaksi || {
+          id: `trx-${Date.now()}`,
+          tanggal: new Date().toISOString().split('T')[0],
+          nominal,
+          metode: 'rfid',
+          petugas: 'Petugas RFID',
+        });
+        setStep('confirm');
+        toast.success(`Pembayaran ${rupiah(nominal)} dicatat`);
+      }
     });
-    setStep('confirm');
-    toast.success(`Pembayaran ${rupiah(nominal)} dicatat`);
   };
 
   const handleKonfirmasi = () => {
@@ -235,7 +247,7 @@ export default function TapPembayaran() {
                       <label key={t.id} onClick={() => { setSelectedTagihan(t.id); setNominalBayar(String(t.sisa)); }}
                         className={`block p-4 rounded-2xl border-2 cursor-pointer transition-all ${selectedTagihan === t.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-600'}`}>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold text-sm text-slate-800 dark:text-white">{t.jenisPembayaranNama}</span>
+                          <span className="font-bold text-sm text-slate-800 dark:text-white">{t.jenis_pembayaran?.nama}</span>
                           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_PEMBAYARAN_BADGE[t.status].color}`}>
                             {STATUS_PEMBAYARAN_BADGE[t.status].label}
                           </span>
@@ -290,7 +302,7 @@ export default function TapPembayaran() {
 
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 space-y-3 mb-6">
               <div className="flex justify-between"><span className="text-sm text-slate-500 dark:text-slate-400">Siswa</span><span className="text-sm font-bold text-slate-800 dark:text-white">{kartuTerdaftar?.nama}</span></div>
-              <div className="flex justify-between"><span className="text-sm text-slate-500 dark:text-slate-400">Jenis</span><span className="text-sm font-bold text-slate-800 dark:text-white">{tagihan.find(t => t.id === selectedTagihan)?.jenisPembayaranNama}</span></div>
+              <div className="flex justify-between"><span className="text-sm text-slate-500 dark:text-slate-400">Jenis</span><span className="text-sm font-bold text-slate-800 dark:text-white">{tagihan.find(t => t.id === selectedTagihan)?.jenis_pembayaran?.nama}</span></div>
               <div className="flex justify-between"><span className="text-sm text-slate-500 dark:text-slate-400">Nominal</span><span className="text-lg font-black text-emerald-600">{rupiah(transaksi.nominal)}</span></div>
               <div className="flex justify-between"><span className="text-sm text-slate-500 dark:text-slate-400">Metode</span><span className="text-sm font-bold text-slate-800 dark:text-white">RFID</span></div>
               <div className="flex justify-between"><span className="text-sm text-slate-500 dark:text-slate-400">Waktu</span><span className="text-sm font-bold text-slate-800 dark:text-white">{waktu}</span></div>

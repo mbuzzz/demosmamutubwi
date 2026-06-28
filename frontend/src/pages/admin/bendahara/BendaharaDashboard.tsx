@@ -1,12 +1,16 @@
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { CreditCard, Receipt, BarChart3, Wallet, ArrowRight } from 'lucide-react';
-import { PEMBAYARAN_SISWA_MOCK, rupiah } from '../../../types/pembayaran';
+import { rupiah } from '../../../types/pembayaran';
+import { usePembayaranStatistik, useTransaksiList } from '../../../hooks/usePembayaran';
 
 export default function BendaharaDashboard() {
-  const totalTerkumpul = PEMBAYARAN_SISWA_MOCK.reduce((a, p) => a + p.terbayar, 0);
-  const totalTunggakan = PEMBAYARAN_SISWA_MOCK.reduce((a, p) => a + p.sisa, 0);
-  const siswaBelumLunas = PEMBAYARAN_SISWA_MOCK.filter(p => p.status === 'belum').length;
+  const { data: stats } = usePembayaranStatistik();
+  const { data: transaksiList = [] } = useTransaksiList({ limit: 5 });
+
+  const totalTerkumpul = stats?.total_penerimaan || 0;
+  const totalTunggakan = stats?.total_tunggakan || 0;
+  const siswaBelumLunas = stats?.siswa_nunggak || 0;
 
   return (
     <AdminLayout title="Dashboard Bendahara">
@@ -51,7 +55,7 @@ export default function BendaharaDashboard() {
           <BarChart3 className="w-4 h-4 text-indigo-500" /> Ringkasan Transaksi Terakhir
         </h3>
         <div className="space-y-3">
-          {PEMBAYARAN_SISWA_MOCK.filter(p => p.riwayat.length > 0).flatMap(p => p.riwayat.slice(0, 1)).slice(0, 5).map((t, i) => (
+          {transaksiList.slice(0, 5).map((t: any, i: number) => (
             <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -62,7 +66,7 @@ export default function BendaharaDashboard() {
                   <p className="text-[10px] text-slate-400">{t.tanggal} — {t.metode}</p>
                 </div>
               </div>
-              <span className="text-[10px] text-slate-400">{t.petugas}</span>
+              <span className="text-[10px] text-slate-400">{t.petugas || t.siswa?.nama || '-'}</span>
             </div>
           ))}
         </div>

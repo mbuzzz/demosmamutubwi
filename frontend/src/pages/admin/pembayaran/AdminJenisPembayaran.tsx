@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { Plus, Search, Pencil, Trash2, Globe } from 'lucide-react';
-import { JENIS_PEMBAYARAN_MOCK, rupiah, type JenisPembayaran, type JenisPembayaranTipe } from '../../../types/pembayaran';
+import { rupiah, type JenisPembayaran, type JenisPembayaranTipe } from '../../../types/pembayaran';
 import { MOCK_SISWA } from '../../../types/absensi';
-import { addMultiplePembayaranRecords } from '../../../stores/pembayaranStore';
+import { useJenisPembayaranList, useCreateJenisPembayaran, useUpdateJenisPembayaran, useDeleteJenisPembayaran } from '../../../hooks/usePembayaran';
 import { toast } from 'sonner';
 
 const PERIODE_BERULANG = ['Bulanan', 'Mingguan', 'Tahunan'];
@@ -13,9 +13,13 @@ function isPeriodeBerulang(periode: string): boolean {
 }
 
 export default function AdminJenisPembayaran() {
-  const [list, setList] = useState<JenisPembayaran[]>(JENIS_PEMBAYARAN_MOCK);
+  const { data: list = [], isLoading } = useJenisPembayaranList();
+  const createMutation = useCreateJenisPembayaran();
+  const updateMutation = useUpdateJenisPembayaran();
+  const deleteMutation = useDeleteJenisPembayaran();
+
   const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | number | null>(null);
   const [form, setForm] = useState({
     nama: '', nominal: 0, tipe: 'wajib' as JenisPembayaranTipe,
     periode: '', deskripsi: '', jatuhTempo: '',
@@ -24,10 +28,10 @@ export default function AdminJenisPembayaran() {
   const [assignKelas, setAssignKelas] = useState('');
   const [search, setSearch] = useState('');
 
-  const filtered = list.filter(j => !search || j.nama.toLowerCase().includes(search.toLowerCase()));
+  const filtered = list.filter((j: JenisPembayaran) => !search || j.nama.toLowerCase().includes(search.toLowerCase()));
   const kelasList = [...new Set(MOCK_SISWA.map(s => s.kelas))];
-  const totalWajib = list.filter(j => j.tipe === 'wajib').reduce((a, j) => a + j.nominal, 0);
-  const totalSukarela = list.filter(j => j.tipe === 'sukarela').reduce((a, j) => a + j.nominal, 0);
+  const totalWajib = list.filter((j: JenisPembayaran) => j.tipe === 'wajib').reduce((a: number, j: JenisPembayaran) => a + j.nominal, 0);
+  const totalSukarela = list.filter((j: JenisPembayaran) => j.tipe === 'sukarela').reduce((a: number, j: JenisPembayaran) => a + j.nominal, 0);
 
   const periodeBerulang = useMemo(() => isPeriodeBerulang(form.periode), [form.periode]);
 
@@ -50,53 +54,33 @@ export default function AdminJenisPembayaran() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.nama || !form.nominal) { toast.error('Lengkapi data'); return; }
 
+    const payload = {
+      ...form,
+      jatuh_tempo: form.jatuhTempo,
+    };
+
     if (editId) {
-      setList(prev => prev.map(p => p.id === editId ? { ...p, ...form } : p));
-      toast.success('Jenis pembayaran diupdate');
-      setShowForm(false);
+      updateMutation.mutate({ id: editId, data: payload }, {
+        onSuccess: () => setShowForm(false)
+      });
       return;
     }
 
-    const baru: JenisPembayaran = { ...form, id: `jp-${Date.now()}` };
-    setList(prev => [...prev, baru]);
-
-    if (assignMode !== 'none') {
-      const targetSiswa = assignMode === 'semua'
-        ? MOCK_SISWA
-        : MOCK_SISWA.filter(s => s.kelas === assignKelas);
-
-      if (targetSiswa.length > 0) {
-        const records = targetSiswa.map(s => ({
-          id: `ps-${Date.now()}-${s.id}`,
-          siswaId: s.id,
-          nama: s.nama,
-          kelas: s.kelas,
-          jenisPembayaranId: baru.id,
-          jenisPembayaranNama: baru.nama,
-          nominal: baru.nominal,
-          terbayar: 0,
-          sisa: baru.nominal,
-          status: 'belum' as const,
-          jatuhTempo: baru.jatuhTempo || new Date().toISOString().split('T')[0],
-          riwayat: [],
-        }));
-        addMultiplePembayaranRecords(records);
-        toast.success(`${baru.nama} ditambahkan & diterapkan ke ${targetSiswa.length} siswa`);
+    createMutation.mutate(payload, {
+      onSuccess: () => {
+        setShowForm(false);
+        // Note: Assigning to students should ideally be handled by the backend during creation
+        // or through a separate API call. Mock logic removed for real API.
       }
-    } else {
-      toast.success('Jenis pembayaran ditambahkan');
-    }
-
-    setShowForm(false);
+    });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string | number) => {
     if (!window.confirm('Hapus jenis pembayaran ini?')) return;
-    setList(prev => prev.filter(p => p.id !== id));
-    toast.success('Jenis pembayaran dihapus');
+    deleteMutation.mutate(id);
   };
 
   return (

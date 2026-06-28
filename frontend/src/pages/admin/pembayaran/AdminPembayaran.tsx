@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { BarChart3, Users, Search, ArrowRight, Receipt, TrendingUp, AlertTriangle, Download, Calendar, Filter } from 'lucide-react';
-import { rupiah, STATUS_PEMBAYARAN_BADGE, JENIS_PEMBAYARAN_MOCK, type StatusPembayaran } from '../../../types/pembayaran';
-import { usePembayaranData } from '../../../stores/pembayaranStore';
+import { rupiah, STATUS_PEMBAYARAN_BADGE, type StatusPembayaran } from '../../../types/pembayaran';
+import { usePembayaranStatistik, useTagihanList, useJenisPembayaranList } from '../../../hooks/usePembayaran';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
 export default function AdminPembayaran() {
-  const data = usePembayaranData();
+  const { data: stats } = usePembayaranStatistik();
+  const { data: list = [] } = useTagihanList();
+  const { data: jenisList = [] } = useJenisPembayaranList();
+
   const [filterKelas, setFilterKelas] = useState('');
   const [filterJenis, setFilterJenis] = useState('');
   const [filterStatus, setFilterStatus] = useState<StatusPembayaran | ''>('');
@@ -17,23 +20,22 @@ export default function AdminPembayaran() {
   const [search, setSearch] = useState('');
   const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
 
-  const totalTagihan = data.reduce((a, p) => a + p.nominal, 0);
-  const totalTerkumpul = data.reduce((a, p) => a + p.terbayar, 0);
-  const totalTunggakan = data.reduce((a, p) => a + p.sisa, 0);
-  const siswaBelumLunas = data.filter(p => p.status === 'belum' || p.status === 'cicil');
+  const totalTagihan = list.reduce((a, p) => a + p.nominal, 0);
+  const totalTerkumpul = stats?.total_penerimaan || list.reduce((a, p) => a + p.terbayar, 0);
+  const totalTunggakan = stats?.total_tunggakan || list.reduce((a, p) => a + p.sisa, 0);
+  const siswaBelumLunas = stats?.siswa_nunggak || list.filter(p => p.status === 'belum' || p.status === 'cicil').length;
 
-  const kelasList = [...new Set(data.map(p => p.kelas))];
-  const jenisList = JENIS_PEMBAYARAN_MOCK;
+  const kelasList = [...new Set(list.map(p => p.siswa?.kelas).filter(Boolean))];
 
-  const filtered = data.filter(p => {
-    if (filterKelas && p.kelas !== filterKelas) return false;
-    if (filterJenis && p.jenisPembayaranId !== filterJenis) return false;
+  const filtered = list.filter(p => {
+    if (filterKelas && p.siswa?.kelas !== filterKelas) return false;
+    if (filterJenis && String(p.jenis_pembayaran_id) !== filterJenis) return false;
     if (filterStatus && p.status !== filterStatus) return false;
-    if (search && !p.nama.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !p.siswa?.nama.toLowerCase().includes(search.toLowerCase())) return false;
     
     // Date range filter based on transaction histories
     if (dariTanggal || sampaiTanggal) {
-      if (p.riwayat.length === 0) return false;
+      if (!p.riwayat || p.riwayat.length === 0) return false;
       const dates = p.riwayat.map(t => new Date(t.tanggal).getTime());
       const minDate = Math.min(...dates);
       const maxDate = Math.max(...dates);
@@ -59,16 +61,16 @@ export default function AdminPembayaran() {
 
     // Map filtered data for Excel columns
     const reportData = filtered.map(p => ({
-      'Nama Siswa': p.nama,
-      'Kelas': p.kelas,
-      'Jenis Pembayaran': p.jenisPembayaranNama,
+      'Nama Siswa': p.siswa?.nama || '-',
+      'Kelas': p.siswa?.kelas || '-',
+      'Jenis Pembayaran': p.jenis_pembayaran?.nama || '-',
       'Total Tagihan': p.nominal,
       'Telah Dibayar': p.terbayar,
       'Sisa Tagihan': p.sisa,
       'Status': p.status === 'lunas' ? 'Lunas' : p.status === 'cicil' ? 'Angsuran' : p.status === 'bebas' ? 'Bebas' : 'Belum Bayar',
-      'Jatuh Tempo': p.jatuhTempo,
-      'Jumlah Transaksi': p.riwayat.length,
-      'Tanggal Transaksi Terakhir': p.riwayat.length > 0 ? p.riwayat[p.riwayat.length - 1].tanggal : '—'
+      'Jatuh Tempo': p.jatuh_tempo,
+      'Jumlah Transaksi': p.riwayat?.length || 0,
+      'Tanggal Transaksi Terakhir': p.riwayat && p.riwayat.length > 0 ? p.riwayat[p.riwayat.length - 1].tanggal : '—'
     }));
 
     // Create worksheet and workbook
@@ -104,7 +106,7 @@ export default function AdminPembayaran() {
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Belum Lunas</p>
-          <h3 className="text-3xl font-black text-amber-500 mt-1">{siswaBelumLunas.length}</h3>
+          <h3 className="text-3xl font-black text-amber-500 mt-1">{siswaBelumLunas}</h3>
         </div>
       </div>
 
@@ -170,7 +172,7 @@ export default function AdminPembayaran() {
               <label className="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Jenis Tagihan</label>
               <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)} className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-white">
                 <option value="">Semua Jenis</option>
-                {jenisList.map(j => <option key={j.id} value={j.id}>{j.nama}</option>)}
+                {jenisList.map(j => <option key={j.id} value={String(j.id)}>{j.nama}</option>)}
               </select>
             </div>
             <div>
@@ -204,9 +206,9 @@ export default function AdminPembayaran() {
               {filtered.length > 0 ? (
                 filtered.map(p => (
                   <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{p.nama}</td>
-                    <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{p.kelas}</td>
-                    <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{p.jenisPembayaranNama}</td>
+                    <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{p.siswa?.nama}</td>
+                    <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{p.siswa?.kelas || '-'}</td>
+                    <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{p.jenis_pembayaran?.nama}</td>
                     <td className="px-5 py-4 text-right font-bold text-slate-800 dark:text-white">{rupiah(p.nominal)}</td>
                     <td className="px-5 py-4 text-right font-semibold text-emerald-600">{rupiah(p.terbayar)}</td>
                     <td className="px-5 py-4 text-right font-bold text-red-600">{rupiah(p.sisa)}</td>
@@ -229,10 +231,10 @@ export default function AdminPembayaran() {
         </div>
       </div>
 
-      {siswaBelumLunas.length > 0 && (
+      {siswaBelumLunas > 0 && (
         <div className="mt-6 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-5">
           <h3 className="font-bold text-amber-800 dark:text-amber-300 text-sm flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-4 h-4" /> {siswaBelumLunas.length} tagihan belum lunas
+            <AlertTriangle className="w-4 h-4" /> {siswaBelumLunas} tagihan belum lunas
           </h3>
           <p className="text-xs text-amber-700 dark:text-amber-400">Total tunggakan: {rupiah(totalTunggakan)}</p>
         </div>
