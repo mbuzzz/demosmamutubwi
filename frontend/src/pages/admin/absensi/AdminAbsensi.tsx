@@ -1,46 +1,69 @@
 import { useState } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { UserCheck, UserX, Clock, AlertTriangle, CalendarDays, Search } from 'lucide-react';
-import { MOCK_ABSENSI_HARI_INI, STATUS_ABSENSI_BADGE, type SiswaAbsensi, type StatusAbsensi } from '../../../types/absensi';
-import { MOCK_SISWA } from '../../../types/rfid';
+import { STATUS_ABSENSI_BADGE, type StatusAbsensi } from '../../../types/absensi';
+import { useAbsensiList, useManualAbsensi, type AbsensiRecord } from '../../../hooks/useAbsensi';
+import { useUsers } from '../../../hooks/useUsers';
 import { toast } from 'sonner';
 
 export default function AdminAbsensi() {
-  const [absensi, setAbsensi] = useState<SiswaAbsensi[]>(MOCK_ABSENSI_HARI_INI);
   const [filterKelas, setFilterKelas] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [search, setSearch] = useState('');
+  
+  const today = new Date().toISOString().split('T')[0];
+  
+  const { data: absensi = [], isLoading } = useAbsensiList({ start_date: today, end_date: today, role: 'siswa' });
+  const { data: allSiswa = [] } = useUsers('siswa');
+  const manualAbsen = useManualAbsensi();
 
-  const hadir = absensi.filter(a => a.statusMasuk === 'hadir').length;
-  const terlambat = absensi.filter(a => a.statusMasuk === 'terlambat').length;
-  const alpha = absensi.filter(a => a.statusMasuk === 'alpha').length;
+  const hadir = absensi.filter(a => a.tipe === 'hadir').length;
+  const terlambat = absensi.filter(a => a.tipe === 'terlambat').length;
+  const alpha = absensi.filter(a => a.tipe === 'alpha').length;
 
   const filtered = absensi.filter(a => {
-    if (filterKelas && a.kelas !== filterKelas) return false;
-    if (filterStatus && a.statusMasuk !== filterStatus) return false;
-    if (search && !a.nama.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterKelas && a.user?.kelas !== filterKelas) return false;
+    if (filterStatus && a.tipe !== filterStatus) return false;
+    if (search && !a.user?.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const kelasList = [...new Set(absensi.map(a => a.kelas))];
-  const siswaTanpaAbsen = MOCK_SISWA.filter(s => !absensi.find(a => a.siswaId === s.id));
+  const kelasList = [...new Set(allSiswa.map(s => s.kelas).filter(Boolean))] as string[];
+  const siswaTanpaAbsen = allSiswa.filter(s => !absensi.find(a => a.user_id === parseInt(s.id)));
 
   const handleMarkManual = (siswaId: string, status: StatusAbsensi) => {
-    const siswa = MOCK_SISWA.find(s => s.id === siswaId);
+    const siswa = allSiswa.find(s => s.id === siswaId);
     if (!siswa) return;
-    const newAbsen: SiswaAbsensi = {
-      id: `manual-${Date.now()}`,
-      siswaId,
-      nama: siswa.nama,
-      kelas: siswa.kelas,
-      tanggal: new Date().toISOString().split('T')[0],
-      jamMasuk: status === 'alpha' ? undefined : new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      statusMasuk: status,
-      metode: 'manual',
-      catatan: 'Diisi manual oleh admin',
-    };
-    setAbsensi(prev => [...prev, newAbsen]);
-    toast.success(`${siswa.nama} — ${STATUS_ABSENSI_BADGE[status].label}`);
+    
+    manualAbsen.mutate({
+      user_id: parseInt(siswaId),
+      tipe: status,
+      tanggal: today,
+      waktu_masuk: status !== 'alpha' && status !== 'izin' && status !== 'sakit' ? new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : undefined,
+      keterangan: 'Diisi manual oleh admin'
+    }, {
+      onSuccess: () => {
+        toast.success(`${siswa.name} — ${STATUS_ABSENSI_BADGE[status].label}`);
+      },
+      onError: () => {
+        toast.error('Gagal mencatat absensi manual');
+      }
+    });
+  };
+
+  const handlePulang = (a: AbsensiRecord) => {
+    manualAbsen.mutate({
+      user_id: a.user_id,
+      tipe: a.tipe,
+      tanggal: a.tanggal,
+      waktu_masuk: a.waktu_masuk || undefined,
+      waktu_pulang: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      keterangan: a.keterangan || undefined
+    }, {
+      onSuccess: () => {
+        toast.success(`${a.user?.name} — Absen pulang dicatat`);
+      }
+    });
   };
 
   return (
@@ -82,45 +105,42 @@ export default function AdminAbsensi() {
         </div>
 
         <div className="overflow-x-auto">
+          {isLoading ? (
+            <div className="p-8 text-center text-slate-500">Memuat data absensi...</div>
+          ) : (
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-200 dark:border-slate-700">
-              <tr><th className="px-5 py-4">Nama</th><th className="px-5 py-4">Kelas</th><th className="px-5 py-4">Masuk</th><th className="px-5 py-4">Pulang</th><th className="px-5 py-4">Status</th><th className="px-5 py-4">Metode</th><th className="px-5 py-4">Aksi</th></tr>
+              <tr><th className="px-5 py-4">Nama</th><th className="px-5 py-4">Kelas</th><th className="px-5 py-4">Masuk</th><th className="px-5 py-4">Pulang</th><th className="px-5 py-4">Status</th><th className="px-5 py-4">Keterangan</th><th className="px-5 py-4">Aksi</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
               {filtered.map(a => (
                 <tr key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                  <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{a.nama}</td>
-                  <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{a.kelas}</td>
-                  <td className="px-5 py-4 font-medium text-slate-700 dark:text-slate-200">{a.jamMasuk || '-'}</td>
-                  <td className="px-5 py-4 font-medium text-slate-700 dark:text-slate-200">{a.jamPulang || '-'}</td>
+                  <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{a.user?.name || '-'}</td>
+                  <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{a.user?.kelas || '-'}</td>
+                  <td className="px-5 py-4 font-medium text-slate-700 dark:text-slate-200">{a.waktu_masuk || '-'}</td>
+                  <td className="px-5 py-4 font-medium text-slate-700 dark:text-slate-200">{a.waktu_pulang || '-'}</td>
                   <td className="px-5 py-4">
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_ABSENSI_BADGE[a.statusMasuk].color}`}>
-                      {STATUS_ABSENSI_BADGE[a.statusMasuk].label}
-                    </span>
-                    {a.statusPulang && (
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ml-1 ${STATUS_ABSENSI_BADGE[a.statusPulang].color}`}>
-                        {STATUS_ABSENSI_BADGE[a.statusPulang].label}
+                    {STATUS_ABSENSI_BADGE[a.tipe as StatusAbsensi] && (
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_ABSENSI_BADGE[a.tipe as StatusAbsensi].color}`}>
+                        {STATUS_ABSENSI_BADGE[a.tipe as StatusAbsensi].label}
                       </span>
                     )}
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`text-xs font-semibold ${a.metode === 'rfid' ? 'text-indigo-600' : 'text-amber-600'}`}>
-                      {a.metode === 'rfid' ? 'RFID' : 'Manual'}
-                    </span>
+                    <span className="text-xs text-slate-500">{a.keterangan || '-'}</span>
                   </td>
                   <td className="px-5 py-4">
-                    <button onClick={() => {
-                      const updated = absensi.map(ab => ab.id === a.id ? { ...ab, jamPulang: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }), statusPulang: 'hadir' as const } : ab);
-                      setAbsensi(updated);
-                      toast.success(`${a.nama} — Absen pulang`);
-                    }} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
-                      Pulang
-                    </button>
+                    {!a.waktu_pulang && a.tipe !== 'alpha' && (
+                      <button onClick={() => handlePulang(a)} disabled={manualAbsen.isPending} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors disabled:opacity-50">
+                        Pulang
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          )}
         </div>
       </div>
 
@@ -132,11 +152,11 @@ export default function AdminAbsensi() {
           <div className="flex flex-wrap gap-2">
             {siswaTanpaAbsen.map(s => (
               <div key={s.id} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
-                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{s.nama}</span>
-                <button onClick={() => handleMarkManual(s.id, 'hadir')} className="text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 px-2 py-1 rounded-lg transition-colors">Hadir</button>
-                <button onClick={() => handleMarkManual(s.id, 'izin')} className="text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 px-2 py-1 rounded-lg transition-colors">Izin</button>
-                <button onClick={() => handleMarkManual(s.id, 'sakit')} className="text-xs font-bold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 px-2 py-1 rounded-lg transition-colors">Sakit</button>
-                <button onClick={() => handleMarkManual(s.id, 'alpha')} className="text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors">Alpha</button>
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{s.name}</span>
+                <button disabled={manualAbsen.isPending} onClick={() => handleMarkManual(s.id, 'hadir')} className="text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 px-2 py-1 rounded-lg transition-colors disabled:opacity-50">Hadir</button>
+                <button disabled={manualAbsen.isPending} onClick={() => handleMarkManual(s.id, 'izin')} className="text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 px-2 py-1 rounded-lg transition-colors disabled:opacity-50">Izin</button>
+                <button disabled={manualAbsen.isPending} onClick={() => handleMarkManual(s.id, 'sakit')} className="text-xs font-bold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 px-2 py-1 rounded-lg transition-colors disabled:opacity-50">Sakit</button>
+                <button disabled={manualAbsen.isPending} onClick={() => handleMarkManual(s.id, 'alpha')} className="text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors disabled:opacity-50">Alpha</button>
               </div>
             ))}
           </div>

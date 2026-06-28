@@ -25,6 +25,14 @@ class PenugasanController extends Controller
             });
         }
 
+        if ($request->has('guru_id') && $request->guru_id) {
+            $query->where('guru_id', $request->guru_id);
+        }
+
+        if ($request->has('kelas_id') && $request->kelas_id) {
+            $query->where('kelas_id', $request->kelas_id);
+        }
+
         return response()->json($query->orderBy('id', 'desc')->get());
     }
 
@@ -111,59 +119,25 @@ class PenugasanController extends Controller
         ]);
     }
 
-    // GET /api/penugasan/struktural (Structural Tasks)
-    public function getStruktural()
+    public function guruClasses(Request $request)
     {
-        // Return all employees (roles other than student)
-        $users = User::where('role', '!=', 'siswa')
-            ->orderBy('name')
-            ->get();
-        return response()->json($users);
-    }
+        $guruId = $request->user()->id; // Or you could pass it as a parameter, but assuming auth
 
-    // PUT /api/penugasan/struktural/{id}
-    public function updateStruktural(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
+        $config = SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        $validated = $request->validate([
-            'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,admin',
-            'jabatan' => 'required_unless:role,walikelas|string|max:255|nullable',
-            'kelas_id' => 'required_if:role,walikelas|exists:kelas,id|nullable',
-        ]);
+        $classes = Penugasan::with(['kelas', 'mapel'])
+            ->where('guru_id', $guruId)
+            ->where('tahun_ajaran', $tahunAjaran)
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->kelas_id . '-' . $item->mapel_id;
+            })
+            ->map(function ($group) {
+                return $group->first(); // Since it's grouped by both, there should only be one unique combination
+            })
+            ->values();
 
-        // If role was previously walikelas, clear old wali kelas relation in kelas table
-        if ($user->role === 'walikelas') {
-            \App\Models\Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
-        }
-
-        if ($validated['role'] === 'walikelas') {
-            $kelas = \App\Models\Kelas::findOrFail($validated['kelas_id']);
-            
-            // Set another class to null if this user is already wali kelas somewhere (handled above, but double check)
-            \App\Models\Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
-            
-            // Assign user as wali kelas of the new class
-            $kelas->update(['wali_kelas_id' => $user->id]);
-
-            // Update user profile fields
-            $user->update([
-                'role' => 'walikelas',
-                'kelas' => $kelas->nama,
-                'jabatan' => 'Wali Kelas ' . $kelas->nama,
-            ]);
-        } else {
-            // Non-walikelas role
-            $user->update([
-                'role' => $validated['role'],
-                'kelas' => null,
-                'jabatan' => $validated['jabatan'],
-            ]);
-        }
-
-        return response()->json([
-            'message' => 'Tugas struktural berhasil diperbarui',
-            'user' => $user,
-        ]);
+        return response()->json($classes);
     }
 }

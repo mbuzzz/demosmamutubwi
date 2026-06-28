@@ -7,8 +7,11 @@ import {
   useUpdatePenugasan, 
   useDeletePenugasan, 
   useStrukturalList, 
+  useCreateStruktural,
   useUpdateStruktural,
-  type PenugasanRecord
+  useDeleteStruktural,
+  type PenugasanRecord,
+  type PenugasanStrukturalRecord
 } from '../../../hooks/usePenugasan';
 import { useUsers } from '../../../hooks/useUsers';
 import { useKelasList } from '../../../hooks/useKelas';
@@ -58,7 +61,9 @@ export default function AdminPenugasanList() {
   const createPenugasanMutation = useCreatePenugasan();
   const updatePenugasanMutation = useUpdatePenugasan();
   const deletePenugasanMutation = useDeletePenugasan();
+  const createStrukturalMutation = useCreateStruktural();
   const updateStrukturalMutation = useUpdateStruktural();
+  const deleteStrukturalMutation = useDeleteStruktural();
 
   const openNew = () => {
     setEditId(null);
@@ -90,15 +95,12 @@ export default function AdminPenugasanList() {
     setShowForm(false);
   };
 
-  const openEditStruktural = (u: any) => {
+  const openEditStruktural = (u: PenugasanStrukturalRecord) => {
     setEditStrukturalId(u.id);
-    setStrukturalRole(u.role);
+    setStrukturalRole(u.role_akses);
     setStrukturalJabatan(u.jabatan || '');
-    setSelectedStrukturalUserId(u.id);
-    
-    // Find if this user is a wali kelas for a class
-    const cls = kelasList.find(k => k.wali_kelas_id === u.id);
-    setStrukturalKelasId(cls ? String(cls.id) : '');
+    setSelectedStrukturalUserId(u.user_id);
+    setStrukturalKelasId(u.kelas_id || '');
     
     setShowForm(false);
   };
@@ -135,8 +137,7 @@ export default function AdminPenugasanList() {
     e.preventDefault();
     if (!editStrukturalId) return;
 
-    const targetUserId = editStrukturalId === 'new' ? selectedStrukturalUserId : editStrukturalId;
-    if (!targetUserId) {
+    if (editStrukturalId === 'new' && !selectedStrukturalUserId) {
       toast.error('Pilih pegawai / staf terlebih dahulu');
       return;
     }
@@ -151,14 +152,21 @@ export default function AdminPenugasanList() {
     }
 
     try {
-      await updateStrukturalMutation.mutateAsync({
-        id: targetUserId,
-        data: {
-          role: strukturalRole,
-          jabatan: strukturalRole === 'walikelas' ? '' : strukturalJabatan,
-          kelas_id: strukturalRole === 'walikelas' ? strukturalKelasId : null,
-        }
-      });
+      const payload = {
+        user_id: selectedStrukturalUserId,
+        role_akses: strukturalRole,
+        jabatan: strukturalRole === 'walikelas' ? null : strukturalJabatan,
+        kelas_id: strukturalRole === 'walikelas' ? strukturalKelasId : null,
+      };
+
+      if (editStrukturalId === 'new') {
+        await createStrukturalMutation.mutateAsync(payload);
+      } else {
+        await updateStrukturalMutation.mutateAsync({
+          id: editStrukturalId,
+          data: payload,
+        });
+      }
       toast.success('Tugas struktural berhasil disimpan');
       setEditStrukturalId(null);
       setStrukturalJabatan('');
@@ -166,6 +174,16 @@ export default function AdminPenugasanList() {
       setSelectedStrukturalUserId('');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Gagal menyimpan tugas struktural.');
+    }
+  };
+
+  const handleDeleteStruktural = async (id: string) => {
+    if (!window.confirm('Hapus tugas struktural ini?')) return;
+    try {
+      await deleteStrukturalMutation.mutateAsync(id);
+      toast.success('Tugas struktural berhasil dihapus');
+    } catch (err) {
+      toast.error('Gagal menghapus tugas struktural');
     }
   };
 
@@ -180,7 +198,7 @@ export default function AdminPenugasanList() {
   };
 
   const filteredStruktural = strukturalList.filter(u => 
-    u.name.toLowerCase().includes(search.toLowerCase()) || 
+    u.user?.name?.toLowerCase().includes(search.toLowerCase()) || 
     (u.jabatan && u.jabatan.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -329,7 +347,7 @@ export default function AdminPenugasanList() {
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-indigo-800 dark:text-indigo-300 text-sm flex items-center gap-1.5">
                   <UserCheck className="w-4 h-4" /> 
-                  {editStrukturalId === 'new' ? 'Tambah Tugas Struktural' : `Edit Tugas Struktural: ${strukturalList.find(u => u.id === editStrukturalId)?.name}`}
+                  {editStrukturalId === 'new' ? 'Tambah Tugas Struktural' : `Edit Tugas Struktural: ${strukturalList.find(u => u.id === editStrukturalId)?.user?.name}`}
                 </h3>
                 <button type="button" onClick={() => setEditStrukturalId(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X className="w-4 h-4" /></button>
               </div>
@@ -338,15 +356,16 @@ export default function AdminPenugasanList() {
                 {editStrukturalId === 'new' && (
                   <div className="col-span-2">
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Pilih Pegawai / Staf</label>
-                    <select 
-                      value={selectedStrukturalUserId} 
-                      onChange={e => setSelectedStrukturalUserId(e.target.value)} 
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                      required
-                    >
-                      <option value="">-- Pilih Pegawai --</option>
-                      {strukturalList.map(u => <option key={u.id} value={u.id}>{u.name} ({ROLE_LABELS[u.role] || u.role})</option>)}
-                    </select>
+                      <select 
+                        value={selectedStrukturalUserId} 
+                        onChange={e => setSelectedStrukturalUserId(e.target.value)} 
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                        required
+                        disabled={editStrukturalId !== 'new'}
+                      >
+                        <option value="">-- Pilih Pegawai --</option>
+                        {teachers.map(u => <option key={u.id} value={u.id}>{u.name} ({ROLE_LABELS[u.role] || u.role})</option>)}
+                      </select>
                   </div>
                 )}
 
@@ -484,17 +503,18 @@ export default function AdminPenugasanList() {
                   {filteredStruktural.length > 0 ? (
                     filteredStruktural.map((u) => (
                       <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{u.name}</td>
+                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{u.user?.name}</td>
                         <td className="px-6 py-4 font-semibold text-indigo-650 dark:text-indigo-400">
                           {u.jabatan || 'Belum Ada Tugas Struktural'}
                         </td>
                         <td className="px-6 py-4">
                           <span className="px-2.5 py-1 bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 rounded-md text-xs font-bold border border-purple-100 dark:border-purple-800/30">
-                            {ROLE_LABELS[u.role] || u.role}
+                            {ROLE_LABELS[u.role_akses] || u.role_akses}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button onClick={() => openEditStruktural(u)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 transition-colors" title="Edit Jabatan"><Edit className="w-4 h-4" /></button>
+                          <button onClick={() => handleDeleteStruktural(u.id)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-600 transition-colors" title="Hapus"><Trash2 className="w-4 h-4" /></button>
                         </td>
                       </tr>
                     ))

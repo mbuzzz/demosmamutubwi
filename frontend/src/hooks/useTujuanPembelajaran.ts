@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export interface TujuanPembelajaranRecord {
   id: string;
@@ -12,6 +13,7 @@ export interface TujuanPembelajaranRecord {
 export function useTujuanPembelajaranList(mapelId?: string, tingkat?: string) {
   return useQuery({
     queryKey: ['tujuan_pembelajarans', mapelId, tingkat],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const res = await api.get<TujuanPembelajaranRecord[]>('/tujuan-pembelajaran', {
         params: { mapel_id: mapelId, tingkat },
@@ -32,6 +34,9 @@ export function useCreateTujuanPembelajaran() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tujuan_pembelajarans', variables.mapel_id, variables.tingkat] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -45,6 +50,9 @@ export function useUpdateTujuanPembelajaran() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tujuan_pembelajarans', data.tp.mapel_id, data.tp.tingkat] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -57,6 +65,9 @@ export function useDeleteTujuanPembelajaran() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tujuan_pembelajarans', variables.mapelId, variables.tingkat] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
     },
   });
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { BarChart3, Download, Search, AlertCircle } from 'lucide-react';
-import { MOCK_REKAP_ABSENSI } from '../../../types/absensi';
+import { useAbsensiRekap } from '../../../hooks/useAbsensi';
+import { useUsers } from '../../../hooks/useUsers';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
-// Mock data for Subject/Class Attendance Rekap (Jurnal Kelas)
+// Mock data for Subject/Class Attendance Rekap (Jurnal Kelas) - not replaced as backend has no API for this currently
 const MOCK_REKAP_JURNAL = [
   { id: 'rj1', nama: 'Agus Setiawan', kelas: 'X-1', totalJam: 80, hadirJam: 78, izinJam: 2, sakitJam: 0, alphaJam: 0 },
   { id: 'rj2', nama: 'Budi Santoso', kelas: 'X-1', totalJam: 80, hadirJam: 72, izinJam: 0, sakitJam: 4, alphaJam: 4 },
@@ -22,14 +23,15 @@ export default function AdminRekapAbsensi() {
   const [search, setSearch] = useState('');
   const [filterKelas, setFilterKelas] = useState('');
 
-  const rawRekapRfid = MOCK_REKAP_ABSENSI;
+  const { data: rawRekapRfid = [], isLoading } = useAbsensiRekap({ role: 'siswa' });
   const rawRekapJurnal = MOCK_REKAP_JURNAL;
+  const { data: allSiswa = [] } = useUsers('siswa');
 
-  const kelasList = [...new Set(rawRekapRfid.map(r => r.kelas))];
+  const kelasList = [...new Set(allSiswa.map(s => s.kelas).filter(Boolean))] as string[];
 
   const filteredRfid = rawRekapRfid.filter(r => {
     if (filterKelas && r.kelas !== filterKelas) return false;
-    if (search && !r.nama.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -46,19 +48,19 @@ export default function AdminRekapAbsensi() {
       return;
     }
 
-    let reportData = [];
+    let reportData: any[] = [];
     if (activeTab === 'rfid') {
-      reportData = activeData.map(r => {
-        const total = r.hadir + r.alpha + r.terlambat + r.izin + r.sakit;
-        const persen = total > 0 ? Math.round(r.hadir / total * 100) : 0;
+      reportData = filteredRfid.map(r => {
+        const total = r.total_hadir + r.total_alpha + r.total_terlambat + r.total_izin + r.total_sakit;
+        const persen = total > 0 ? Math.round(r.total_hadir / total * 100) : 0;
         return {
-          'Nama Siswa': r.nama,
-          'Kelas': r.kelas,
-          'Hadir (Hari)': r.hadir,
-          'Izin (Hari)': r.izin,
-          'Sakit (Hari)': r.sakit,
-          'Alpha (Hari)': r.alpha,
-          'Terlambat (Hari)': r.terlambat,
+          'Nama Siswa': r.name,
+          'Kelas': r.kelas || '-',
+          'Hadir (Hari)': r.total_hadir,
+          'Izin (Hari)': r.total_izin,
+          'Sakit (Hari)': r.total_sakit,
+          'Alpha (Hari)': r.total_alpha,
+          'Terlambat (Hari)': r.total_terlambat,
           'Persentase Kehadiran': `${persen}%`
         };
       });
@@ -93,9 +95,9 @@ export default function AdminRekapAbsensi() {
     toast.success(`Rekap absensi ${activeTab === 'rfid' ? 'Gerbang (RFID)' : 'Kelas (KBM)'} berhasil diekspor ke Excel`);
   };
 
-  const totalHadir = filteredRfid.reduce((a, r) => a + r.hadir, 0);
-  const totalAlpha = filteredRfid.reduce((a, r) => a + r.alpha, 0);
-  const totalTerlambat = filteredRfid.reduce((a, r) => a + r.terlambat, 0);
+  const totalHadir = filteredRfid.reduce((a, r) => a + r.total_hadir, 0);
+  const totalAlpha = filteredRfid.reduce((a, r) => a + r.total_alpha, 0);
+  const totalTerlambat = filteredRfid.reduce((a, r) => a + r.total_terlambat, 0);
   const rataKehadiran = filteredRfid.length > 0 ? Math.round(totalHadir / (totalHadir + totalAlpha + totalTerlambat) * 100) : 0;
 
   return (
@@ -175,6 +177,9 @@ export default function AdminRekapAbsensi() {
         {/* Tab 1: RFID TABLE */}
         {activeTab === 'rfid' && (
           <div className="overflow-x-auto">
+            {isLoading ? (
+              <div className="p-8 text-center text-slate-500">Memuat rekap absensi...</div>
+            ) : (
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-200 dark:border-slate-700">
                 <tr>
@@ -190,24 +195,25 @@ export default function AdminRekapAbsensi() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                 {filteredRfid.map(r => {
-                  const total = r.hadir + r.alpha + r.terlambat + r.izin + r.sakit;
-                  const persen = total > 0 ? Math.round(r.hadir / total * 100) : 0;
+                  const total = r.total_hadir + r.total_alpha + r.total_terlambat + r.total_izin + r.total_sakit;
+                  const persen = total > 0 ? Math.round(r.total_hadir / total * 100) : 0;
                   const warna = persen >= 95 ? 'text-emerald-600' : persen >= 85 ? 'text-amber-600' : 'text-red-600';
                   return (
-                    <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                      <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{r.nama}</td>
-                      <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{r.kelas}</td>
-                      <td className="px-5 py-4 text-center font-bold text-emerald-600 dark:text-emerald-400">{r.hadir}</td>
-                      <td className="px-5 py-4 text-center font-semibold text-blue-600">{r.izin}</td>
-                      <td className="px-5 py-4 text-center font-semibold text-amber-600">{r.sakit}</td>
-                      <td className="px-5 py-4 text-center font-bold text-red-600 dark:text-red-400">{r.alpha}</td>
-                      <td className="px-5 py-4 text-center font-semibold text-orange-600">{r.terlambat}</td>
+                    <tr key={r.user_id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{r.name}</td>
+                      <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{r.kelas || '-'}</td>
+                      <td className="px-5 py-4 text-center font-bold text-emerald-600 dark:text-emerald-400">{r.total_hadir}</td>
+                      <td className="px-5 py-4 text-center font-semibold text-blue-600">{r.total_izin}</td>
+                      <td className="px-5 py-4 text-center font-semibold text-amber-600">{r.total_sakit}</td>
+                      <td className="px-5 py-4 text-center font-bold text-red-600 dark:text-red-400">{r.total_alpha}</td>
+                      <td className="px-5 py-4 text-center font-semibold text-orange-600">{r.total_terlambat}</td>
                       <td className="px-5 py-4 text-center font-black text-base"><span className={warna}>{persen}%</span></td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+            )}
           </div>
         )}
 

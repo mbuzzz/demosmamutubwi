@@ -28,4 +28,9 @@ class Penugasan extends Model
     {
         return $this->belongsTo(Kelas::class, 'kelas_id');
     }
+
+    public function scopeByTahunAjaran($query, $tahunAjaran)
+    {
+        return $query->where('tahun_ajaran', $tahunAjaran);
+    }
 }

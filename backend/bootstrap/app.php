@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register global middleware
         $middleware->append(\App\Http\Middleware\SanitizeInputs::class);
 
+        // Exclude XSRF-TOKEN from encryption so Axios can read it for CSRF
+        $middleware->encryptCookies(except: ['XSRF-TOKEN']);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);

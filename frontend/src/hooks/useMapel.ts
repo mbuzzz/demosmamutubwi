@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export interface MapelRecord {
   id: string;
@@ -12,6 +13,7 @@ export interface MapelRecord {
 export function useMapelList(search?: string) {
   return useQuery({
     queryKey: ['mapels', search],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const res = await api.get<MapelRecord[]>('/mapels', {
         params: { search },
@@ -24,6 +26,7 @@ export function useMapelList(search?: string) {
 export function useMapel(id: string | undefined) {
   return useQuery({
     queryKey: ['mapel-detail', id],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<MapelRecord>(`/mapels/${id}`);
@@ -43,6 +46,9 @@ export function useCreateMapel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mapels'] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -57,6 +63,9 @@ export function useUpdateMapel() {
       queryClient.invalidateQueries({ queryKey: ['mapels'] });
       queryClient.invalidateQueries({ queryKey: ['mapel-detail', variables.id] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -69,6 +78,9 @@ export function useDeleteMapel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mapels'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
     },
   });
 }

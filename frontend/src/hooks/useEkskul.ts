@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export interface EkskulRecord {
   id: string;
@@ -10,6 +11,7 @@ export interface EkskulRecord {
 export function useEkskulList(search?: string) {
   return useQuery({
     queryKey: ['ekskuls', search],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const res = await api.get<EkskulRecord[]>('/ekskuls', {
         params: { search },
@@ -22,6 +24,7 @@ export function useEkskulList(search?: string) {
 export function useEkskul(id: string | undefined) {
   return useQuery({
     queryKey: ['ekskul-detail', id],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<EkskulRecord>(`/ekskuls/${id}`);
@@ -41,6 +44,9 @@ export function useCreateEkskul() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ekskuls'] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -55,6 +61,9 @@ export function useUpdateEkskul() {
       queryClient.invalidateQueries({ queryKey: ['ekskuls'] });
       queryClient.invalidateQueries({ queryKey: ['ekskul-detail', variables.id] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -67,6 +76,9 @@ export function useDeleteEkskul() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ekskuls'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
     },
   });
 }

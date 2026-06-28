@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export interface StudentTpScore {
   siswa_id: string;
@@ -12,6 +13,7 @@ export interface StudentTpScore {
 export function useStudentTpScores(kelasId: string, mapelId: string, tpId: string) {
   return useQuery({
     queryKey: ['student-tp-scores', kelasId, mapelId, tpId],
+    staleTime: 30 * 1000,
     queryFn: async () => {
       if (!kelasId || !mapelId || !tpId) return [];
       const res = await api.get<StudentTpScore[]>('/nilai-tp/siswa', {
@@ -38,6 +40,9 @@ export function useSaveTpScores() {
       queryClient.invalidateQueries({ queryKey: ['student-tp-scores'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['rapors'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
     },
   });
 }

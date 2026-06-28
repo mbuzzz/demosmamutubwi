@@ -7,12 +7,27 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\MapelController;
 use App\Http\Controllers\EkskulController;
 use App\Http\Controllers\PenugasanController;
+use App\Http\Controllers\PenugasanStrukturalController;
 use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\KartuRfidController;
+use App\Http\Controllers\KonfigurasiAbsensiController;
+use App\Http\Controllers\KurikulumController;
+use App\Http\Controllers\TujuanPembelajaranController;
+use App\Http\Controllers\NilaiTpController;
+use App\Http\Controllers\NilaiController;
+use App\Http\Controllers\RaporController;
+use App\Http\Controllers\SistemKonfigurasiController;
+use App\Http\Controllers\SPMBController;
+
+// Public RFID Tap Routes
+Route::post('/absensi/tap', [AbsensiController::class, 'tap']);
+Route::post('/absensi/verify-pin', [KonfigurasiAbsensiController::class, 'verifyPin']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
-Route::put('/user/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
+Route::match(['PUT', 'POST'], '/user/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 Route::put('/user/password', [AuthController::class, 'updatePassword'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -24,9 +39,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', UserController::class);
         
         // Penugasan & Tugas Struktural
-        Route::get('/penugasan/struktural', [PenugasanController::class, 'getStruktural']);
-        Route::put('/penugasan/struktural/{id}', [PenugasanController::class, 'updateStruktural']);
+        Route::apiResource('penugasan-struktural', PenugasanStrukturalController::class)->except(['show']);
         Route::apiResource('penugasan', PenugasanController::class);
+    });
+
+    // Guru Dashboard / Panel
+    Route::middleware('role:superadmin,admin,guru')->group(function () {
+        Route::get('/guru/classes', [PenugasanController::class, 'guruClasses']);
     });
 
     // 2. KELAS & JADWAL MANAGEMENT (Superadmin, Admin, Kurikulum)
@@ -55,4 +74,85 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/ekskuls/import/xlsx', [EkskulController::class, 'importXlsx']);
         Route::apiResource('ekskuls', EkskulController::class);
     });
+
+    // 5. ABSENSI & RFID MANAGEMENT
+    Route::middleware('role:superadmin,admin,guru')->group(function () {
+        Route::get('/absensi', [AbsensiController::class, 'index']);
+        Route::get('/absensi/rekap', [AbsensiController::class, 'rekap']);
+        Route::get('/absensi/siswa/{id}', [AbsensiController::class, 'rekapSiswa']);
+        Route::post('/absensi', [AbsensiController::class, 'store']);
+        Route::put('/absensi/{id}', [AbsensiController::class, 'update']);
+    });
+
+    Route::middleware('role:superadmin,admin')->group(function () {
+        Route::apiResource('kartu-rfid', KartuRfidController::class)->except(['show']);
+        
+        Route::get('/konfigurasi-absensi', [KonfigurasiAbsensiController::class, 'show']);
+        Route::put('/konfigurasi-absensi', [KonfigurasiAbsensiController::class, 'update']);
+
+        // Sistem Konfigurasi (Academic Settings)
+        Route::get('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'show']);
+        Route::put('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'update']);
+        Route::get('/sistem-konfigurasi/options', [SistemKonfigurasiController::class, 'getAvailableOptions']);
+    });
+
+    // 6. KURIKULUM MANAGEMENT (Superadmin, Admin, Kurikulum)
+    Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
+        Route::apiResource('kurikulum', KurikulumController::class);
+    });
+
+    // 7. TUJUAN PEMBELAJARAN (Superadmin, Admin, Guru, Kurikulum)
+    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+        Route::get('/tujuan-pembelajaran', [TujuanPembelajaranController::class, 'index']);
+        Route::post('/tujuan-pembelajaran', [TujuanPembelajaranController::class, 'store']);
+        Route::get('/tujuan-pembelajaran/{id}', [TujuanPembelajaranController::class, 'show']);
+        Route::put('/tujuan-pembelajaran/{id}', [TujuanPembelajaranController::class, 'update']);
+        Route::delete('/tujuan-pembelajaran/{id}', [TujuanPembelajaranController::class, 'destroy']);
+    });
+
+    // 8. NILAI TP (Superadmin, Admin, Guru, Kurikulum)
+    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+        Route::get('/nilai-tp/siswa', [NilaiTpController::class, 'getSiswaNilai']);
+        Route::post('/nilai-tp', [NilaiTpController::class, 'store']);
+    });
+
+    // 9. NILAI & RAPOR (Superadmin, Admin, Guru, Kurikulum)
+    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+        Route::get('/nilais', [NilaiController::class, 'index']);
+        Route::post('/nilais', [NilaiController::class, 'store']);
+
+        Route::get('/rapors', [RaporController::class, 'index']);
+        Route::get('/rapors/{id}', [RaporController::class, 'show']);
+        Route::post('/rapors', [RaporController::class, 'store']);
+        Route::put('/rapors/{id}', [RaporController::class, 'update']);
+        Route::put('/rapors/{id}/publish', [RaporController::class, 'publish']);
+        Route::get('/rapors/{id}/pdf', [RaporController::class, 'exportPdf']);
+    });
+
+    // 10. SPMB (Superadmin)
+    Route::middleware('role:superadmin')->group(function () {
+        // Gelombang
+        Route::get('/spmb/gelombang', [SPMBController::class, 'indexGelombang']);
+        Route::post('/spmb/gelombang', [SPMBController::class, 'storeGelombang']);
+        Route::get('/spmb/gelombang/{id}', [SPMBController::class, 'showGelombang']);
+        Route::put('/spmb/gelombang/{id}', [SPMBController::class, 'updateGelombang']);
+        Route::delete('/spmb/gelombang/{id}', [SPMBController::class, 'destroyGelombang']);
+
+        // Pendaftar
+        Route::get('/spmb/pendaftar', [SPMBController::class, 'indexPendaftar']);
+        Route::get('/spmb/pendaftar/{id}', [SPMBController::class, 'showPendaftar']);
+        Route::put('/spmb/pendaftar/{id}', [SPMBController::class, 'updatePendaftar']);
+        Route::delete('/spmb/pendaftar/{id}', [SPMBController::class, 'destroyPendaftar']);
+
+        // Form Fields
+        Route::get('/spmb/form-fields', [SPMBController::class, 'indexFormField']);
+        Route::post('/spmb/form-fields', [SPMBController::class, 'storeFormField']);
+        Route::put('/spmb/form-fields/{id}', [SPMBController::class, 'updateFormField']);
+        Route::delete('/spmb/form-fields/{id}', [SPMBController::class, 'destroyFormField']);
+    });
 });
+
+// Public SPMB routes (no auth)
+Route::get('/spmb/gelombang-aktif', [SPMBController::class, 'publicGelombangAktif']);
+Route::get('/spmb/form-fields/{gelombangId}', [SPMBController::class, 'publicFormFields']);
+Route::post('/spmb/daftar', [SPMBController::class, 'storePendaftar']);

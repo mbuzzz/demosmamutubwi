@@ -57,8 +57,8 @@ class RaporController extends Controller
             'rapor' => $rapor,
             'nilais' => $nilais,
             'kurikulum' => $kurikulum,
-            'wali_kelas_name' => $kelas && $kelas->wali_kelas_id ? (User::find($kelas->wali_kelas_id)->name ?? '—') : '—',
-            'kepsek_name' => User::where('role', 'kepala_sekolah')->first()->name ?? 'Drs. H. Sugeng, M.Pd'
+            'wali_kelas_name' => $kelas && $kelas->wali_kelas_id ? optional(User::find($kelas->wali_kelas_id))->name ?? '—' : '—',
+            'kepsek_name' => optional(User::where('role', 'kepala_sekolah')->first())->name ?? 'Drs. H. Sugeng, M.Pd',
         ]);
     }
 

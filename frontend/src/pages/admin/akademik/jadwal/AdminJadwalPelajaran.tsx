@@ -67,7 +67,7 @@ export default function AdminJadwalPelajaran() {
   const saveBulkMutation = useSaveJadwalBulk();
 
   const [slots, setSlots] = useState<TimeSlot[]>([]);
-  const [days] = useState<DayItem[]>(defaultDays);
+  const [days, setDays] = useState<DayItem[]>(defaultDays);
   const [schedule, setSchedule] = useState<Record<string, ScheduleCell>>({});
 
   // Reconstruct UI state from DB data
@@ -126,6 +126,53 @@ export default function AdminJadwalPelajaran() {
   const [showCellModal, setShowCellModal] = useState(false);
   const [cellPos, setCellPos] = useState<{ dayIdx: number; slotIdx: number } | null>(null);
   const [cellForm, setCellForm] = useState({ mapel_id: '', guru_id: '' });
+
+  const [showAddDayModal, setShowAddDayModal] = useState(false);
+  const [newDayName, setNewDayName] = useState('');
+
+  // Days Logic
+  function handleAddDay() {
+    if (!newDayName.trim()) return;
+    const name = newDayName.trim();
+    const id = name.toLowerCase().replace(/\s+/g, '-');
+    
+    // check duplicate
+    if (days.find(d => d.id === id)) {
+      toast.error('Hari tersebut sudah ada!');
+      return;
+    }
+    
+    setDays(prev => [...prev, { id, name }]);
+    setShowAddDayModal(false);
+    setNewDayName('');
+  }
+
+  function handleRemoveDay(dayId: string) {
+    if (!window.confirm('Yakin ingin menghapus hari ini? Jadwal di hari ini akan terhapus dari grid (belum tersimpan ke server sampai Anda klik Simpan).')) return;
+    
+    const dayIdx = days.findIndex(d => d.id === dayId);
+    if (dayIdx !== -1) {
+      setDays(prev => prev.filter(d => d.id !== dayId));
+      
+      // Cleanup schedule assignments for this column
+      const newSched = { ...schedule };
+      slots.forEach((_, slotIdx) => {
+        delete newSched[`${slotIdx}-${dayIdx}`];
+      });
+      // Re-index remaining days in schedule map
+      const reindexedSched: Record<string, ScheduleCell> = {};
+      Object.keys(newSched).forEach(key => {
+        const [sIdx, dIdxStr] = key.split('-');
+        const oldDayIdx = parseInt(dIdxStr);
+        if (oldDayIdx > dayIdx) {
+          reindexedSched[`${sIdx}-${oldDayIdx - 1}`] = newSched[key];
+        } else {
+          reindexedSched[key] = newSched[key];
+        }
+      });
+      setSchedule(reindexedSched);
+    }
+  }
 
   // Slots Logic
   function openSlotModal(slot?: TimeSlot) {
@@ -292,9 +339,14 @@ export default function AdminJadwalPelajaran() {
         {/* Toolbar */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
           <h3 className="font-bold text-slate-800 dark:text-white text-sm">Editor Jadwal Interaktif</h3>
-          <button onClick={() => openSlotModal()} className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors shadow-sm">
-            <Plus className="w-3.5 h-3.5" /> Tambah Sesi Waktu
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => setShowAddDayModal(true)} className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors shadow-sm">
+              <Plus className="w-3.5 h-3.5" /> Tambah Hari
+            </button>
+            <button onClick={() => openSlotModal()} className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors shadow-sm">
+              <Plus className="w-3.5 h-3.5" /> Tambah Sesi Waktu
+            </button>
+          </div>
         </div>
 
         {/* Builder Grid */}
@@ -309,8 +361,14 @@ export default function AdminJadwalPelajaran() {
               {/* Header Days */}
               <div className="flex ml-32">
                 {days.map((day) => (
-                  <div key={day.id} className="flex-1 text-center font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest text-xs py-3 border-b-2 border-slate-200 dark:border-slate-700">
+                  <div key={day.id} className="flex-1 text-center font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest text-xs py-3 border-b-2 border-slate-200 dark:border-slate-700 relative group">
                     {day.name}
+                    <button 
+                      onClick={() => handleRemoveDay(day.id)} 
+                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity p-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -384,6 +442,34 @@ export default function AdminJadwalPelajaran() {
           )}
         </div>
       </div>
+
+      {/* Modal Waktu & Sesi */}
+      {showAddDayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowAddDayModal(false)}>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm p-6 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-slate-800 dark:text-white text-lg">Tambah Hari Baru</h3>
+              <button onClick={() => setShowAddDayModal(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Hari</label>
+              <input 
+                type="text" 
+                value={newDayName} 
+                onChange={e => setNewDayName(e.target.value)} 
+                placeholder="Contoh: Sabtu"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white" 
+                onKeyDown={e => e.key === 'Enter' && handleAddDay()}
+                autoFocus
+              />
+            </div>
+            <div className="mt-6 flex gap-2">
+              <button onClick={() => setShowAddDayModal(false)} className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3 rounded-xl text-sm transition-colors">Batal</button>
+              <button onClick={handleAddDay} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm transition-colors shadow-sm">Tambahkan</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Waktu & Sesi */}
       {showSlotModal && (

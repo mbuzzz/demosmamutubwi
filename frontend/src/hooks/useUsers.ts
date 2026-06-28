@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export interface UserRecord {
   id: string;
@@ -18,6 +19,7 @@ export interface UserRecord {
 export function useUsers(role?: string, search?: string) {
   return useQuery({
     queryKey: ['users', role, search],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const res = await api.get<UserRecord[]>('/users', {
         params: { role, search },
@@ -30,6 +32,7 @@ export function useUsers(role?: string, search?: string) {
 export function useUser(id: string | undefined) {
   return useQuery({
     queryKey: ['user', id],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<UserRecord>(`/users/${id}`);
@@ -49,6 +52,9 @@ export function useCreateUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -63,6 +69,9 @@ export function useUpdateUser() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['user', variables.id] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -75,6 +84,9 @@ export function useDeleteUser() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
     },
   });
 }

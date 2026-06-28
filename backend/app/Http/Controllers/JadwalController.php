@@ -46,14 +46,19 @@ class JadwalController extends Controller
         $kelasId = $request->kelas_id;
         $schedules = $request->schedules;
 
+        // Prevent accidental deletion if empty array is sent
+        if (empty($schedules)) {
+            return response()->json([
+                'message' => 'Tidak ada jadwal yang dikirim. Tidak ada perubahan yang dilakukan.',
+            ]);
+        }
+
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        // Start a database transaction
         \DB::beginTransaction();
 
         try {
-            // Delete old schedules for this class and active year
             Jadwal::where('kelas_id', $kelasId)
                 ->where('tahun_ajaran', $tahunAjaran)
                 ->delete();
@@ -86,9 +91,9 @@ class JadwalController extends Controller
             ]);
         } catch (\Exception $e) {
             \DB::rollBack();
+            \Log::error('Gagal menyimpan jadwal: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Terjadi kesalahan saat menyimpan jadwal.',
-                'error' => $e->getMessage()
             ], 500);
         }
     }

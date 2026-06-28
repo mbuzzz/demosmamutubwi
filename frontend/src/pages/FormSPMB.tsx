@@ -1,35 +1,59 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Phone, MapPin, School, BookOpen } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, MapPin, School, BookOpen, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePublicGelombangAktif, usePublicFormFields, useCreatePendaftar } from '../hooks/useSPMB';
 
 export default function FormSPMB() {
   const { gelombangId } = useParams<{ gelombangId: string }>();
   const navigate = useNavigate();
 
+  const { data: gelombangList } = usePublicGelombangAktif();
+  const { data: formFields } = usePublicFormFields(gelombangId || '');
+  const createPendaftar = useCreatePendaftar();
+
+  const gelombang = gelombangList?.find(g => g.id === gelombangId);
+
   const [formData, setFormData] = useState({
-    namaLengkap: '',
+    nama_lengkap: '',
     nisn: '',
     email: '',
-    noHp: '',
-    asalSekolah: '',
+    no_hp: '',
+    asal_sekolah: '',
     alamat: ''
   });
 
+  const [extraData, setExtraData] = useState<Record<string, unknown>>({});
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Send data to API
-    console.log('SPMB Form submitted', { gelombangId, ...formData });
-    toast.success('Pendaftaran Berhasil! Anda akan diarahkan ke halaman login untuk mengunggah dokumen lanjutan.');
-    navigate('/login');
+    if (!gelombangId) return;
+
+    try {
+      await createPendaftar.mutateAsync({
+        gelombang_id: gelombangId,
+        ...formData,
+        data_form: Object.keys(extraData).length > 0 ? extraData : undefined,
+      });
+      toast.success('Pendaftaran Berhasil! Silakan cek email untuk informasi selanjutnya.');
+      navigate('/');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Gagal mendaftar';
+      toast.error(msg);
+    }
   };
+
+  if (!gelombang) {
+    return (
+      <div className="bg-slate-50 dark:bg-slate-800 py-12 px-4 min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-50 dark:bg-slate-800 py-12 px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col justify-center">
@@ -43,22 +67,20 @@ export default function FormSPMB() {
         </Link>
 
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-card dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden relative">
-          {/* Form Header */}
           <div className="bg-gradien-biru-hijau p-8 sm:p-10 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               <div>
                 <h1 className="text-3xl font-extrabold mb-2">Formulir Pendaftaran Siswa</h1>
-                <p className="text-white/80">SMAS Muhammadiyah 1 Banyuwangi (T.A 2026/2027)</p>
+                <p className="text-white/80">SMAS Muhammadiyah 1 Banyuwangi</p>
               </div>
-              <div className="bg-white dark:bg-slate-900/20 backdrop-blur-sm px-4 py-2 rounded-xl text-center shrink-0 border border-white/30">
+              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl text-center shrink-0 border border-white/30">
                 <span className="block text-xs uppercase tracking-wider text-brand-yellow font-bold mb-1">Mendaftar pada</span>
-                <span className="font-semibold text-lg">{gelombangId === 'gel-1' ? 'Gelombang 1' : gelombangId === 'gel-2' ? 'Gelombang 2' : 'Gelombang 3'}</span>
+                <span className="font-semibold text-lg">{gelombang.nama}</span>
               </div>
             </div>
           </div>
 
-          {/* Form Body */}
           <form onSubmit={handleSubmit} className="p-8 sm:p-10 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -66,7 +88,7 @@ export default function FormSPMB() {
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">Nama Lengkap Sesuai Ijazah <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><User className="h-5 w-5 text-slate-400" /></div>
-                  <input type="text" name="namaLengkap" required value={formData.namaLengkap} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="Masukkan nama lengkap Anda..." />
+                  <input type="text" name="nama_lengkap" required value={formData.nama_lengkap} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="Masukkan nama lengkap Anda..." />
                 </div>
               </div>
 
@@ -74,15 +96,15 @@ export default function FormSPMB() {
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">NISN <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><BookOpen className="h-5 w-5 text-slate-400" /></div>
-                  <input type="number" name="nisn" required value={formData.nisn} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="10 Digit NISN..." />
+                  <input type="text" name="nisn" required value={formData.nisn} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="NISN..." />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">Asal Sekolah Dasar/Menengah <span className="text-red-500">*</span></label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">Asal Sekolah <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><School className="h-5 w-5 text-slate-400" /></div>
-                  <input type="text" name="asalSekolah" required value={formData.asalSekolah} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="Contoh: SMPN 1 Banyuwangi" />
+                  <input type="text" name="asal_sekolah" required value={formData.asal_sekolah} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="Contoh: SMPN 1 Banyuwangi" />
                 </div>
               </div>
 
@@ -95,10 +117,10 @@ export default function FormSPMB() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">No. WhatsApp / HP Aktif <span className="text-red-500">*</span></label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">No. WhatsApp / HP <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Phone className="h-5 w-5 text-slate-400" /></div>
-                  <input type="tel" name="noHp" required value={formData.noHp} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="0812xxxxxx" />
+                  <input type="tel" name="no_hp" required value={formData.no_hp} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all" placeholder="0812xxxxxx" />
                 </div>
               </div>
 
@@ -109,6 +131,54 @@ export default function FormSPMB() {
                   <textarea name="alamat" required value={formData.alamat} onChange={handleChange} rows={3} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all resize-none" placeholder="Masukkan alamat lengkap..." />
                 </div>
               </div>
+
+              {/* Dynamic form fields from form builder */}
+              {formFields?.filter(f => !['nama_lengkap', 'nisn', 'email', 'no_hp', 'asal_sekolah', 'alamat'].includes(f.label.toLowerCase().replace(/ /g, '_'))).map(field => (
+                <div key={field.id} className={field.field_type === 'textarea' ? 'md:col-span-2 space-y-1.5' : 'space-y-1.5'}>
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300 pl-1">
+                    {field.label} {field.is_required && <span className="text-red-500">*</span>}
+                  </label>
+                  {field.field_type === 'select' ? (
+                    <select
+                      required={field.is_required}
+                      value={(extraData[field.label] as string) || ''}
+                      onChange={e => setExtraData({ ...extraData, [field.label]: e.target.value })}
+                      className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all"
+                    >
+                      <option value="">-- Pilih --</option>
+                      {(field.options || []).map((opt: string) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  ) : field.field_type === 'textarea' ? (
+                    <textarea
+                      required={field.is_required}
+                      value={(extraData[field.label] as string) || ''}
+                      onChange={e => setExtraData({ ...extraData, [field.label]: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all resize-none"
+                    />
+                  ) : field.field_type === 'file' ? (
+                    <input
+                      type="file"
+                      required={field.is_required}
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) setExtraData({ ...extraData, [field.label]: file.name });
+                      }}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all"
+                    />
+                  ) : (
+                    <input
+                      type={field.field_type === 'date' ? 'date' : 'text'}
+                      required={field.is_required}
+                      value={(extraData[field.label] as string) || ''}
+                      onChange={e => setExtraData({ ...extraData, [field.label]: e.target.value })}
+                      className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all"
+                    />
+                  )}
+                </div>
+              ))}
             </div>
 
             <div className="bg-brand-yellow/10 border border-brand-yellow/30 p-4 rounded-[15px] mt-6 flex items-start gap-3">
@@ -119,16 +189,16 @@ export default function FormSPMB() {
             </div>
 
             <div className="pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 flex flex-col sm:flex-row justify-end gap-4">
-              <button type="button" onClick={() => navigate('/spmb')} className="px-6 py-3.5 rounded-[15px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:bg-slate-700 transition-colors">
+              <button type="button" onClick={() => navigate('/spmb')} className="px-6 py-3.5 rounded-[15px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 Batal
               </button>
-              <button type="submit" className="px-8 py-3.5 rounded-[15px] font-bold text-white bg-brand-teal hover:bg-brand-teal/90 shadow-card dark:shadow-none transition-all">
-                Simpan & Lanjutkan
+              <button type="submit" disabled={createPendaftar.isPending} className="px-8 py-3.5 rounded-[15px] font-bold text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-50 shadow-card dark:shadow-none transition-all flex items-center gap-2">
+                {createPendaftar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Kirim Pendaftaran
               </button>
             </div>
 
           </form>
-
         </div>
       </div>
     </div>

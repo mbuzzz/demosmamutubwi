@@ -11,13 +11,27 @@ class NilaiController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $query = Nilai::with(['siswa', 'guru']);
+
         if ($user->role === 'siswa') {
-            $nilais = Nilai::with('guru')->where('siswa_id', $user->id)->get();
+            $query->where('siswa_id', $user->id);
         } else {
-            $nilais = Nilai::with(['siswa', 'guru'])->get();
+            if ($request->has('siswa_id')) {
+                $query->where('siswa_id', $request->siswa_id);
+            }
+            if ($request->has('mapel_id')) {
+                $query->where('mapel_id', $request->mapel_id);
+            }
         }
 
-        return response()->json($nilais);
+        if ($request->has('tahun_ajaran')) {
+            $query->where('tahun_ajaran', $request->tahun_ajaran);
+        }
+        if ($request->has('semester')) {
+            $query->where('semester', $request->semester);
+        }
+
+        return response()->json($query->paginate($request->per_page ?? 50));
     }
 
     public function store(Request $request)

@@ -24,7 +24,7 @@ class NilaiTpController extends Controller
         ]);
 
         // Get students in class (using users.kelas mapping or riwayat_kelas if seeded)
-        $kelas = Kelas::findOrFail($request->class_id ?? $request->kelas_id);
+        $kelas = Kelas::findOrFail($request->kelas_id);
         
         // Query students belonging to this class
         $students = User::where('role', 'siswa')
@@ -33,12 +33,15 @@ class NilaiTpController extends Controller
             ->get();
 
         $tpId = $request->tujuan_pembelajaran_id;
-        
-        $data = $students->map(function ($student) use ($tpId, $request) {
-            $nilaiRecord = NilaiTujuanPembelajaran::where('siswa_id', $student->id)
-                ->where('tujuan_pembelajaran_id', $tpId)
-                ->first();
-                
+
+        $allScores = NilaiTujuanPembelajaran::whereIn('siswa_id', $students->pluck('id'))
+            ->where('tujuan_pembelajaran_id', $tpId)
+            ->get()
+            ->keyBy('siswa_id');
+
+        $data = $students->map(function ($student) use ($allScores) {
+            $nilaiRecord = $allScores->get($student->id);
+
             return [
                 'siswa_id' => $student->id,
                 'name' => $student->name,
@@ -67,35 +70,38 @@ class NilaiTpController extends Controller
         $tpId = $request->tujuan_pembelajaran_id;
         $guruId = $request->user()->id;
 
-        // Get current academic config
         $config = SistemKonfigurasi::first() ?: new SistemKonfigurasi([
             'tahun_ajaran_aktif' => '2025/2026',
             'semester_aktif' => 'ganjil',
         ]);
 
-        foreach ($request->scores as $scoreItem) {
-            $siswaId = $scoreItem['siswa_id'];
-            $scoreVal = $scoreItem['nilai'];
+        \DB::beginTransaction();
+        try {
+            foreach ($request->scores as $scoreItem) {
+                $siswaId = $scoreItem['siswa_id'];
+                $scoreVal = $scoreItem['nilai'];
 
-            // 1. Save TP score
-            NilaiTujuanPembelajaran::updateOrCreate(
-                [
-                    'siswa_id' => $siswaId,
-                    'mapel_id' => $mapelId,
-                    'tujuan_pembelajaran_id' => $tpId,
-                ],
-                [
-                    'nilai' => $scoreVal,
-                ]
-            );
+                NilaiTujuanPembelajaran::updateOrCreate(
+                    [
+                        'siswa_id' => $siswaId,
+                        'mapel_id' => $mapelId,
+                        'tujuan_pembelajaran_id' => $tpId,
+                    ],
+                    ['nilai' => $scoreVal]
+                );
 
-            // 2. Trigger auto-calculations for final report card (Nilai Akhir & Deskripsi)
-            $this->recalculateStudentFinalScore($siswaId, $mapelId, $guruId, $config);
+                $this->recalculateStudentFinalScore($siswaId, $mapelId, $guruId, $config);
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'message' => 'Nilai Tujuan Pembelajaran berhasil disimpan dan dikalkulasi otomatis.',
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json(['message' => 'Gagal menyimpan nilai: ' . $e->getMessage()], 500);
         }
-
-        return response()->json([
-            'message' => 'Nilai Tujuan Pembelajaran berhasil disimpan dan dikalkulasi otomatis.',
-        ]);
     }
 
     private function recalculateStudentFinalScore($siswaId, $mapelId, $guruId, $config)
@@ -125,7 +131,6 @@ class NilaiTpController extends Controller
             ]);
         }
 
-        // Get or create Nilai record
         $nilaiRecord = Nilai::firstOrCreate(
             [
                 'siswa_id' => $siswaId,
@@ -136,23 +141,24 @@ class NilaiTpController extends Controller
             [
                 'guru_id' => $guruId,
                 'nilai_tugas' => $averageTpScore,
-                'nilai_uts' => 80, // mock default UTS if not filled
-                'nilai_uas' => 85, // mock default UAS if not filled
             ]
         );
 
-        // Update Tugas score to be the average of TPs
         $nilaiRecord->nilai_tugas = $averageTpScore;
+        $nilaiUts = $nilaiRecord->nilai_uts ?? 0;
+        $nilaiUas = $nilaiRecord->nilai_uas ?? 0;
 
-        // Calculate Nilai Akhir dynamically based on weights
         $bobotTugas = $kurikulum->bobot_tugas ?? 30;
         $bobotUts = $kurikulum->bobot_uts ?? 30;
         $bobotUas = $kurikulum->bobot_uas ?? 40;
 
+        $totalBobot = $bobotTugas + $bobotUts + $bobotUas;
+        if ($totalBobot <= 0) $totalBobot = 100;
+
         $nilaiAkhir = round(
-            ($nilaiRecord->nilai_tugas * $bobotTugas +
-             $nilaiRecord->nilai_uts * $bobotUts +
-             $nilaiRecord->nilai_uas * $bobotUas) / 100
+            ($averageTpScore * $bobotTugas +
+             $nilaiUts * $bobotUts +
+             $nilaiUas * $bobotUas) / $totalBobot
         );
 
         $nilaiRecord->nilai_akhir = $nilaiAkhir;

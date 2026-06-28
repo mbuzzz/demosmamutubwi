@@ -1,15 +1,21 @@
 import { useState } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { CalendarDays, CheckCircle2, Clock, BarChart3 } from 'lucide-react';
-import { MOCK_ABSENSI_HARI_INI, MOCK_REKAP_ABSENSI, STATUS_ABSENSI_BADGE } from '../../../types/absensi';
+import { useAbsensiList, useAbsensiRekapSiswa } from '../../../hooks/useAbsensi';
+import { STATUS_ABSENSI_BADGE, type StatusAbsensi } from '../../../types/absensi';
 
 export default function SiswaAbsensi() {
   const [activeTab, setActiveTab] = useState<'harian' | 'rekap'>('harian');
 
-  const absenSaya = MOCK_ABSENSI_HARI_INI.filter(a => a.siswaId === 's1');
-  const rekapSaya = MOCK_REKAP_ABSENSI.find(r => r.siswaId === 's1');
-  const totalHari = rekapSaya ? rekapSaya.hadir + rekapSaya.izin + rekapSaya.sakit + rekapSaya.alpha + rekapSaya.terlambat : 0;
-  const persenKehadiran = totalHari > 0 ? Math.round((rekapSaya?.hadir || 0) / totalHari * 100) : 0;
+  // Hardcode student ID for demo as user context is not provided
+  const studentId = '1'; 
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data: absenSaya = [], isLoading: loadingList } = useAbsensiList({ start_date: '2025-01-01', end_date: today, user_id: studentId });
+  const { data: rekapSaya, isLoading: loadingRekap } = useAbsensiRekapSiswa(studentId);
+
+  const totalHari = rekapSaya ? rekapSaya.total_hadir + rekapSaya.total_izin + rekapSaya.total_sakit + rekapSaya.total_alpha + rekapSaya.total_terlambat : 0;
+  const persenKehadiran = totalHari > 0 ? Math.round((rekapSaya?.total_hadir || 0) / totalHari * 100) : 0;
 
   return (
     <AdminLayout title="Absensi Saya">
@@ -17,16 +23,16 @@ export default function SiswaAbsensi() {
         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-5 text-white shadow-sm">
           <p className="text-xs font-bold text-indigo-100 uppercase tracking-wider">Kehadiran</p>
           <h3 className="text-3xl font-black mt-1">{persenKehadiran}%</h3>
-          <p className="text-[10px] text-indigo-200 mt-1">Semester Ganjil 2025/2026</p>
+          <p className="text-[10px] text-indigo-200 mt-1">Tahun Ajaran Ini</p>
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Hadir</p>
-          <h3 className="text-3xl font-black text-emerald-600 mt-1">{rekapSaya?.hadir || 0}</h3>
+          <h3 className="text-3xl font-black text-emerald-600 mt-1">{rekapSaya?.total_hadir || 0}</h3>
           <p className="text-[10px] text-slate-400 mt-1">Hari</p>
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tanpa Keterangan</p>
-          <h3 className="text-3xl font-black text-red-500 mt-1">{rekapSaya?.alpha || 0}</h3>
+          <h3 className="text-3xl font-black text-red-500 mt-1">{rekapSaya?.total_alpha || 0}</h3>
           <p className="text-[10px] text-slate-400 mt-1">Hari</p>
         </div>
       </div>
@@ -49,7 +55,9 @@ export default function SiswaAbsensi() {
         <div className="p-6">
           {activeTab === 'harian' && (
             <div className="space-y-3">
-              {absenSaya.length === 0 ? (
+              {loadingList ? (
+                <div className="text-center text-sm text-slate-400 py-8">Memuat data absensi...</div>
+              ) : absenSaya.length === 0 ? (
                 <p className="text-center text-sm text-slate-400 py-8">Belum ada data absensi</p>
               ) : (
                 absenSaya.map(a => (
@@ -59,43 +67,50 @@ export default function SiswaAbsensi() {
                         <CalendarDays className="w-4 h-4 text-indigo-500" />
                         <span className="font-bold text-slate-800 dark:text-white text-sm">{a.tanggal}</span>
                       </div>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_ABSENSI_BADGE[a.statusMasuk].color}`}>
-                        {STATUS_ABSENSI_BADGE[a.statusMasuk].label}
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_ABSENSI_BADGE[a.tipe as StatusAbsensi]?.color || 'bg-slate-100'}`}>
+                        {STATUS_ABSENSI_BADGE[a.tipe as StatusAbsensi]?.label || a.tipe}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                      {a.jamMasuk && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Masuk: {a.jamMasuk}</span>}
-                      {a.jamPulang && <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Pulang: {a.jamPulang}</span>}
-                      <span>Metode: {a.metode === 'rfid' ? 'RFID' : 'Manual'}</span>
+                      {a.waktu_masuk && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Masuk: {a.waktu_masuk}</span>}
+                      {a.waktu_pulang && <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Pulang: {a.waktu_pulang}</span>}
                     </div>
-                    {a.catatan && <p className="text-xs text-slate-400 mt-2 italic">{a.catatan}</p>}
+                    {a.keterangan && <p className="text-xs text-slate-400 mt-2 italic">{a.keterangan}</p>}
                   </div>
                 ))
               )}
             </div>
           )}
 
-          {activeTab === 'rekap' && rekapSaya && (
+          {activeTab === 'rekap' && (
             <div className="max-w-md mx-auto">
-              <div className="bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl p-6 text-center mb-6">
-                <BarChart3 className="w-10 h-10 text-indigo-500 mx-auto mb-2" />
-                <h3 className="font-black text-4xl text-indigo-600 dark:text-indigo-400">{persenKehadiran}%</h3>
-                <p className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 mt-1">Persentase Kehadiran</p>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { label: 'Hadir', value: rekapSaya.hadir, color: 'text-emerald-600' },
-                  { label: 'Izin', value: rekapSaya.izin, color: 'text-blue-600' },
-                  { label: 'Sakit', value: rekapSaya.sakit, color: 'text-amber-600' },
-                  { label: 'Terlambat', value: rekapSaya.terlambat, color: 'text-orange-600' },
-                  { label: 'Alpha (Tanpa Ket.)', value: rekapSaya.alpha, color: 'text-red-600' },
-                ].map(item => (
-                  <div key={item.label} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">{item.label}</span>
-                    <span className={`text-lg font-black ${item.color}`}>{item.value}</span>
+              {loadingRekap ? (
+                <div className="text-center text-sm text-slate-400 py-8">Memuat rekap...</div>
+              ) : !rekapSaya ? (
+                <p className="text-center text-sm text-slate-400 py-8">Belum ada data rekap</p>
+              ) : (
+                <>
+                  <div className="bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl p-6 text-center mb-6">
+                    <BarChart3 className="w-10 h-10 text-indigo-500 mx-auto mb-2" />
+                    <h3 className="font-black text-4xl text-indigo-600 dark:text-indigo-400">{persenKehadiran}%</h3>
+                    <p className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 mt-1">Persentase Kehadiran</p>
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Hadir', value: rekapSaya.total_hadir, color: 'text-emerald-600' },
+                      { label: 'Izin', value: rekapSaya.total_izin, color: 'text-blue-600' },
+                      { label: 'Sakit', value: rekapSaya.total_sakit, color: 'text-amber-600' },
+                      { label: 'Terlambat', value: rekapSaya.total_terlambat, color: 'text-orange-600' },
+                      { label: 'Alpha (Tanpa Ket.)', value: rekapSaya.total_alpha, color: 'text-red-600' },
+                    ].map(item => (
+                      <div key={item.label} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                        <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">{item.label}</span>
+                        <span className={`text-lg font-black ${item.color}`}>{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

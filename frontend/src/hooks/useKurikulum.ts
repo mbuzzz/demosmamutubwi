@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export interface KurikulumRecord {
   id: string;
@@ -20,6 +21,7 @@ export interface KurikulumRecord {
 export function useKurikulumList() {
   return useQuery({
     queryKey: ['kurikulum'],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const res = await api.get<KurikulumRecord[]>('/kurikulum');
       return res.data;
@@ -30,6 +32,7 @@ export function useKurikulumList() {
 export function useKurikulum(id: string | undefined) {
   return useQuery({
     queryKey: ['kurikulum-detail', id],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<{ kurikulum: KurikulumRecord; kelas_ids: string[] }>(`/kurikulum/${id}`);
@@ -50,6 +53,9 @@ export function useCreateKurikulum() {
       queryClient.invalidateQueries({ queryKey: ['kurikulum'] });
       queryClient.invalidateQueries({ queryKey: ['kelas'] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -65,6 +71,9 @@ export function useUpdateKurikulum() {
       queryClient.invalidateQueries({ queryKey: ['kurikulum-detail', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['kelas'] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
   });
 }
 
@@ -77,6 +86,9 @@ export function useDeleteKurikulum() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kurikulum'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
     },
   });
 }

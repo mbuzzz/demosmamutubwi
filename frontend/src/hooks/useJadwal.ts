@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export interface JadwalRecord {
   id?: string;
@@ -19,6 +20,7 @@ export interface JadwalRecord {
 export function useJadwal(kelasId: string | undefined) {
   return useQuery({
     queryKey: ['jadwal', kelasId],
+    staleTime: 30 * 1000,
     queryFn: async () => {
       if (!kelasId) return [];
       const res = await api.get<JadwalRecord[]>('/jadwal', {
@@ -39,6 +41,9 @@ export function useSaveJadwalBulk() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['jadwal', variables.kelas_id] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
     },
   });
 }

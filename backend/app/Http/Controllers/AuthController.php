@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -47,7 +49,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'username' => [
                 'required',
@@ -63,13 +65,32 @@ class AuthController extends Controller
                 \Illuminate\Validation\Rule::unique('users')->ignore($user->id),
             ],
             'phone' => 'nullable|string',
-        ]);
+        ];
+
+        $validated = $request->validate($rules);
+
+        // Handle foto upload (POST with FormData)
+        if ($request->hasFile('foto')) {
+            if ($user->foto && Storage::disk('public')->exists($user->foto)) {
+                Storage::disk('public')->delete($user->foto);
+            }
+            $path = $request->file('foto')->store('fotos', 'public');
+            $validated['foto'] = $path;
+        }
+
+        // Handle foto removal (JSON with foto: '__delete__')
+        if ($request->input('foto') === '__delete__') {
+            if ($user->foto && Storage::disk('public')->exists($user->foto)) {
+                Storage::disk('public')->delete($user->foto);
+            }
+            $validated['foto'] = null;
+        }
 
         $user->update($validated);
 
         return response()->json([
             'message' => 'Profil berhasil diperbarui',
-            'user' => $user,
+            'user' => $user->fresh(),
         ]);
     }
 

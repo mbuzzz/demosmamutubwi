@@ -1,44 +1,18 @@
 import { useState } from 'react';
-import { ArrowRight, FileText, CheckCircle, ClipboardList, Info, Calendar, CreditCard, Users } from 'lucide-react';
+import { ArrowRight, FileText, CheckCircle, ClipboardList, Info, Calendar, CreditCard, Users, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePublicGelombangAktif } from '../hooks/useSPMB';
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
 
 export default function SPMB() {
   const [activeTab, setActiveTab] = useState('informasi');
   const navigate = useNavigate();
-
-  // Mock Data Gelombang
-  const gelombangData = [
-    {
-      id: 'gel-1',
-      title: 'Gelombang 1 (Inden/Prestasi)',
-      period: '01 Januari 2026 - 31 Maret 2026',
-      quota: 150,
-      filled: 145,
-      status: 'Hampir Penuh',
-      isOpen: true,
-      priceInfo: 'Diskon formulir 50% & Potongan Uang Gedung 20%'
-    },
-    {
-      id: 'gel-2',
-      title: 'Gelombang 2 (Reguler)',
-      period: '01 April 2026 - 30 Juni 2026',
-      quota: 200,
-      filled: 40,
-      status: 'Dibuka',
-      isOpen: true,
-      priceInfo: 'Harga Normal'
-    },
-    {
-      id: 'gel-3',
-      title: 'Gelombang 3 (Pemenuhan Kuota)',
-      period: '01 Juli 2026 - 15 Juli 2026',
-      quota: 50,
-      filled: 0,
-      status: 'Ditutup Sementara',
-      isOpen: false,
-      priceInfo: 'Jika Kuota Masih Tersedia'
-    }
-  ];
+  const { data: gelombangData, isLoading } = usePublicGelombangAktif();
 
   return (
     <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 sm:px-6 lg:px-8 min-h-screen">
@@ -162,55 +136,75 @@ export default function SPMB() {
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Jadwal & Ketersediaan Gelombang</h2>
               <p className="text-slate-500 dark:text-slate-400 mb-8">Pilih gelombang yang sedang berstatus dibuka untuk melanjutkan proses pendaftaran.</p>
               
+              {isLoading ? (
+                <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-indigo-500" /></div>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {gelombangData.map((gel) => (
-                  <div key={gel.id} className={`rounded-[15px] p-6 border ${gel.isOpen ? 'border-brand-teal/30 dark:border-emerald-500/40 bg-white dark:bg-slate-900 shadow-card dark:shadow-none hover:shadow-card dark:shadow-none-hover transition-shadow' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}`}>
+                {gelombangData?.length === 0 && (
+                  <div className="col-span-full text-center py-12 text-slate-400">Belum ada gelombang pendaftaran yang dibuka</div>
+                )}
+                {gelombangData?.map((gel) => {
+                  const filled = gel.pendaftars_count || 0;
+                  const quota = gel.kuota || 999;
+                  const fillRatio = quota > 0 ? filled / quota : 0;
+                  const now = new Date().toISOString().split('T')[0];
+                  const isOpen = gel.is_active && gel.tanggal_mulai <= now && gel.tanggal_selesai >= now;
+                  const isAlmostFull = fillRatio > 0.9;
+                  let statusText = 'Dibuka';
+                  if (isAlmostFull) statusText = 'Hampir Penuh';
+                  else if (!gel.is_active) statusText = 'Ditutup';
+                  else if (gel.tanggal_mulai > now) statusText = 'Akan Datang';
+                  else if (gel.tanggal_selesai < now) statusText = 'Ditutup';
+
+                  return (
+                  <div key={gel.id} className={`rounded-[15px] p-6 border ${isOpen ? 'border-brand-teal/30 dark:border-emerald-500/40 bg-white dark:bg-slate-900 shadow-card dark:shadow-none hover:shadow-card transition-shadow' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}`}>
                     <div className="flex justify-between items-start mb-4">
                       <span className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${
-                        gel.status === 'Hampir Penuh' ? 'bg-orange-100 text-orange-700' :
-                        gel.status === 'Dibuka' ? 'bg-brand-green/10 text-brand-green dark:text-emerald-400' :
+                        isAlmostFull ? 'bg-orange-100 text-orange-700' :
+                        isOpen ? 'bg-brand-green/10 text-brand-green dark:text-emerald-400' :
                         'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                       }`}>
-                        {gel.status}
+                        {statusText}
                       </span>
                     </div>
-                    <h3 className={`text-xl font-bold mb-1 ${!gel.isOpen && 'text-slate-500 dark:text-slate-400'}`}>{gel.title}</h3>
+                    <h3 className={`text-xl font-bold mb-1 ${!isOpen && 'text-slate-500 dark:text-slate-400'}`}>{gel.nama}</h3>
                     <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-4">
-                      <Calendar className="w-4 h-4" /> {gel.period}
+                      <Calendar className="w-4 h-4" /> {formatDate(gel.tanggal_mulai)} - {formatDate(gel.tanggal_selesai)}
                     </div>
                     
+                    {gel.kuota && (
                     <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-800 mb-4">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">Terisi: {gel.filled}</span>
-                        <span className="text-slate-900 dark:text-white font-bold">Total Kuota: {gel.quota}</span>
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">Terisi: {filled}</span>
+                        <span className="text-slate-900 dark:text-white font-bold">Total Kuota: {gel.kuota}</span>
                       </div>
                       <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${gel.filled / gel.quota > 0.9 ? 'bg-orange-500' : 'bg-brand-teal'}`} 
-                          style={{ width: `${(gel.filled / gel.quota) * 100}%` }}
-                        ></div>
+                        <div className={`h-2 rounded-full ${isAlmostFull ? 'bg-orange-500' : 'bg-brand-teal'}`} style={{ width: `${Math.min(fillRatio * 100, 100)}%` }}></div>
                       </div>
                     </div>
+                    )}
 
                     <div className="text-sm font-semibold text-brand-blueDark dark:text-brand-yellow mb-6 flex items-start gap-2 h-10">
                       <Info className="w-4 h-4 shrink-0 mt-0.5 text-brand-yellow" />
-                      <span className="leading-snug">{gel.priceInfo}</span>
+                      <span className="leading-snug">Biaya pendaftaran: Rp {gel.biaya_pendaftaran.toLocaleString('id-ID')}</span>
                     </div>
 
                     <button 
                       onClick={() => navigate(`/spmb/form/${gel.id}`)}
-                      disabled={!gel.isOpen}
+                      disabled={!isOpen}
                       className={`w-full py-3 rounded-[15px] font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
-                        gel.isOpen 
+                        isOpen 
                           ? 'bg-brand-teal hover:bg-brand-teal/90 text-white shadow-sm' 
                           : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
                       }`}
                     >
-                      {gel.isOpen ? 'Daftar Gelombang Ini' : 'Pendaftaran Ditutup'}
+                      {isOpen ? 'Daftar Gelombang Ini' : 'Pendaftaran Ditutup'}
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
+              )}
             </div>
           )}
 

@@ -154,6 +154,7 @@ export default function App() {
         <Route path="/panel/kehadiran" element={<ProtectedRoute requiredRole="superadmin"><AdminKehadiranSiswa /></ProtectedRoute>} />
         <Route path="/panel/kurikulum" element={<ProtectedRoute requiredRole="superadmin"><AdminKurikulumList /></ProtectedRoute>} />
         <Route path="/panel/kurikulum/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminKurikulumForm /></ProtectedRoute>} />
+        <Route path="/panel/kurikulum/edit/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminKurikulumForm /></ProtectedRoute>} />
         <Route path="/panel/kelas" element={<ProtectedRoute requiredRole="superadmin"><AdminKelasList /></ProtectedRoute>} />
         <Route path="/panel/mapel" element={<ProtectedRoute requiredRole="superadmin"><AdminMapelList /></ProtectedRoute>} />
         <Route path="/panel/nilai" element={<ProtectedRoute requiredRole="superadmin"><AdminNilaiEntry /></ProtectedRoute>} />

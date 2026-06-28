@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { api, getCsrfCookie } from '../../lib/api';
 
-interface AuthUser {
+export interface AuthUser {
   id: number;
   name: string;
   username: string;

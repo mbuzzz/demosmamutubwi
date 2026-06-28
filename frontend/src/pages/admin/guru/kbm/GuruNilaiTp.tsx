@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Save, AlertCircle, FileText, User } from 'lucide-react';
 import { useMapelList } from '../../../../hooks/useMapel';
-import { useKelasList } from '../../../../hooks/useKelas';
+import { useGuruClasses } from '../../../../hooks/usePenugasan';
 import { useTujuanPembelajaranList } from '../../../../hooks/useTujuanPembelajaran';
 import { useStudentTpScores, useSaveTpScores } from '../../../../hooks/useNilaiTp';
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ export default function GuruNilaiTp() {
   const [selectedTpId, setSelectedTpId] = useState('');
 
   // Queries & Mutations
-  const { data: kelasList = [] } = useKelasList();
+  const { data: kelasList = [] } = useGuruClasses();
   const { data: mapelList = [] } = useMapelList();
   
   // Find selected mapel to get its tingkat (X, XI, XII)

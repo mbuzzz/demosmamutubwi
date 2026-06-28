@@ -1,32 +1,58 @@
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { FileText, Save, Plus, Keyboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useGuruClasses } from '../../../../hooks/usePenugasan';
 
 export default function GuruBukuNilai() {
+  const { data: guruClasses = [] } = useGuruClasses();
+  const [selectedKelasId, setSelectedKelasId] = useState('');
+
+  useEffect(() => {
+    if (!selectedKelasId && guruClasses.length > 0) {
+      setSelectedKelasId(String(guruClasses[0].id));
+    }
+  }, [guruClasses, selectedKelasId]);
+
+  const targetKelasObj = guruClasses.find(c => String(c.id) === selectedKelasId);
+  const targetKelasNama = targetKelasObj ? targetKelasObj.nama : '';
+
   return (
     <AdminLayout title="Buku Nilai Harian (Spreadsheet)">
       
       {/* Card Filter Guru */}
       <div className="flex flex-wrap gap-4 mb-8">
-        <button className="flex-1 min-w-[200px] bg-indigo-600 border-2 border-indigo-700 rounded-2xl p-5 text-white shadow-lg shadow-indigo-600/20 text-left transition-transform active:scale-95">
-          <h3 className="text-xl font-black">Matematika X-1</h3>
-          <p className="text-sm font-medium text-indigo-200 mt-1">32 Siswa</p>
-        </button>
-        <button className="flex-1 min-w-[200px] bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 dark:border-slate-800 rounded-2xl p-5 hover:border-indigo-400 dark:hover:border-indigo-500 text-left transition-all group">
-          <h3 className="text-xl font-black text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Matematika X-2</h3>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">30 Siswa</p>
-        </button>
+        {guruClasses.map(k => (
+          <button 
+            key={k.id}
+            onClick={() => setSelectedKelasId(String(k.id))}
+            className={`flex-1 min-w-[200px] border-2 rounded-2xl p-5 text-left transition-all ${
+              selectedKelasId === String(k.id) 
+                ? 'bg-indigo-600 border-indigo-700 text-white shadow-lg shadow-indigo-600/20 active:scale-95'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 group'
+            }`}
+          >
+            <h3 className={`text-xl font-black ${selectedKelasId === String(k.id) ? '' : 'text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors'}`}>
+              {k.nama}
+            </h3>
+            <p className={`text-sm font-medium mt-1 ${selectedKelasId === String(k.id) ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>
+              Buku Nilai Kelas
+            </p>
+          </button>
+        ))}
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
         
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/30">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
           <div>
-            <h3 className="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2"><FileText className="w-5 h-5 text-indigo-500"/> Lembar Penilaian Kelas X-1</h3>
+            <h3 className="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2">
+              <FileText className="w-5 h-5 text-indigo-500"/> Lembar Penilaian {targetKelasNama || 'Kelas'}
+            </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><Keyboard className="w-3.5 h-3.5"/> Gunakan tombol <kbd className="px-1.5 bg-slate-200 dark:bg-slate-700 dark:bg-slate-700 rounded text-[10px] mx-1">Tab</kbd> atau <kbd className="px-1.5 bg-slate-200 dark:bg-slate-700 dark:bg-slate-700 rounded text-[10px] mx-1">Enter</kbd> untuk pindah kolom cepat.</p>
           </div>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
+            <button className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
               <Plus className="w-4 h-4" /> Tambah Kolom Tugas
             </button>
             <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
@@ -56,7 +82,7 @@ export default function GuruBukuNilai() {
                 { id: 2, nama: 'Budi Raharjo', t1: '78', t2: '80' },
                 { id: 3, nama: 'Citra Kirana', t1: '95', t2: '' },
               ].map((siswa) => (
-                <tr key={siswa.id} className="hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800 dark:hover:bg-slate-800/30 transition-colors">
+                <tr key={siswa.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="p-2 border border-slate-200 dark:border-slate-700 text-center text-slate-400 font-bold">{siswa.id}</td>
                   <td className="p-2 border border-slate-200 dark:border-slate-700 font-bold text-slate-800 dark:text-white px-4">{siswa.nama}</td>
                   <td className="p-1 border border-slate-200 dark:border-slate-700">

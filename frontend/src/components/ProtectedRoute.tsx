@@ -1,10 +1,8 @@
 import { Navigate } from 'react-router-dom';
-import { useRoleSimulator, type Role } from './simulator/RoleContext';
 import { useAuth } from './auth/AuthContext';
 
-export default function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode, requiredRole?: Role | Role[] }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const { simulatedRole } = useRoleSimulator();
+export default function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode, requiredRole?: string | string[] }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -14,13 +12,13 @@ export default function ProtectedRoute({ children, requiredRole }: { children: R
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
   if (requiredRole) {
     const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    if (!allowed.includes(simulatedRole)) {
+    if (!allowed.includes(user.role)) {
       return <Navigate to="/" replace />;
     }
   }

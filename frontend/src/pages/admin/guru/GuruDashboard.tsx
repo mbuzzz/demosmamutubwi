@@ -1,19 +1,16 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { CalendarDays, Clock, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award } from 'lucide-react';
+import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useGuruClasses } from '../../../hooks/usePenugasan';
 
 export default function GuruDashboard() {
+  const { data: guruClasses = [] } = useGuruClasses();
+
   const stats = [
-    { label: 'Siswa Diampu', value: '64', sub: 'Kelas X-1 & X-2', icon: Users, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+    { label: 'Kelas Diampu', value: String(guruClasses.length), sub: 'Berdasarkan Jadwal', icon: Users, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
     { label: 'Jam Mengajar', value: '18 Jam', sub: '/minggu', icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
     { label: 'Tugas Belum Dinilai', value: '3', sub: '25 pengumpulan baru', icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { label: 'Kehadiran Kelas Wali', value: '98.2%', sub: 'Hari ini di X-1', icon: TrendingUp, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
-  ];
-
-  const upcomingClasses = [
-    { time: '07:00 - 08:30', kelas: 'Kelas X-1', mapel: 'Matematika Wajib', status: 'sekarang' },
-    { time: '08:30 - 10:00', kelas: 'Kelas X-2', mapel: 'Matematika Wajib', status: 'nanti' },
-    { time: '10:15 - 11:45', kelas: 'Kelas XI-IPA-1', mapel: 'Matematika Peminatan', status: 'nanti' },
   ];
 
   const pendingTasks = [
@@ -34,8 +31,8 @@ export default function GuruDashboard() {
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-3xl p-6 sm:p-8 text-white mb-8 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
         <div className="relative z-10">
-          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Pagi, Bapak Ahmad Hidayat!</h2>
-          <p className="text-indigo-100 font-medium mb-6">Guru Matematika • Wali Kelas X-1</p>
+          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Datang di Portal Guru!</h2>
+          <p className="text-indigo-100 font-medium mb-6">Kelola kelas, tugas, dan nilai Anda</p>
           
           <div className="bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -43,8 +40,8 @@ export default function GuruDashboard() {
                 <Bell className="w-6 h-6 animate-bounce" />
               </div>
               <div>
-                <h3 className="font-bold text-lg leading-none mb-1">Sesi Mengajar Saat Ini</h3>
-                <p className="text-sm text-indigo-100">Matematika Wajib di Kelas X-1 (07:00 - 08:30)</p>
+                <h3 className="font-bold text-lg leading-none mb-1">Total Kelas Anda</h3>
+                <p className="text-sm text-indigo-100">{guruClasses.length} Kelas Binaan</p>
               </div>
             </div>
             <Link to="/panel/guru/jurnal" className="w-full sm:w-auto bg-white text-indigo-600 hover:bg-indigo-50 px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 shrink-0">
@@ -78,28 +75,21 @@ export default function GuruDashboard() {
           {/* Jadwal Hari Ini */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
             <h3 className="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 text-indigo-500" /> Jadwal Mengajar Hari Ini
+              <CalendarDays className="w-5 h-5 text-indigo-500" /> Kelas Anda
             </h3>
             
             <div className="space-y-4">
-              {upcomingClasses.map((c, i) => (
-                <div key={i} className={`p-4 rounded-2xl border transition-colors ${
-                  c.status === 'sekarang' 
-                    ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-150 dark:border-indigo-500/20' 
-                    : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700/50'
-                }`}>
+              {guruClasses.length > 0 ? guruClasses.map((c, i) => (
+                <div key={i} className={`p-4 rounded-2xl border transition-colors bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700/50`}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-slate-800 dark:text-white text-sm">{c.kelas}</span>
-                    {c.status === 'sekarang' ? (
-                      <span className="text-[11px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-slate-800 px-2.5 sm:px-3 py-1 rounded-md shadow-sm border border-indigo-100 dark:border-indigo-500/20 animate-pulse whitespace-nowrap">Sedang Berlangsung</span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1"><Clock className="w-3 h-3" /> Nanti</span>
-                    )}
+                    <span className="font-bold text-slate-800 dark:text-white text-sm">{c.nama}</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1"><BookOpen className="w-3 h-3" /> Aktif</span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 font-bold mb-1">{c.mapel}</p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium font-mono">{c.time} WIB</p>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-bold mb-1">{c.tingkat}</p>
                 </div>
-              ))}
+              )) : (
+                <div className="p-4 text-center text-slate-500 text-sm">Tidak ada kelas yang ditugaskan kepada Anda saat ini.</div>
+              )}
             </div>
           </div>
 

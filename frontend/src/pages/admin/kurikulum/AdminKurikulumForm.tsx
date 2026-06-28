@@ -1,95 +1,282 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { 
-  Save, ArrowLeft, Calculator, Settings, Plus, Trash2, 
-  CheckCircle, Percent, BookOpen, Layers, GripVertical, 
-  Layout, Eye, AlignLeft, Image, LayoutTemplate, FileText, PenTool, X
+import {
+  Save, ArrowLeft, Calculator, Settings,
+  CheckCircle, GripVertical,
+  Layout, Image, AlignLeft, LayoutTemplate, FileText, PenTool, X, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useKurikulum, useCreateKurikulum, useUpdateKurikulum } from '../../../hooks/useKurikulum';
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+type RaporBlockType = 'kop_surat' | 'biodata_siswa' | 'tabel_nilai' | 'tabel_ekskul' | 'tabel_absensi' | 'teks_bebas' | 'signatures';
+
+interface RaporBlock {
+  id: string;
+  type: RaporBlockType;
+  visible: boolean;
+  properties?: Record<string, unknown>;
+}
+
+const BLOCK_LIBRARY: { type: RaporBlockType; label: string; icon: React.ReactNode }[] = [
+  { type: 'kop_surat', label: 'Kop Surat Sekolah', icon: <Image className="w-4 h-4" /> },
+  { type: 'biodata_siswa', label: 'Biodata Peserta Didik', icon: <AlignLeft className="w-4 h-4" /> },
+  { type: 'tabel_nilai', label: 'Tabel Nilai Utama', icon: <LayoutTemplate className="w-4 h-4" /> },
+  { type: 'tabel_ekskul', label: 'Tabel Ekskul', icon: <FileText className="w-4 h-4" /> },
+  { type: 'tabel_absensi', label: 'Tabel Absensi', icon: <FileText className="w-4 h-4" /> },
+  { type: 'teks_bebas', label: 'Teks Paragraf Bebas', icon: <PenTool className="w-4 h-4" /> },
+  { type: 'signatures', label: 'Area Tanda Tangan', icon: <PenTool className="w-4 h-4" /> },
+];
+
+function SortableBlock({ block, onToggle, onRemove, onEditProps }: {
+  block: RaporBlock;
+  onToggle: () => void;
+  onRemove: () => void;
+  onEditProps: (props: Record<string, unknown>) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const info = BLOCK_LIBRARY.find(b => b.type === block.type);
+
+  return (
+    <div ref={setNodeRef} style={style} className={`relative border-2 rounded-xl p-4 transition-colors ${block.visible ? 'border-slate-200 dark:border-slate-700 hover:border-indigo-400' : 'border-dashed border-slate-300 dark:border-slate-600 opacity-60'}`}>
+      <div className="flex items-center gap-3">
+        <button {...attributes} {...listeners} className="p-1.5 cursor-grab active:cursor-grabbing text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+          <GripVertical className="w-4 h-4" />
+        </button>
+        <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
+          {info?.icon}
+        </div>
+        <div className="flex-1">
+          <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{info?.label || block.type}</div>
+          <div className="text-xs text-slate-400">{block.type === 'kop_surat' ? `Mode: ${(block.properties?.mode as string) || 'text_only'}` : block.type === 'signatures' ? `Layout: ${(block.properties?.layout as string) || 'two_columns'}` : 'Klik untuk pengaturan'}</div>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={onToggle} className={`p-1.5 rounded-lg text-xs font-bold ${block.visible ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10' : 'text-slate-400 bg-slate-100 dark:bg-slate-800'}`}>
+            {block.visible ? 'Tampil' : 'Sembunyi'}
+          </button>
+          {block.type === 'kop_surat' && (
+            <select
+              value={(block.properties?.mode as string) || 'text_only'}
+              onChange={e => onEditProps({ ...block.properties, mode: e.target.value })}
+              className="text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 bg-white dark:bg-slate-900"
+              onClick={e => e.stopPropagation()}
+            >
+              <option value="text_only">Teks</option>
+              <option value="banner">Banner</option>
+              <option value="logo_text">Logo + Teks</option>
+            </select>
+          )}
+          {block.type === 'signatures' && (
+            <select
+              value={(block.properties?.layout as string) || 'two_columns'}
+              onChange={e => onEditProps({ ...block.properties, layout: e.target.value })}
+              className="text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 bg-white dark:bg-slate-900"
+              onClick={e => e.stopPropagation()}
+            >
+              <option value="two_columns">2 Kolom</option>
+              <option value="single_row">1 Baris</option>
+            </select>
+          )}
+          <button onClick={onRemove} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminKurikulumForm() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEdit = !!id;
+
+  const { data: existingData, isLoading: loadingExisting } = useKurikulum(isEdit ? id : undefined);
+  const createKurikulum = useCreateKurikulum();
+  const updateKurikulum = useUpdateKurikulum();
+
   const [activeTab, setActiveTab] = useState('umum');
-  
-  // Tab 1: Penilaian
-  const [komponen, setKomponen] = useState([
-    { id: 1, nama: 'Nilai Tugas / Harian', bobot: 30 },
-    { id: 2, nama: 'Ujian Tengah Semester (UTS)', bobot: 30 },
-    { id: 3, nama: 'Ujian Akhir Semester (UAS)', bobot: 40 },
-  ]);
 
-  const [gradeRules] = useState([
-    { id: 1, huruf: 'A', min: 90, max: 100, predikat: 'Sangat Baik' },
-    { id: 2, huruf: 'B', min: 80, max: 89, predikat: 'Baik' },
-    { id: 3, huruf: 'C', min: 70, max: 79, predikat: 'Cukup' },
-    { id: 4, huruf: 'D', min: 0, max: 69, predikat: 'Kurang' },
-  ]);
+  // Form fields
+  const [nama, setNama] = useState('');
+  const [tahunAjaran, setTahunAjaran] = useState('');
+  const [status, setStatus] = useState<'aktif' | 'draft'>('draft');
+  const [kkmDefault, setKkmDefault] = useState(75);
+  const [metodeRemedial, setMetodeRemedial] = useState('Maksimal setara KKM');
+  const [usesTp, setUsesTp] = useState(false);
 
-  // Tab 2: Mapel
-  const [kelompokMapel] = useState([
-    {
-      id: 1, 
-      nama: 'Kelompok A (Muatan Nasional)', 
-      mapels: [
-        { id: 101, kode: 'PAI', nama: 'Pendidikan Agama Islam', kkm: 75 },
-        { id: 102, kode: 'PPKN', nama: 'Pendidikan Pancasila', kkm: 75 },
-        { id: 103, kode: 'B-IND', nama: 'Bahasa Indonesia', kkm: 75 },
-      ]
-    },
-    {
-      id: 2, 
-      nama: 'Kelompok B (Muatan Kewilayahan)', 
-      mapels: [
-        { id: 201, kode: 'S-BDP', nama: 'Seni Budaya', kkm: 70 },
-        { id: 202, kode: 'PJOK', nama: 'Pendidikan Jasmani', kkm: 75 },
-      ]
+  // Bobot penilaian
+  const [bobotTugas, setBobotTugas] = useState(30);
+  const [bobotUts, setBobotUts] = useState(30);
+  const [bobotUas, setBobotUas] = useState(40);
+
+  // Deskripsi config
+  const [thresholdTinggi, setThresholdTinggi] = useState(80);
+  const [thresholdRendah, setThresholdRendah] = useState(75);
+  const [templateTinggi, setTemplateTinggi] = useState('Menunjukkan penguasaan yang sangat baik dalam {deskripsi_tp}');
+  const [templateRendah, setTemplateRendah] = useState('Perlu bimbingan lebih lanjut dalam {deskripsi_tp}');
+
+  // Rapor template blocks
+  const [raporBlocks, setRaporBlocks] = useState<RaporBlock[]>([]);
+
+  useEffect(() => {
+    if (existingData) {
+      const k = existingData.kurikulum;
+      setNama(k.nama);
+      setTahunAjaran(k.tahun_ajaran);
+      setStatus(k.status);
+      setKkmDefault(k.kkm_default);
+      setMetodeRemedial(k.metode_remedial);
+      setUsesTp(k.uses_tp);
+      setBobotTugas(k.bobot_tugas);
+      setBobotUts(k.bobot_uts);
+      setBobotUas(k.bobot_uas);
+      if (k.deskripsi_config) {
+        setThresholdTinggi(k.deskripsi_config.threshold_tinggi ?? 80);
+        setThresholdRendah(k.deskripsi_config.threshold_rendah ?? 75);
+        setTemplateTinggi(k.deskripsi_config.template_tinggi ?? '');
+        setTemplateRendah(k.deskripsi_config.template_rendah ?? '');
+      }
+      if (k.rapor_template) {
+        setRaporBlocks(k.rapor_template as RaporBlock[]);
+      }
     }
-  ]);
+  }, [existingData]);
 
-  // Tab 3: Rapor Builder
-  // const [raporBlocks] = useState([ ... ]); // Removing old unused state
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
-  const addKomponen = () => setKomponen([...komponen, { id: Date.now(), nama: 'Ujian Baru', bobot: 0 }]);
-  const removeKomponen = (id: number) => setKomponen(komponen.filter(k => k.id !== id));
-  const totalBobot = komponen.reduce((sum, item) => sum + Number(item.bobot), 0);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = raporBlocks.findIndex(b => b.id === active.id);
+    const newIndex = raporBlocks.findIndex(b => b.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      setRaporBlocks(arrayMove(raporBlocks, oldIndex, newIndex));
+    }
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const addBlock = (type: RaporBlockType) => {
+    const newBlock: RaporBlock = {
+      id: `${type}_${Date.now()}`,
+      type,
+      visible: true,
+      properties: type === 'kop_surat' ? { mode: 'text_only' } : type === 'signatures' ? { layout: 'two_columns' } : {},
+    };
+    setRaporBlocks([...raporBlocks, newBlock]);
+  };
+
+  const toggleBlock = (id: string) => {
+    setRaporBlocks(raporBlocks.map(b => b.id === id ? { ...b, visible: !b.visible } : b));
+  };
+
+  const removeBlock = (id: string) => {
+    setRaporBlocks(raporBlocks.filter(b => b.id !== id));
+  };
+
+  const updateBlockProps = (id: string, props: Record<string, unknown>) => {
+    setRaporBlocks(raporBlocks.map(b => b.id === id ? { ...b, properties: props } : b));
+  };
+
+  const totalBobot = bobotTugas + bobotUts + bobotUas;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (totalBobot !== 100) {
       toast.error('Total Bobot Penilaian harus persis 100%!');
       return;
     }
-    toast.success('Konfigurasi Kurikulum Lengkap berhasil disimpan!');
-    navigate('/panel/kurikulum');
+    if (!nama || !tahunAjaran) {
+      toast.error('Nama dan Tahun Ajaran harus diisi');
+      return;
+    }
+
+    const payload = {
+      nama,
+      tahun_ajaran: tahunAjaran,
+      status,
+      kkm_default: kkmDefault,
+      metode_remedial: metodeRemedial,
+      uses_tp: usesTp,
+      bobot_tugas: bobotTugas,
+      bobot_uts: bobotUts,
+      bobot_uas: bobotUas,
+      rumus_penilaian: null,
+      rapor_template: raporBlocks,
+      deskripsi_config: {
+        threshold_tinggi: thresholdTinggi,
+        threshold_rendah: thresholdRendah,
+        template_tinggi: templateTinggi,
+        template_rendah: templateRendah,
+        template_gabungan: '{kalimat_tinggi}, serta {kalimat_rendah}.',
+      },
+    };
+
+    try {
+      if (isEdit) {
+        await updateKurikulum.mutateAsync({ id: id!, data: payload });
+        toast.success('Kurikulum berhasil diperbarui');
+      } else {
+        await createKurikulum.mutateAsync(payload);
+        toast.success('Kurikulum berhasil dibuat');
+      }
+      navigate('/panel/kurikulum');
+    } catch {
+      toast.error('Gagal menyimpan kurikulum');
+    }
   };
 
+  if (isEdit && loadingExisting) {
+    return (
+      <AdminLayout title="Memuat Kurikulum...">
+        <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>
+      </AdminLayout>
+    );
+  }
+
   return (
-    <AdminLayout title="Detail & Builder Kurikulum">
+    <AdminLayout title={isEdit ? 'Edit Kurikulum' : 'Tambah Kurikulum'}>
       <div className="mb-6 flex items-center justify-between">
         <Link to="/panel/kurikulum" className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors font-medium text-sm">
           <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar
         </Link>
-        <button onClick={handleSubmit} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm">
-          <Save className="w-4 h-4" /> Simpan Kurikulum
+        <button onClick={handleSubmit} disabled={createKurikulum.isPending || updateKurikulum.isPending} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm">
+          {createKurikulum.isPending || updateKurikulum.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {isEdit ? 'Update Kurikulum' : 'Simpan Kurikulum'}
         </button>
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-800 mb-6">
         <div className="flex border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
-          <button onClick={() => setActiveTab('umum')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'umum' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('umum')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'umum' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             <Settings className="w-4 h-4" /> 1. Identitas & Penilaian
           </button>
-          <button onClick={() => setActiveTab('mapel')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'mapel' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50'}`}>
-            <BookOpen className="w-4 h-4" /> 2. Struktur Mata Pelajaran
+          <button onClick={() => setActiveTab('deskripsi')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'deskripsi' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            <FileText className="w-4 h-4" /> 2. Otomasi Deskripsi Rapor
           </button>
-          <button onClick={() => setActiveTab('rapor')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'rapor' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800dark:bg-slate-800/50'}`}>
+          <button onClick={() => setActiveTab('rapor')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'rapor' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             <Layout className="w-4 h-4" /> 3. Builder Template Rapor
           </button>
         </div>
 
-        <div className="p-6 bg-slate-50 dark:bg-slate-800/50/30">
-          
+        <div className="p-6 bg-slate-50 dark:bg-slate-800/30 min-h-[500px]">
+
           {/* TAB 1: IDENTITAS & PENILAIAN */}
           {activeTab === 'umum' && (
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
@@ -98,19 +285,34 @@ export default function AdminKurikulumForm() {
                   <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Identitas Kurikulum</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Nama Kurikulum</label>
-                      <input type="text" defaultValue="Kurikulum Merdeka 2024" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold" />
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Nama Kurikulum</label>
+                      <input type="text" value={nama} onChange={e => setNama(e.target.value)} placeholder="Contoh: Kurikulum Merdeka" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Fase / Kelas Target</label>
-                      <input type="text" defaultValue="Fase E (Kelas X)" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Tahun Ajaran</label>
+                      <input type="text" value={tahunAjaran} onChange={e => setTahunAjaran(e.target.value)} placeholder="Contoh: 2025/2026" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Status Aktif</label>
-                      <select className="w-full px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="aktif">Aktif Digunakan</option>
-                        <option value="draft">Draft / Nonaktif</option>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Status</label>
+                      <select value={status} onChange={e => setStatus(e.target.value as 'aktif' | 'draft')} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="draft">Draft</option>
+                        <option value="aktif">Aktif</option>
                       </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">KKM Default</label>
+                      <input type="number" value={kkmDefault} onChange={e => setKkmDefault(Number(e.target.value))} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Metode Remedial</label>
+                      <select value={metodeRemedial} onChange={e => setMetodeRemedial(e.target.value)} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option>Maksimal setara KKM</option>
+                        <option>Nilai murni ujian remedial</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" id="usesTp" checked={usesTp} onChange={e => setUsesTp(e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                      <label htmlFor="usesTp" className="text-sm font-medium text-slate-700 dark:text-slate-200">Gunakan Tujuan Pembelajaran (TP)</label>
                     </div>
                   </div>
                 </div>
@@ -118,33 +320,35 @@ export default function AdminKurikulumForm() {
 
               <div className="xl:col-span-2 space-y-6">
                 <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
-                  <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-                    <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2"><Calculator className="w-4 h-4 text-indigo-500" /> Rumus Komponen Ujian</h3>
-                    <button type="button" onClick={addKomponen} className="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-colors">
-                      <Plus className="w-3.5 h-3.5" /> Tambah Ujian
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-3 mb-6">
-                    {komponen.map((k, index) => (
-                      <div key={k.id} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0">{index + 1}</div>
-                        <div className="flex-1">
-                          <input type="text" value={k.nama} onChange={(e) => { const n = [...komponen]; n[index].nama = e.target.value; setKomponen(n); }} className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm focus:ring-2 focus:ring-indigo-500 font-medium" />
-                        </div>
-                        <div className="w-32 relative">
-                          <input type="number" value={k.bobot} onChange={(e) => { const n = [...komponen]; n[index].bobot = Number(e.target.value); setKomponen(n); }} className="w-full pl-3 pr-8 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm focus:ring-2 focus:ring-indigo-500 text-right font-bold text-indigo-600" />
-                          <Percent className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 dark:text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
-                        </div>
-                        <button type="button" onClick={() => removeKomponen(k.id)} className="p-2 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className={`p-4 rounded-xl flex items-center justify-between border ${totalBobot === 100 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                  <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2"><Calculator className="w-4 h-4 text-indigo-500" /> Bobot Komponen Penilaian</h3>
+                  <p className="text-xs text-slate-500 mb-4">Nilai Akhir = (Tugas × {bobotTugas}% + UTS × {bobotUts}% + UAS × {bobotUas}%) ÷ 100</p>
+                  <div className="space-y-3">
                     <div>
-                      <div className="font-bold text-sm text-slate-800 dark:text-white">Total Bobot Penilaian</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Harus tepat 100%</div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Nilai Tugas / Harian</label>
+                      <div className="flex items-center gap-3">
+                        <input type="range" min={0} max={100} value={bobotTugas} onChange={e => setBobotTugas(Number(e.target.value))} className="flex-1 accent-indigo-600" />
+                        <span className="text-sm font-bold text-indigo-600 w-12 text-right">{bobotTugas}%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">UTS</label>
+                      <div className="flex items-center gap-3">
+                        <input type="range" min={0} max={100} value={bobotUts} onChange={e => setBobotUts(Number(e.target.value))} className="flex-1 accent-indigo-600" />
+                        <span className="text-sm font-bold text-indigo-600 w-12 text-right">{bobotUts}%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">UAS</label>
+                      <div className="flex items-center gap-3">
+                        <input type="range" min={0} max={100} value={bobotUas} onChange={e => setBobotUas(Number(e.target.value))} className="flex-1 accent-indigo-600" />
+                        <span className="text-sm font-bold text-indigo-600 w-12 text-right">{bobotUas}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`mt-4 p-4 rounded-xl flex items-center justify-between border ${totalBobot === 100 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                    <div>
+                      <div className="font-bold text-sm text-slate-800">Total Bobot Penilaian</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Harus tepat 100%</div>
                     </div>
                     <div className={`text-2xl font-black flex items-center gap-2 ${totalBobot === 100 ? 'text-emerald-600' : 'text-red-600'}`}>
                       {totalBobot === 100 && <CheckCircle className="w-6 h-6" />}
@@ -152,111 +356,38 @@ export default function AdminKurikulumForm() {
                     </div>
                   </div>
                 </div>
-
-                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
-                  <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2"><CheckCircle className="w-4 h-4 text-indigo-500" /> Logika Kelulusan & Predikat (Otomatis Rapor)</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Nilai KKM Default</label>
-                      <input type="number" defaultValue="75" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Metode Remedial</label>
-                      <select className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm">
-                        <option>Maksimal setara KKM</option>
-                        <option>Nilai murni ujian remedial</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-xl">
-                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
-                      <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
-                        <tr>
-                          <th className="px-4 py-3 w-16 text-center">Huruf</th>
-                          <th className="px-4 py-3">Rentang Nilai</th>
-                          <th className="px-4 py-3">Capaian / Predikat</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {gradeRules.map(rule => (
-                          <tr key={rule.id}>
-                            <td className="px-4 py-3 text-center font-bold text-indigo-600 bg-indigo-50/30">{rule.huruf}</td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                <input type="number" value={rule.min} className="w-16 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded text-xs text-center" readOnly/>
-                                <span className="text-slate-400 dark:text-slate-500 dark:text-slate-400">-</span>
-                                <input type="number" value={rule.max} className="w-16 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded text-xs text-center" readOnly/>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3">
-                              <input type="text" value={rule.predikat} className="w-full px-2 py-1 border border-slate-200 dark:border-slate-700 rounded text-xs" readOnly/>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
               </div>
             </div>
           )}
 
-          {/* TAB 2: STRUKTUR MAPEL */}
-          {activeTab === 'mapel' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <div>
-                  <h3 className="font-bold text-slate-800 dark:text-white">Pemetaan Mata Pelajaran Kurikulum</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Atur pengelompokan Mapel beserta KKM spesifik masing-masing jika berbeda dengan KKM Default.</p>
-                </div>
-                <button className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                  <Layers className="w-4 h-4" /> Tambah Kelompok
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {kelompokMapel.map((kel) => (
-                  <div key={kel.id} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 p-4 flex justify-between items-center">
-                      <h4 className="font-bold text-indigo-800 flex items-center gap-2"><Layers className="w-4 h-4" /> {kel.nama}</h4>
-                      <div className="flex gap-1">
-                        <button className="p-1 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-indigo-600"><Plus className="w-4 h-4" /></button>
-                        <button className="p-1 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
-                        <thead className="text-xs uppercase font-semibold text-slate-400 dark:text-slate-500 dark:text-slate-400">
-                          <tr>
-                            <th className="pb-2">Kode</th>
-                            <th className="pb-2">Nama Mapel</th>
-                            <th className="pb-2 text-center">KKM Khusus</th>
-                            <th className="pb-2 text-right"></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {kel.mapels.map(m => (
-                            <tr key={m.id} className="group">
-                              <td className="py-2 font-mono text-xs text-slate-500 dark:text-slate-400">{m.kode}</td>
-                              <td className="py-2 font-medium text-slate-800 dark:text-white">{m.nama}</td>
-                              <td className="py-2 text-center">
-                                <input type="number" defaultValue={m.kkm} className="w-14 px-1 py-0.5 text-center bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
-                              </td>
-                              <td className="py-2 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="text-red-500 hover:text-red-700"><Trash2 className="w-3.5 h-3.5" /></button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      <button className="w-full mt-4 py-2 border border-dashed border-indigo-200 text-indigo-600 text-sm font-semibold rounded-lg hover:bg-indigo-50 transition-colors">
-                        + Masukkan Mapel Baru ke Kelompok Ini
-                      </button>
-                    </div>
+          {/* TAB 2: OTOMASI DESKRIPSI RAPOR */}
+          {activeTab === 'deskripsi' && (
+            <div className="max-w-3xl space-y-6">
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+                <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Template Deskripsi Otomatis</h3>
+                <p className="text-sm text-slate-500 mb-4">Sistem akan otomatis membuat deskripsi rapor berdasarkan TP dengan nilai tertinggi dan terendah. Gunakan variabel <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded text-xs">{'{deskripsi_tp}'}</code> untuk menyisipkan teks deskripsi TP.</p>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Threshold Nilai Tinggi</label>
+                    <input type="number" value={thresholdTinggi} onChange={e => setThresholdTinggi(Number(e.target.value))} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" />
                   </div>
-                ))}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Threshold Nilai Rendah</label>
+                    <input type="number" value={thresholdRendah} onChange={e => setThresholdRendah(Number(e.target.value))} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Template Nilai Tinggi</label>
+                    <textarea value={templateTinggi} onChange={e => setTemplateTinggi(e.target.value)} rows={2} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" />
+                    <div className="text-xs text-slate-400 mt-1">Contoh output: <span className="text-indigo-600">"Menunjukkan penguasaan yang sangat baik dalam {thresholdTinggi > 0 ? 'menganalisis fungsi kuadrat' : '...'}"</span></div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Template Nilai Rendah</label>
+                    <textarea value={templateRendah} onChange={e => setTemplateRendah(e.target.value)} rows={2} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" />
+                    <div className="text-xs text-slate-400 mt-1">Contoh output: <span className="text-indigo-600">"Perlu bimbingan lebih lanjut dalam memahami konsep dasar"</span></div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -264,98 +395,58 @@ export default function AdminKurikulumForm() {
           {/* TAB 3: RAPOR BUILDER (CANVA STYLE) */}
           {activeTab === 'rapor' && (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-              
+
               {/* Kiri: Widget Palette */}
               <div className="lg:col-span-1 space-y-4">
                 <div className="bg-white dark:bg-slate-900 rounded-[20px] shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden sticky top-24">
                   <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-4 text-white">
                     <h3 className="font-bold flex items-center gap-2"><Layout className="w-4 h-4" /> Elemen Rapor</h3>
-                    <p className="text-[10px] text-indigo-100 mt-1 opacity-90">Seret elemen ini ke kanvas kertas di sebelah kanan.</p>
+                    <p className="text-[10px] text-indigo-100 mt-1 opacity-90">Klik untuk menambah ke kanvas.</p>
                   </div>
-                  <div className="p-4 space-y-3 bg-slate-50 dark:bg-slate-800/50/50">
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><Image className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Kop Surat Sekolah
-                    </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><AlignLeft className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Biodata Peserta Didik
-                    </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><LayoutTemplate className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Tabel Nilai Utama (100)
-                    </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Teks Paragraf Bebas
-                    </div>
-                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 cursor-grab hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all active:cursor-grabbing">
-                      <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><PenTool className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div> Area Tanda Tangan
-                    </div>
+                  <div className="p-4 space-y-2 bg-slate-50 dark:bg-slate-800/50">
+                    {BLOCK_LIBRARY.map(item => (
+                      <button
+                        key={item.type}
+                        onClick={() => addBlock(item.type)}
+                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-3 hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md transition-all"
+                      >
+                        <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">{item.icon}</div>
+                        {item.label}
+                      </button>
+                    ))}
                   </div>
+                </div>
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-4 border border-slate-200 dark:border-slate-700">
+                  <h4 className="font-bold text-xs text-slate-500 uppercase mb-2">Info</h4>
+                  <p className="text-xs text-slate-400">Drag & drop untuk mengurutkan blok. Klik "Sembunyi" untuk menyembunyikan blok dari PDF. Simpan kurikulum untuk menyusun template rapor.</p>
                 </div>
               </div>
 
-              {/* Kanan: Canvas A4 */}
-              <div className="lg:col-span-3 flex justify-center bg-slate-200 dark:bg-slate-700/50 p-6 rounded-[20px] border border-slate-200 dark:border-slate-700 shadow-inner overflow-x-auto">
-                <div className="w-full max-w-[800px] bg-white dark:bg-slate-900 shadow-2xl relative aspect-[1/1.414] scale-95 origin-top text-slate-900 dark:text-white font-serif border border-slate-300 dark:border-slate-600 group">
-                  
-                  {/* Action Bar overlay */}
-                  <div className="absolute -top-12 left-0 w-full flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Ukuran: A4 (210 x 297 mm)</div>
-                    <div className="flex gap-2">
-                      <button className="bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-bold rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-1"><Trash2 className="w-3 h-3 text-red-500"/> Bersihkan Kanvas</button>
-                      <button className="bg-indigo-600 text-white px-3 py-1.5 text-xs font-bold rounded-lg shadow-sm flex items-center gap-1"><Eye className="w-3 h-3"/> Preview PDF Real</button>
-                    </div>
+              {/* Kanan: Canvas */}
+              <div className="lg:col-span-3 bg-slate-200 dark:bg-slate-700/50 p-6 rounded-[20px] border border-slate-200 dark:border-slate-700 shadow-inner overflow-x-auto">
+                {raporBlocks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                    <Layout className="w-12 h-12 mb-3 opacity-50" />
+                    <p className="font-bold text-sm">Belum ada blok</p>
+                    <p className="text-xs mt-1">Klik elemen di panel kiri untuk menambah blok rapor</p>
                   </div>
-
-                  {/* MOCKUP CONTENT ON CANVAS */}
-                  <div className="p-12 h-full flex flex-col gap-6">
-                    
-                    {/* Element 1: Kop Surat (Hoverable) */}
-                    <div className="relative border-2 border-transparent hover:border-indigo-400 p-2 cursor-move transition-colors rounded">
-                      <div className="absolute -left-3 -top-3 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 shadow-sm hidden hover:flex"><GripVertical className="w-3 h-3" /></div>
-                      <div className="absolute -right-3 -top-3 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 shadow-sm hidden hover:flex cursor-pointer"><X className="w-3 h-3" /></div>
-                      
-                      <div className="text-center border-b-[3px] border-slate-800 pb-4">
-                        <h1 className="text-xl font-bold uppercase tracking-widest mb-1">Laporan Hasil Belajar Siswa</h1>
-                        <h2 className="text-lg font-bold">SMAS MUHAMMADIYAH 1 BANYUWANGI</h2>
+                ) : (
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={raporBlocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+                      <div className="w-full max-w-[800px] mx-auto bg-white dark:bg-slate-900 shadow-2xl p-8 border border-slate-300 dark:border-slate-600 space-y-3">
+                        {raporBlocks.map(block => (
+                          <SortableBlock
+                            key={block.id}
+                            block={block}
+                            onToggle={() => toggleBlock(block.id)}
+                            onRemove={() => removeBlock(block.id)}
+                            onEditProps={(props) => updateBlockProps(block.id, props)}
+                          />
+                        ))}
                       </div>
-                    </div>
-
-                    {/* Element 2: Biodata */}
-                    <div className="relative border-2 border-transparent hover:border-indigo-400 p-2 cursor-move transition-colors rounded">
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-xs font-semibold">
-                        <div className="flex"><span className="w-32">Nama Sekolah</span> <span>: [NAMA_SEKOLAH]</span></div>
-                        <div className="flex"><span className="w-32">Kelas</span> <span>: [NAMA_KELAS]</span></div>
-                        <div className="flex"><span className="w-32">Nama Peserta Didik</span> <span>: [NAMA_SISWA]</span></div>
-                        <div className="flex"><span className="w-32">Semester</span> <span>: [SEMESTER_AKTIF]</span></div>
-                      </div>
-                    </div>
-
-                    {/* Element 3: Tabel Nilai Utama */}
-                    <div className="relative border-2 border-transparent hover:border-indigo-400 p-2 cursor-move transition-colors rounded">
-                      <h3 className="font-bold text-sm mb-2 uppercase">A. Nilai Akademik</h3>
-                      <table className="w-full border-collapse border border-slate-400 text-xs text-center">
-                        <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
-                          <td className="border border-slate-400 p-2 w-10">No</td>
-                          <td className="border border-slate-400 p-2 text-left">Mata Pelajaran</td>
-                          <td className="border border-slate-400 p-2">KKM</td>
-                          <td className="border border-slate-400 p-2">Nilai Akhir</td>
-                          <td className="border border-slate-400 p-2">Predikat</td>
-                        </tr>
-                        <tr>
-                          <td className="border border-slate-400 p-2 text-slate-400 dark:text-slate-500 dark:text-slate-400" colSpan={5}>[TABEL DI-GENERATE OTOMATIS OLEH SISTEM BERDASARKAN KELOMPOK MAPEL]</td>
-                        </tr>
-                        <tr>
-                          <td className="border border-slate-400 p-4" colSpan={5}></td>
-                        </tr>
-                      </table>
-                    </div>
-
-                    {/* Dropzone Hint */}
-                    <div className="flex-1 border-2 border-dashed border-indigo-200 bg-indigo-50/30 rounded-lg flex items-center justify-center m-2 min-h-[100px]">
-                      <span className="text-indigo-400 font-bold text-sm flex items-center gap-2"><Plus className="w-4 h-4"/> Tarik elemen ke area ini</span>
-                    </div>
-
-                  </div>
-                </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
               </div>
 
             </div>
