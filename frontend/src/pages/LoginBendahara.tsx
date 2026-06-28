@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft, Wallet, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Wallet, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
@@ -11,7 +11,18 @@ export default function LoginBendahara() {
   const { setSimulatedRole } = useRoleSimulator();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load remembered username
+  useEffect(() => {
+    const saved = localStorage.getItem('remember_bendahara_username');
+    if (saved) {
+      setUsername(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +32,13 @@ export default function LoginBendahara() {
       
       if (user.role !== 'bendahara') {
         throw new Error('Akun Anda bukan akun Bendahara. Silakan gunakan portal yang sesuai.');
+      }
+
+      // Save or remove remembered username
+      if (rememberMe) {
+        localStorage.setItem('remember_bendahara_username', username);
+      } else {
+        localStorage.removeItem('remember_bendahara_username');
       }
       
       setSimulatedRole(user.role as Role);
@@ -77,14 +95,33 @@ export default function LoginBendahara() {
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
-                type="password" 
+                type={showPassword ? 'text' : 'password'} 
                 required 
                 value={password} 
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••" 
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:text-white" 
+                className="w-full pl-9 pr-12 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:text-white" 
               />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pl-1 pr-1 text-xs">
+            <label className="flex items-center gap-2 text-slate-655 dark:text-slate-400 cursor-pointer font-bold select-none">
+              <input 
+                type="checkbox" 
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-slate-300 dark:border-slate-750" 
+              />
+              Ingat Saya
+            </label>
           </div>
 
           <button 

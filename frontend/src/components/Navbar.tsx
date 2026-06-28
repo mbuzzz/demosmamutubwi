@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown, Users, Download, Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { useAuth } from './auth/AuthContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,7 @@ export default function Navbar() {
   }, [location.pathname]);
 
   const { theme, setTheme } = useTheme();
+  const { isAuthenticated, user } = useAuth();
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
   const isDirektoriActive = location.pathname === '/guru' || location.pathname === '/unduhan';
@@ -133,12 +135,21 @@ export default function Navbar() {
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            <Link 
-              to="/login"
-              className="ml-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark dark:text-brand-blueDark font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
-            >
-              Masuk Portal
-            </Link>
+            {isAuthenticated ? (
+              <Link 
+                to={user?.role === 'siswa' ? '/panel/siswa' : user?.role === 'bendahara' ? '/panel/bendahara' : ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(user?.role || '') ? '/panel/guru' : '/panel'}
+                className="ml-2 bg-brand-teal hover:bg-brand-teal/90 text-white font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
+              >
+                Ke Dashboard
+              </Link>
+            ) : (
+              <Link 
+                to="/login"
+                className="ml-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark dark:text-brand-blueDark font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
+              >
+                Masuk Portal
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -231,12 +242,21 @@ export default function Navbar() {
             </button>
           </div>
 
-          <Link
-            to="/login"
-            className="block text-center mt-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark dark:text-brand-blueDark font-bold px-4 py-3.5 rounded-[15px] text-base shadow-sm"
-          >
-            Masuk Portal
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to={user?.role === 'siswa' ? '/panel/siswa' : user?.role === 'bendahara' ? '/panel/bendahara' : ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(user?.role || '') ? '/panel/guru' : '/panel'}
+              className="block text-center mt-2 bg-brand-teal hover:bg-brand-teal/90 text-white font-bold px-4 py-3.5 rounded-[15px] text-base shadow-sm"
+            >
+              Ke Dashboard
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="block text-center mt-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-blueDark dark:text-brand-blueDark font-bold px-4 py-3.5 rounded-[15px] text-base shadow-sm"
+            >
+              Masuk Portal
+            </Link>
+          )}
         </div>
       )}
     </nav>

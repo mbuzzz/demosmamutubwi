@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\MapelController;
 use App\Http\Controllers\EkskulController;
+use App\Http\Controllers\PenugasanController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -20,6 +21,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/export/xlsx', [UserController::class, 'exportXlsx']);
         Route::post('/users/import/xlsx', [UserController::class, 'importXlsx']);
         Route::apiResource('users', UserController::class);
+        
+        // Penugasan & Tugas Struktural
+        Route::get('/penugasan/struktural', [PenugasanController::class, 'getStruktural']);
+        Route::put('/penugasan/struktural/{id}', [PenugasanController::class, 'updateStruktural']);
+        Route::apiResource('penugasan', PenugasanController::class);
     });
 
     // 2. KELAS MANAGEMENT (Superadmin, Admin, Kurikulum)

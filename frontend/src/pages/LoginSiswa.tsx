@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft, GraduationCap, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, GraduationCap, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
@@ -11,7 +11,18 @@ export default function LoginSiswa() {
   const { setSimulatedRole } = useRoleSimulator();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load remembered username
+  useEffect(() => {
+    const saved = localStorage.getItem('remember_siswa_username');
+    if (saved) {
+      setUsername(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +32,14 @@ export default function LoginSiswa() {
       if (user.role !== 'siswa') {
         throw new Error('Akun Anda bukan akun Siswa. Silakan gunakan portal yang sesuai.');
       }
+
+      // Save or remove remembered username
+      if (rememberMe) {
+        localStorage.setItem('remember_siswa_username', username);
+      } else {
+        localStorage.removeItem('remember_siswa_username');
+      }
+
       setSimulatedRole(user.role as Role);
       navigate('/panel/siswa');
       toast.success(`Selamat datang di Portal Siswa, ${user.name}!`);
@@ -44,7 +63,7 @@ export default function LoginSiswa() {
             <GraduationCap className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-black text-slate-850 dark:text-white">Portal Siswa</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Masukkan email siswa dan password Anda</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Masukkan username siswa dan password Anda</p>
         </div>
 
         {error && (
@@ -64,7 +83,7 @@ export default function LoginSiswa() {
                 required 
                 value={username} 
                 onChange={e => setUsername(e.target.value)}
-                placeholder="agus" 
+                placeholder="Contoh: agus" 
                 className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white font-mono" 
               />
             </div>
@@ -75,14 +94,33 @@ export default function LoginSiswa() {
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
-                type="password" 
+                type={showPassword ? 'text' : 'password'} 
                 required 
                 value={password} 
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••" 
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white" 
+                className="w-full pl-9 pr-12 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white" 
               />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pl-1 pr-1 text-xs">
+            <label className="flex items-center gap-2 text-slate-650 dark:text-slate-400 cursor-pointer font-bold select-none">
+              <input 
+                type="checkbox" 
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 rounded border-slate-300 dark:border-slate-750" 
+              />
+              Ingat Saya
+            </label>
           </div>
 
           <button 

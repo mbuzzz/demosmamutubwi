@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft, Users, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Users, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
@@ -11,7 +11,18 @@ export default function LoginGuru() {
   const { setSimulatedRole } = useRoleSimulator();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load remembered username
+  useEffect(() => {
+    const saved = localStorage.getItem('remember_guru_username');
+    if (saved) {
+      setUsername(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +34,13 @@ export default function LoginGuru() {
       if (!allowedRoles.includes(user.role)) {
         throw new Error('Akun Anda bukan akun Pendidik / Staf. Silakan gunakan portal yang sesuai.');
       }
+
+      // Save or remove remembered username
+      if (rememberMe) {
+        localStorage.setItem('remember_guru_username', username);
+      } else {
+        localStorage.removeItem('remember_guru_username');
+      }
       
       setSimulatedRole(user.role as Role);
       navigate('/panel/guru');
@@ -33,7 +51,7 @@ export default function LoginGuru() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-955 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl opacity-50"></div>
       </div>
@@ -78,14 +96,33 @@ export default function LoginGuru() {
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
-                type="password" 
+                type={showPassword ? 'text' : 'password'} 
                 required 
                 value={password} 
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••" 
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                className="w-full pl-9 pr-12 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" 
               />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pl-1 pr-1 text-xs">
+            <label className="flex items-center gap-2 text-slate-650 dark:text-slate-400 cursor-pointer font-bold select-none">
+              <input 
+                type="checkbox" 
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-blue-650 focus:ring-blue-500 rounded border-slate-300 dark:border-slate-750" 
+              />
+              Ingat Saya
+            </label>
           </div>
 
           <button 
