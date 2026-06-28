@@ -4,6 +4,7 @@ import { api, getCsrfCookie } from '../../lib/api';
 interface AuthUser {
   id: number;
   name: string;
+  username: string;
   email: string;
   role: string;
   nip_nisn?: string | null;

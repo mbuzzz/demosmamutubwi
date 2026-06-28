@@ -10,6 +10,8 @@ use App\Http\Controllers\EkskulController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
+Route::put('/user/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
+Route::put('/user/password', [AuthController::class, 'updatePassword'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
     // 1. USER MANAGEMENT (Only Superadmin & Admin)
