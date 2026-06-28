@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('mapel_id')->constrained('mapels')->onDelete('cascade');
             $table->foreignId('kelas_id')->constrained('kelas')->onDelete('cascade');
             $table->integer('total_jam')->default(2);
+            $table->string('tahun_ajaran'); // Added for dynamic mapping
             $table->timestamps();
         });
     }

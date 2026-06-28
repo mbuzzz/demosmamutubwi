@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Penugasan;
 use App\Models\User;
+use App\Models\SistemKonfigurasi;
 use Illuminate\Http\Request;
 
 class PenugasanController extends Controller
@@ -11,7 +12,11 @@ class PenugasanController extends Controller
     // GET /api/penugasan (Teaching Assignments)
     public function index(Request $request)
     {
-        $query = Penugasan::with(['guru', 'mapel', 'kelas']);
+        $config = SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+
+        $query = Penugasan::with(['guru', 'mapel', 'kelas'])
+            ->where('tahun_ajaran', $tahunAjaran);
 
         if ($request->has('search') && $request->search) {
             $search = $request->search;
@@ -20,7 +25,7 @@ class PenugasanController extends Controller
             });
         }
 
-        return response()->json($query->get());
+        return response()->json($query->orderBy('id', 'desc')->get());
     }
 
     // POST /api/penugasan
@@ -30,21 +35,26 @@ class PenugasanController extends Controller
             'guru_id' => 'required|exists:users,id',
             'mapel_id' => 'required|exists:mapels,id',
             'kelas_id' => 'required|exists:kelas,id',
-            'total_jam' => 'required|integer|min:1',
+            'total_jam' => 'required|integer|min:1|max:40',
         ]);
 
-        // Check if duplicate assignment exists
+        $config = SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+
+        // Check if duplicate assignment exists in the same academic year
         $exists = Penugasan::where('guru_id', $validated['guru_id'])
             ->where('mapel_id', $validated['mapel_id'])
             ->where('kelas_id', $validated['kelas_id'])
+            ->where('tahun_ajaran', $tahunAjaran)
             ->exists();
 
         if ($exists) {
             return response()->json([
-                'message' => 'Penugasan mengajar ini sudah ada.'
+                'message' => 'Penugasan mengajar ini sudah ada pada tahun ajaran aktif.'
             ], 422);
         }
 
+        $validated['tahun_ajaran'] = $tahunAjaran;
         $penugasan = Penugasan::create($validated);
 
         return response()->json([
@@ -62,8 +72,25 @@ class PenugasanController extends Controller
             'guru_id' => 'required|exists:users,id',
             'mapel_id' => 'required|exists:mapels,id',
             'kelas_id' => 'required|exists:kelas,id',
-            'total_jam' => 'required|integer|min:1',
+            'total_jam' => 'required|integer|min:1|max:40',
         ]);
+
+        $config = SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+
+        // Check if duplicate assignment exists (excluding current)
+        $exists = Penugasan::where('guru_id', $validated['guru_id'])
+            ->where('mapel_id', $validated['mapel_id'])
+            ->where('kelas_id', $validated['kelas_id'])
+            ->where('tahun_ajaran', $tahunAjaran)
+            ->where('id', '!=', $penugasan->id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'Penugasan mengajar serupa sudah ada pada tahun ajaran aktif.'
+            ], 422);
+        }
 
         $penugasan->update($validated);
 
