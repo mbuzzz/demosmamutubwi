@@ -1,38 +1,38 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import { type SesiUjian, MOCK_SESI_UJIAN, generateToken } from '../../types/cbt';
+import { type SesiUjian, generateToken } from '../../types/cbt';
 
 interface ExamContextType {
   sessions: SesiUjian[];
   addSession: (session: SesiUjian) => void;
-  updateSession: (id: string, data: Partial<SesiUjian>) => void;
-  deleteSession: (id: string) => void;
-  regenToken: (id: string) => void;
-  submitExam: (id: string, score: number) => void;
+  updateSession: (id: number, data: Partial<SesiUjian>) => void;
+  deleteSession: (id: number) => void;
+  regenToken: (id: number) => void;
+  submitExam: (id: number, score: number) => void;
 }
 
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
 
 export function ExamSessionProvider({ children }: { children: ReactNode }) {
-  const [sessions, setSessions] = useState<SesiUjian[]>(MOCK_SESI_UJIAN);
+  const [sessions, setSessions] = useState<SesiUjian[]>([]);
 
   const addSession = (session: SesiUjian) => {
     setSessions(prev => [...prev, session]);
   };
 
-  const updateSession = (id: string, data: Partial<SesiUjian>) => {
+  const updateSession = (id: number, data: Partial<SesiUjian>) => {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
   };
 
-  const deleteSession = (id: string) => {
+  const deleteSession = (id: number) => {
     setSessions(prev => prev.filter(s => s.id !== id));
   };
 
-  const regenToken = (id: string) => {
+  const regenToken = (id: number) => {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, token: generateToken() } : s));
   };
 
-  const submitExam = (id: string, _score: number) => {
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, status: 'Selesai' as const } : s));
+  const submitExam = (id: number, _score: number) => {
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, status: 'completed' as const } : s));
   };
 
   return (

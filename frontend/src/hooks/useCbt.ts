@@ -1,0 +1,155 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../lib/api';
+import type { PaketSoal, SoalItem, SesiUjian, UjianSiswaSesi, UjianJawabanSiswa } from '../types/cbt';
+
+// --- Guru & Admin Hooks ---
+
+// 1. Get List Bank Soal
+export function useBankSoalList() {
+  return useQuery({
+    queryKey: ['bank-soal'],
+    queryFn: async () => {
+      const res = await api.get<{ data: PaketSoal[] }>('/cbt/bank-soal');
+      return res.data.data;
+    },
+  });
+}
+
+// 2. Get Detail Bank Soal
+export function useBankSoalDetail(id: number | null) {
+  return useQuery({
+    queryKey: ['bank-soal', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const res = await api.get<{ data: PaketSoal }>(`/cbt/bank-soal/${id}`);
+      return res.data.data;
+    },
+    enabled: !!id,
+  });
+}
+
+// 3. Create Bank Soal
+export function useCreateBankSoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<PaketSoal>) => {
+      const res = await api.post<{ data: PaketSoal }>('/cbt/bank-soal', data);
+      return res.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank-soal'] });
+    },
+  });
+}
+
+// 4. Update Bank Soal
+export function useUpdateBankSoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: Partial<PaketSoal> & { id: number }) => {
+      const res = await api.put<{ data: PaketSoal }>(`/cbt/bank-soal/${id}`, data);
+      return res.data.data;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['bank-soal'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-soal', id] });
+    },
+  });
+}
+
+// 5. Save Soal (Create/Update in Bank Soal)
+export function useSaveSoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<SoalItem>) => {
+      const res = await api.post<{ data: SoalItem }>(`/cbt/soal`, data);
+      return res.data.data;
+    },
+    onSuccess: (_, variables) => {
+      if (variables.bank_soal_id) {
+        queryClient.invalidateQueries({ queryKey: ['bank-soal', variables.bank_soal_id] });
+      }
+    },
+  });
+}
+
+// 6. Get Sesi Ujian List
+export function useSesiUjianList() {
+  return useQuery({
+    queryKey: ['sesi-ujian'],
+    queryFn: async () => {
+      const res = await api.get<{ data: SesiUjian[] }>('/cbt/jadwal-ujian');
+      return res.data.data;
+    },
+  });
+}
+
+// 7. Create Sesi Ujian
+export function useCreateSesiUjian() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<SesiUjian>) => {
+      const res = await api.post<{ data: SesiUjian }>('/cbt/jadwal-ujian', data);
+      return res.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sesi-ujian'] });
+    },
+  });
+}
+
+// --- Siswa Hooks ---
+
+// 1. Get Active Exams
+export function useUjianAktifList() {
+  return useQuery({
+    queryKey: ['ujian-aktif'],
+    queryFn: async () => {
+      // Assuming a specific endpoint for student active exams
+      const res = await api.get<{ data: SesiUjian[] }>('/cbt/siswa/ujian-aktif');
+      return res.data.data;
+    },
+  });
+}
+
+// 2. Start Exam (Send Token)
+export function useMulaiUjian() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { jadwal_ujian_id: number; token: string }) => {
+      const res = await api.post<{
+         ujian_siswa: UjianSiswaSesi;
+         soal: SoalItem[];
+         durasi_tersisa_menit: number;
+       }>('/cbt/siswa/mulai', data);
+      return res.data;
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['ujian-aktif'] });
+    }
+  });
+}
+
+// 3. Save Answer (Auto-save)
+export function useSimpanJawaban() {
+  return useMutation({
+    mutationFn: async (data: { ujian_siswa_id: number; soal_id: number; jawaban: string; ragu_ragu: boolean }) => {
+      const res = await api.post<{ data: UjianJawabanSiswa }>('/cbt/siswa/jawaban', data);
+      return res.data.data;
+    },
+  });
+}
+
+// 4. Finish Exam
+export function useSelesaiUjian() {
+    const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ujianSiswaId: number) => {
+      const res = await api.post<{ message: string }>(`/cbt/siswa/selesai/${ujianSiswaId}`);
+      return res.data;
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['ujian-aktif'] });
+    }
+  });
+}

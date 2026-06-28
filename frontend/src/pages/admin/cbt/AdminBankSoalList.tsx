@@ -1,33 +1,30 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { Plus, Search, Edit, Trash2, FileQuestion, ArrowLeft, Save, X, HelpCircle, FileText, Clock, GraduationCap, BookOpen } from 'lucide-react';
 import { useState } from 'react';
-import { type PaketSoal, type SoalItem, type TipeUjian, MOCK_PAKET_SOAL, TIPE_BADGE } from '../../../types/cbt';
-
-function generateId() {
-  return crypto.randomUUID();
-}
-
-const defaultPaket: PaketSoal[] = JSON.parse(JSON.stringify(MOCK_PAKET_SOAL));
+import { type PaketSoal, type SoalItem, type TipeUjian, TIPE_BADGE } from '../../../types/cbt';
+import { useBankSoalList, useCreateBankSoal } from '../../../hooks/useCbt';
 
 export default function AdminBankSoalList() {
-  const [pakets, setPakets] = useState<PaketSoal[]>(defaultPaket);
+  const { data: bankSoalList, isLoading } = useBankSoalList();
+  const createBankSoal = useCreateBankSoal();
+
+  const pakets = bankSoalList || [];
   const [view, setView] = useState<'list' | 'detail' | 'addQuestion'>('list');
   const [selectedPaket, setSelectedPaket] = useState<PaketSoal | null>(null);
   const [search, setSearch] = useState('');
   const [filterMapel, setFilterMapel] = useState('');
   const [filterKelas, setFilterKelas] = useState('');
 
-  const [soalForm, setSoalForm] = useState({ tipe: 'pg' as SoalItem['tipe'], pertanyaan: '', kunciJawaban: '', jawabanPG: '', jawabanPGK: [] as string[] });
-  const [editingSoalId, setEditingSoalId] = useState<string | null>(null);
+  const [soalForm, setSoalForm] = useState({ tipe: 'pg' as SoalItem['tipe_soal'], pertanyaan: '', kunciJawaban: '', jawabanPG: '', jawabanPGK: [] as string[] });
+  const [editingSoalId, setEditingSoalId] = useState<number | null>(null);
 
   const [showPurposeModal, setShowPurposeModal] = useState(false);
   const [purposeFor, setPurposeFor] = useState<'paket' | 'soal'>('paket');
   const [createPaketForm, setCreatePaketForm] = useState({ title: '', mapel: '', kelas: '', time: '', tipe: 'ujian' as TipeUjian });
 
   const filteredPakets = pakets.filter(p => {
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterMapel && p.mapel !== filterMapel) return false;
-    if (filterKelas && p.kelas !== filterKelas) return false;
+    if (search && !p.judul?.toLowerCase().includes(search.toLowerCase())) return false;
+    // Mapel and Kelas filtering logic will need to be adapted based on backend relations
     return true;
   });
 
@@ -56,64 +53,45 @@ export default function AdminBankSoalList() {
 
   function createPaket() {
     if (!createPaketForm.title || !createPaketForm.mapel || !createPaketForm.kelas || !createPaketForm.time) return;
-    const newPaket: PaketSoal = {
-      id: generateId(),
-      ...createPaketForm,
-      soalCount: 0,
-      soal: [],
-    };
-    setPakets(prev => [...prev, newPaket]);
-    setShowPurposeModal(false);
+    createBankSoal.mutate({
+      judul: createPaketForm.title,
+      tipe: createPaketForm.tipe,
+      waktu_pengerjaan: parseInt(createPaketForm.time),
+      status: 'draft',
+      tingkat: parseInt(createPaketForm.kelas.replace(/[^0-9]/g, '')) || 10,
+      mapel_id: 1, // hardcoded mapel_id for now
+      guru_id: 1, // hardcoded guru_id for now
+    }, {
+      onSuccess: () => {
+        setShowPurposeModal(false);
+      }
+    });
   }
 
   function openEditQuestion(soal: SoalItem) {
-    setSoalForm({ tipe: soal.tipe, pertanyaan: soal.pertanyaan, kunciJawaban: soal.kunciJawaban, jawabanPG: soal.kunciJawaban, jawabanPGK: soal.kunciJawaban.split(', ') });
-    setEditingSoalId(soal.id);
+    setSoalForm({ tipe: soal.tipe_soal, pertanyaan: soal.pertanyaan, kunciJawaban: soal.kunci_jawaban, jawabanPG: soal.kunci_jawaban, jawabanPGK: soal.kunci_jawaban?.split(', ') || [] });
+    setEditingSoalId(soal.id as number);
     setView('addQuestion');
   }
 
   function saveQuestion() {
     if (!selectedPaket || !soalForm.pertanyaan || !soalForm.kunciJawaban) return;
-    const newSoal: SoalItem = {
-      id: editingSoalId || generateId(),
-      nomor: editingSoalId
-        ? (selectedPaket.soal.find(s => s.id === editingSoalId)?.nomor || selectedPaket.soal.length + 1)
-        : selectedPaket.soal.length + 1,
-      tipe: soalForm.tipe,
-      pertanyaan: soalForm.pertanyaan,
-      kunciJawaban: soalForm.kunciJawaban,
-      bobot: 0,
-    };
-    setPakets(prev => prev.map(p => {
-      if (p.id !== selectedPaket.id) return p;
-      const updatedSoal = editingSoalId
-        ? p.soal.map(s => s.id === editingSoalId ? newSoal : s)
-        : [...p.soal, newSoal];
-      return { ...p, soal: updatedSoal, soalCount: updatedSoal.length };
-    }));
-    if (editingSoalId) {
-      setSelectedPaket(prev => prev ? { ...prev, soal: prev.soal.map(s => s.id === editingSoalId ? newSoal : s), soalCount: prev.soal.length } : null);
-    } else {
-      setSelectedPaket(prev => prev ? { ...prev, soal: [...prev.soal, newSoal], soalCount: prev.soal.length + 1 } : null);
-    }
+    // Mutate here using useSaveSoal later
+    // Temporarily just return to detail view
     setView('detail');
   }
 
-  function deleteQuestion(soalId: string) {
+  function deleteQuestion(_soalId: number) {
     if (!selectedPaket) return;
-    setPakets(prev => prev.map(p => {
-      if (p.id !== selectedPaket.id) return p;
-      const updatedSoal = p.soal.filter(s => s.id !== soalId).map((s, i) => ({ ...s, nomor: i + 1 }));
-      return { ...p, soal: updatedSoal, soalCount: updatedSoal.length };
-    }));
-    setSelectedPaket(prev => prev ? { ...prev, soal: prev.soal.filter(s => s.id !== soalId).map((s, i) => ({ ...s, nomor: i + 1 })), soalCount: prev.soal.length - 1 } : null);
+    // Mutate here
   }
 
-  function deletePaket(id: string) {
-    setPakets(prev => prev.filter(p => p.id !== id));
+  function deletePaket(_id: number) {
+    // Implementing delete via mutation later
+    // setPakets(prev => prev.filter(p => p.id !== id));
   }
 
-  const tipeBadge = (tipe: SoalItem['tipe']) => {
+  const tipeBadge = (tipe: SoalItem['tipe_soal']) => {
     const map = { pg: 'PG', pgk: 'PGK', pg_kompleks: 'PGK', bs: 'BS', essay: 'Essay' } as const;
     const colors: Record<string, string> = { pg: 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400', pgk: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400', pg_kompleks: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400', bs: 'bg-purple-50 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400', essay: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' };
     return <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${colors[tipe] || colors.pg}`}>{map[tipe] || 'PG'}</span>;
@@ -127,7 +105,7 @@ export default function AdminBankSoalList() {
 
   if (view === 'detail' && selectedPaket) {
     return (
-      <AdminLayout title={`Bank Soal - ${selectedPaket.title}`}>
+      <AdminLayout title={`Bank Soal - ${selectedPaket.judul}`}>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <button onClick={() => setView('list')} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-bold text-sm">
             <ArrowLeft className="w-4 h-4" /> Kembali ke Bank Soal
@@ -144,14 +122,14 @@ export default function AdminBankSoalList() {
                 <FileQuestion className="w-7 h-7" />
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-black text-slate-800 dark:text-white">{selectedPaket.title}</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{selectedPaket.mapel} • {selectedPaket.kelas} • {selectedPaket.soal.length} Soal • {selectedPaket.time}</p>
+                <h2 className="text-xl font-black text-slate-800 dark:text-white">{selectedPaket.judul}</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{selectedPaket.mapel?.nama_mapel} • Tingkat {selectedPaket.tingkat} • {selectedPaket.soal?.length || 0} Soal • {selectedPaket.waktu_pengerjaan} Menit</p>
                 {badgePaket(selectedPaket.tipe)}
               </div>
             </div>
           </div>
 
-          {selectedPaket.soal.length === 0 ? (
+          {selectedPaket.soal?.length === 0 || !selectedPaket.soal ? (
             <div className="p-12 text-center">
               <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <h3 className="font-bold text-slate-500 dark:text-slate-400 mb-2">Belum Ada Soal</h3>
@@ -162,28 +140,28 @@ export default function AdminBankSoalList() {
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {selectedPaket.soal.map((soal) => (
+              {selectedPaket.soal?.map((soal, index) => (
                 <div key={soal.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        {soal.nomor}
+                        {index + 1}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1.5">
-                          {tipeBadge(soal.tipe)}
+                          {tipeBadge(soal.tipe_soal)}
                         </div>
                         <p className="text-sm font-bold text-slate-800 dark:text-white leading-relaxed">{soal.pertanyaan}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                          <span className="font-semibold">Kunci:</span> <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{soal.kunciJawaban}</span>
+                          <span className="font-semibold">Kunci:</span> <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{soal.kunci_jawaban}</span>
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEditQuestion(soal)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors">
+                      <button onClick={() => openEditQuestion(soal as any)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deleteQuestion(soal.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                      <button onClick={() => deleteQuestion(soal.id as any)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -317,7 +295,12 @@ export default function AdminBankSoalList() {
             </div>
           </div>
 
-          {filteredPakets.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Loading bank soal...</p>
+            </div>
+          ) : filteredPakets.length === 0 ? (
             <div className="text-center py-12">
               <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Tidak ada paket soal yang cocok</p>
@@ -335,18 +318,18 @@ export default function AdminBankSoalList() {
                       <button onClick={() => deletePaket(paket.id)} className="p-1.5 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
-                  <h4 className="font-bold text-slate-800 dark:text-white mb-1 leading-tight">{paket.title}</h4>
-                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-3">{paket.mapel} • {paket.kelas}</p>
+                  <h4 className="font-bold text-slate-800 dark:text-white mb-1 leading-tight">{paket.judul}</h4>
+                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-3">{paket.mapel?.nama_mapel} • Tingkat {paket.tingkat}</p>
                   <div className="flex items-center gap-2 mb-4">
                     {badgePaket(paket.tipe)}
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
                     <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                      <FileText className="w-3 h-3" /> {paket.soalCount} Soal
+                      <FileText className="w-3 h-3" /> {paket.soal?.length || 0} Soal
                     </span>
                     <div className="text-right">
                       <div className="text-[10px] font-bold text-slate-400 uppercase">Estimasi</div>
-                      <div className="font-black text-slate-700 dark:text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> {paket.time}</div>
+                      <div className="font-black text-slate-700 dark:text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> {paket.waktu_pengerjaan} Menit</div>
                     </div>
                   </div>
                 </div>

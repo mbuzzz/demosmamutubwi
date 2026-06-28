@@ -1,11 +1,11 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { FileQuestion, Clock, Search, Play, X, Key, HelpCircle, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { type SesiUjian, MOCK_PAKET_SOAL, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
-import { useExamSessions } from '../../../components/exam/ExamContext';
+import { type SesiUjian, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
+import { useUjianAktifList, useMulaiUjian, useSimpanJawaban, useSelesaiUjian } from '../../../hooks/useCbt';
 
 interface Question {
-  id: string;
+  id: number;
   nomor: number;
   tipe: string;
   pertanyaan: string;
@@ -14,7 +14,7 @@ interface Question {
 }
 
 interface Exam {
-  id: string;
+  id: number;
   tipe: 'ujian' | 'ulangan_harian' | 'kuis';
   title: string;
   mapel: string;
@@ -26,42 +26,44 @@ interface Exam {
   status: 'tersedia' | 'selesai';
   score?: number;
   questions: Question[];
+  ujian_siswa_id?: number;
 }
 
 function buildExamFromSession(sesi: SesiUjian): Exam {
-  const paket = MOCK_PAKET_SOAL.find(p => p.id === sesi.paketSoalId);
-  const config = CBT_CONFIG[sesi.tipe];
+  const config = CBT_CONFIG[sesi.bank_soal?.tipe || 'ujian'];
   return {
     id: sesi.id,
-    tipe: sesi.tipe,
-    title: sesi.title,
-    mapel: sesi.mapel,
-    kelas: sesi.kelas,
-    soalCount: paket?.soal.length || 0,
+    tipe: sesi.bank_soal?.tipe || 'ujian',
+    title: sesi.nama_sesi,
+    mapel: sesi.bank_soal?.mapel?.nama_mapel || '',
+    kelas: sesi.bank_soal?.tingkat ? `Kelas ${sesi.bank_soal?.tingkat}` : '',
+    soalCount: sesi.bank_soal?.soal?.length || 0,
     timeLimit: sesi.durasi,
-    token: sesi.token,
+    token: sesi.token || '',
     needToken: config.needToken,
-    status: sesi.status === 'Selesai' ? 'selesai' : 'tersedia',
-    score: sesi.status === 'Selesai' ? Math.floor(Math.random() * 30) + 70 : undefined,
-    questions: paket?.soal.map(s => ({
-      id: s.id,
-      nomor: s.nomor,
-      tipe: s.tipe,
-      pertanyaan: s.pertanyaan,
-      options: s.options,
-      kunci: s.kunciJawaban,
-    })) || [],
+    status: sesi.status === 'completed' ? 'selesai' : 'tersedia',
+    score: undefined,
+    questions: [], // loaded when exam starts
   };
 }
 
 export default function SiswaCbt() {
-  const { sessions, submitExam } = useExamSessions();
-  const [exams, setExams] = useState<Exam[]>(() =>
-    sessions.filter(s => s.status !== 'Selesai').map(buildExamFromSession)
-  );
-  const [completed, setCompleted] = useState<Exam[]>(() =>
-    sessions.filter(s => s.status === 'Selesai').map(buildExamFromSession)
-  );
+  const { data: sesiList, isLoading } = useUjianAktifList();
+  const mulaiUjian = useMulaiUjian();
+  const simpanJawaban = useSimpanJawaban();
+  const selesaiUjian = useSelesaiUjian();
+
+  const sessions = sesiList || [];
+  
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [completed, setCompleted] = useState<Exam[]>([]);
+
+  useEffect(() => {
+    if (sessions.length > 0) {
+       setExams(sessions.filter(s => s.status !== 'completed').map(buildExamFromSession));
+       setCompleted(sessions.filter(s => s.status === 'completed').map(buildExamFromSession));
+    }
+  }, [sessions]);
   const [view, setView] = useState<'list' | 'exam' | 'result'>('list');
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
 
@@ -169,14 +171,91 @@ export default function SiswaCbt() {
       setTokenError('');
       setShowTokenModal(true);
     } else {
-      beginExam(exam);
+      // simulate skipping token modal if token is not needed
+      // but still verifyToken is called to hit the api
+      // since the api needs a token, we might just send an empty string or whatever is in exam.token
+      // Note: We need a slight refactor here to call API directly if no token needed.
+      // But verifyToken already relies on tokenInput which might be empty.
+      // Let's call the mutation directly here.
+      mulaiUjian.mutate({
+         jadwal_ujian_id: exam.id,
+         token: ''
+       }, {
+         onSuccess: (data) => {
+           // map data soal
+           const questions: Question[] = data.soal.map((s, index) => ({
+              id: s.id as number,
+              nomor: index + 1,
+              tipe: s.tipe_soal,
+              pertanyaan: s.pertanyaan,
+              options: s.pilihan_jawaban ? (typeof s.pilihan_jawaban === 'string' ? JSON.parse(s.pilihan_jawaban) : s.pilihan_jawaban) : undefined,
+              kunci: s.kunci_jawaban,
+           }));
+           
+           const examWithQuestions = {
+              ...exam,
+              questions,
+              ujian_siswa_id: data.ujian_siswa.id
+           };
+           setSelectedExam(examWithQuestions);
+           
+           const timeToUse = data.durasi_tersisa_menit ? data.durasi_tersisa_menit * 60 : exam.timeLimit * 60;
+           
+           beginExam(examWithQuestions, timeToUse);
+         },
+         onError: () => {
+             alert('Gagal memulai ujian!');
+         }
+       })
     }
   }
 
-  function beginExam(exam: Exam) {
+  function verifyToken() {
+    if (!selectedExam) return;
+    if (!selectedExam.needToken || tokenInput.trim() === selectedExam.token) {
+       // Proceed to hit API
+       mulaiUjian.mutate({
+         jadwal_ujian_id: selectedExam.id,
+         token: tokenInput.trim()
+       }, {
+         onSuccess: (data) => {
+           setShowTokenModal(false);
+           
+           // map data soal
+           const questions: Question[] = data.soal.map((s, index) => ({
+              id: s.id as number,
+              nomor: index + 1,
+              tipe: s.tipe_soal,
+              pertanyaan: s.pertanyaan,
+              options: s.pilihan_jawaban ? (typeof s.pilihan_jawaban === 'string' ? JSON.parse(s.pilihan_jawaban) : s.pilihan_jawaban) : undefined,
+              kunci: s.kunci_jawaban,
+           }));
+           
+           const examWithQuestions = {
+              ...selectedExam,
+              questions,
+              ujian_siswa_id: data.ujian_siswa.id
+           };
+           setSelectedExam(examWithQuestions);
+           
+           // If backend provides remaining time, use it. Otherwise use timeLimit
+           const timeToUse = data.durasi_tersisa_menit ? data.durasi_tersisa_menit * 60 : selectedExam.timeLimit * 60;
+           
+           beginExam(examWithQuestions, timeToUse);
+         },
+         onError: () => {
+             setTokenError('Gagal memulai ujian atau token salah!');
+         }
+       })
+    } else {
+      setTokenError('Token ujian salah! Silakan coba lagi.');
+    }
+  }
+
+  function beginExam(exam: Exam, timeLimitSeconds: number) {
     setAnswers({});
     setActiveQuestionIdx(0);
-    setTimeLeft(exam.timeLimit * 60);
+    setTimeLeft(timeLimitSeconds);
     setExamSubmitted(false);
     examEndedRef.current = false;
     setView('exam');
@@ -188,20 +267,20 @@ export default function SiswaCbt() {
     }
   }
 
-  function verifyToken() {
-    if (!selectedExam) return;
-    if (tokenInput.trim() === selectedExam.token) {
-      setShowTokenModal(false);
-      beginExam(selectedExam);
-    } else {
-      setTokenError('Token ujian salah! Silakan coba lagi.');
-    }
-  }
-
   function handleSelectAnswer(ans: string) {
     if (!selectedExam) return;
     const q = selectedExam.questions[activeQuestionIdx];
     setAnswers(prev => ({ ...prev, [q.id]: ans }));
+    
+    // Auto-save to backend
+    if (selectedExam.ujian_siswa_id) {
+        simpanJawaban.mutate({
+            ujian_siswa_id: selectedExam.ujian_siswa_id,
+            soal_id: q.id as number,
+            jawaban: ans,
+            ragu_ragu: false
+        })
+    }
   }
 
   function handleSelectMultiAnswer(ans: string) {
@@ -209,7 +288,18 @@ export default function SiswaCbt() {
     const q = selectedExam.questions[activeQuestionIdx];
     const current = answers[q.id] ? answers[q.id].split(', ') : [];
     const updated = current.includes(ans) ? current.filter(v => v !== ans) : [...current, ans];
-    setAnswers(prev => ({ ...prev, [q.id]: updated.join(', ') }));
+    const finalAns = updated.join(', ');
+    setAnswers(prev => ({ ...prev, [q.id]: finalAns }));
+    
+    // Auto-save to backend
+    if (selectedExam.ujian_siswa_id) {
+        simpanJawaban.mutate({
+            ujian_siswa_id: selectedExam.ujian_siswa_id,
+            soal_id: q.id as number,
+            jawaban: finalAns,
+            ragu_ragu: false
+        })
+    }
   }
 
   function finishExam() {
@@ -238,13 +328,20 @@ export default function SiswaCbt() {
     const score = totalQ > 0 ? Math.round((correct / totalQ) * 100) : 0;
     setFinalScore(score);
 
-    // Persist to shared context
-    submitExam(selectedExam.id, score);
-
-    // Move to completed
-    setExams(prev => prev.filter(e => e.id !== selectedExam.id));
-    setCompleted(prev => [{ ...selectedExam, status: 'selesai', score }, ...prev]);
-    setView('result');
+    // Persist to backend
+    if (selectedExam.ujian_siswa_id) {
+       selesaiUjian.mutate(selectedExam.ujian_siswa_id, {
+           onSuccess: () => {
+                setExams(prev => prev.filter(e => e.id !== selectedExam.id));
+                setCompleted(prev => [{ ...selectedExam, status: 'selesai', score }, ...prev]);
+                setView('result');
+           }
+       })
+    } else {
+        setExams(prev => prev.filter(e => e.id !== selectedExam.id));
+        setCompleted(prev => [{ ...selectedExam, status: 'selesai', score }, ...prev]);
+        setView('result');
+    }
   }
 
   const formatTime = (seconds: number) => {
@@ -414,7 +511,20 @@ export default function SiswaCbt() {
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase">Ketikkan Jawaban Anda:</label>
                     <textarea
                       value={answers[activeQ.id] || ''}
-                      onChange={e => setAnswers(prev => ({ ...prev, [activeQ.id]: e.target.value }))}
+                      onChange={e => {
+                         const val = e.target.value;
+                         setAnswers(prev => ({ ...prev, [activeQ.id]: val }));
+                         
+                         // Auto-save essay (might need debouncing in real world)
+                         if (selectedExam.ujian_siswa_id) {
+                            simpanJawaban.mutate({
+                                ujian_siswa_id: selectedExam.ujian_siswa_id,
+                                soal_id: activeQ.id as number,
+                                jawaban: val,
+                                ragu_ragu: false
+                            })
+                         }
+                      }}
                       rows={5}
                       placeholder="Jawab pertanyaan secara jelas dan teratur di sini..."
                       className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white resize-none"
@@ -532,7 +642,12 @@ export default function SiswaCbt() {
             ))}
           </div>
 
-          {allExams.length === 0 && (
+          {isLoading ? (
+             <div className="text-center py-12">
+               <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Loading ujian...</p>
+             </div>
+          ) : allExams.length === 0 && (
             <div className="text-center py-12">
               <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Belum ada ujian yang tersedia</p>

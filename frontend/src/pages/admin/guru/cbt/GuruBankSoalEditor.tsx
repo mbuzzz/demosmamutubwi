@@ -3,21 +3,15 @@ import { Save, Plus, HelpCircle, ImageIcon, AlignLeft, CheckSquare, Type, Search
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useState } from 'react';
-import { type PaketSoal, type TipeUjian, MOCK_PAKET_SOAL, TIPE_BADGE } from '../../../../types/cbt';
-
-const defaultPaket: PaketSoal[] = JSON.parse(JSON.stringify(MOCK_PAKET_SOAL.map(p => ({
-  ...p,
-  kelas: p.kelas === 'Kelas X' ? 'Kelas X-1' : p.kelas === 'Kelas XI' ? 'Kelas XI IPA' : p.kelas,
-  soal: p.soal.map(s => ({ ...s, bobot: s.bobot || 2.5 })),
-}))));
-
-function generateId() {
-  return crypto.randomUUID();
-}
+import { type PaketSoal, type TipeUjian, TIPE_BADGE } from '../../../../types/cbt';
+import { useBankSoalList, useCreateBankSoal } from '../../../../hooks/useCbt';
 
 export default function GuruBankSoalEditor() {
+  const { data: bankSoalList, isLoading } = useBankSoalList();
+  const createBankSoal = useCreateBankSoal();
+  // const saveSoal = useSaveSoal(); // Need to implement the usage
+
   const [view, setView] = useState<'list' | 'editor'>('list');
-  const [pakets, setPakets] = useState<PaketSoal[]>(defaultPaket);
   const [selectedPaket, setSelectedPaket] = useState<PaketSoal | null>(null);
 
   // Editor states
@@ -29,7 +23,8 @@ export default function GuruBankSoalEditor() {
   const [showPurposeModal, setShowPurposeModal] = useState(false);
   const [createPaketForm, setCreatePaketForm] = useState({ title: '', mapel: 'Matematika Wajib', kelas: 'Kelas X-1', time: '', tipe: 'ujian' as TipeUjian });
 
-  const filteredPakets = pakets.filter(p => p.title.toLowerCase().includes(search.toLowerCase()));
+  const pakets = bankSoalList || [];
+  const filteredPakets = pakets.filter(p => p.judul?.toLowerCase().includes(search.toLowerCase()) || p.deskripsi?.toLowerCase().includes(search.toLowerCase()));
 
   function openEditor(p: PaketSoal) {
     setSelectedPaket(p);
@@ -44,19 +39,24 @@ export default function GuruBankSoalEditor() {
 
   function createPaket() {
     if (!createPaketForm.title || !createPaketForm.time) return;
-    const newPaket: PaketSoal = {
-      id: generateId(),
-      ...createPaketForm,
-      soalCount: 0,
-      soal: [],
-    };
-    setPakets(prev => [...prev, newPaket]);
-    setShowPurposeModal(false);
-    openEditor(newPaket);
+    createBankSoal.mutate({
+      judul: createPaketForm.title,
+      tipe: createPaketForm.tipe,
+      waktu_pengerjaan: parseInt(createPaketForm.time),
+      status: 'draft',
+      tingkat: parseInt(createPaketForm.kelas.replace(/[^0-9]/g, '')) || 10,
+      mapel_id: 1, // hardcoded for now, need mapel dropdown
+      guru_id: 1, // hardcoded for now, need user context
+    }, {
+      onSuccess: (newPaket) => {
+        setShowPurposeModal(false);
+        openEditor(newPaket);
+      }
+    });
   }
 
-  function deletePaket(id: string) {
-    setPakets(prev => prev.filter(p => p.id !== id));
+  function deletePaket(_id: number) {
+    // Implement delete mutation
   }
 
   if (view === 'editor' && selectedPaket) {
@@ -68,10 +68,10 @@ export default function GuruBankSoalEditor() {
           </button>
         </div>
 
-        <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-black text-slate-800 dark:text-white">{selectedPaket.title}</h2>
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">Total Soal: {selectedPaket.soal.length} Butir • Pilihan Ganda & Essay</p>
+            <h2 className="text-xl font-black text-slate-800 dark:text-white">{selectedPaket.judul}</h2>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">Total Soal: {selectedPaket.soal?.length || 0} Butir • Pilihan Ganda & Essay</p>
           </div>
           <div className="flex gap-3">
             <button onClick={() => setView('list')} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
@@ -86,7 +86,7 @@ export default function GuruBankSoalEditor() {
           <div className="xl:col-span-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 sticky top-24 transition-colors">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4 text-indigo-500" /> Navigasi Soal</h3>
             <div className="grid grid-cols-5 gap-2">
-              {[...Array(Math.max(selectedPaket.soal.length, 1))].map((_, i) => (
+              {[...Array(Math.max(selectedPaket.soal?.length || 0, 1))].map((_, i) => (
                 <button 
                   key={i} 
                   onClick={() => setActiveSoalIdx(i)}
@@ -247,7 +247,12 @@ export default function GuruBankSoalEditor() {
             </div>
           </div>
 
-          {filteredPakets.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Loading bank soal...</p>
+            </div>
+          ) : filteredPakets.length === 0 ? (
             <div className="text-center py-12">
               <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Tidak ada paket soal yang cocok</p>
@@ -265,20 +270,20 @@ export default function GuruBankSoalEditor() {
                       <button onClick={() => deletePaket(paket.id)} className="p-1.5 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
-                  <h4 className="font-bold text-slate-800 dark:text-white mb-1 leading-tight">{paket.title}</h4>
-                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-3">{paket.mapel} • {paket.kelas}</p>
+                  <h4 className="font-bold text-slate-800 dark:text-white mb-1 leading-tight">{paket.judul}</h4>
+                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-3">{paket.mapel?.nama_mapel} • Tingkat {paket.tingkat}</p>
                   <div className="flex items-center gap-2 mb-4">
-                    <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${TIPE_BADGE[paket.tipe].color}`}>
-                      {TIPE_BADGE[paket.tipe].label}
+                    <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${TIPE_BADGE[paket.tipe]?.color || 'bg-gray-100 text-gray-800'}`}>
+                      {TIPE_BADGE[paket.tipe]?.label || paket.tipe}
                     </span>
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
                     <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                      <FileText className="w-3 h-3" /> {paket.soalCount} Soal
+                      <FileText className="w-3 h-3" /> {paket.soal?.length || 0} Soal
                     </span>
                     <div className="text-right">
                       <div className="text-[10px] font-bold text-slate-400 uppercase">Estimasi</div>
-                      <div className="font-black text-slate-700 dark:text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> {paket.time}</div>
+                      <div className="font-black text-slate-700 dark:text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> {paket.waktu_pengerjaan} Menit</div>
                     </div>
                   </div>
                 </div>

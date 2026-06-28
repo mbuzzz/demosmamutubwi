@@ -13,7 +13,7 @@ function isPeriodeBerulang(periode: string): boolean {
 }
 
 export default function AdminJenisPembayaran() {
-  const { data: list = [], isLoading } = useJenisPembayaranList();
+  const { data: list = [] } = useJenisPembayaranList();
   const createMutation = useCreateJenisPembayaran();
   const updateMutation = useUpdateJenisPembayaran();
   const deleteMutation = useDeleteJenisPembayaran();

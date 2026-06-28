@@ -99,7 +99,7 @@ export default function AdminPembayaranSiswa() {
     setEditTrx(null);
   };
 
-  const handleDeleteTrx = (recordId: string | number, trxId: string | number) => {
+  const handleDeleteTrx = (_recordId: string | number, _trxId: string | number) => {
     toast.info('Fitur hapus transaksi perlu disesuaikan dengan API backend');
   };
 
@@ -311,11 +311,11 @@ export default function AdminPembayaranSiswa() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Siswa</span>
-                  <span className="font-semibold text-slate-800 dark:text-white">{showReceipt.siswa.nama}</span>
+                  <span className="font-semibold text-slate-800 dark:text-white">{showReceipt.siswa.siswa?.nama}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Tagihan</span>
-                  <span className="font-semibold text-slate-800 dark:text-white">{showReceipt.siswa.jenisPembayaranNama}</span>
+                  <span className="font-semibold text-slate-800 dark:text-white">{showReceipt.siswa.jenis_pembayaran?.nama}</span>
                 </div>
                 <div className="border-t border-dashed border-slate-200 dark:border-slate-700 pt-2 mt-2">
                   <div className="flex justify-between text-base">

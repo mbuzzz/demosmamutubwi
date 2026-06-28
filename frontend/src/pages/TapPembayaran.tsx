@@ -244,7 +244,7 @@ export default function TapPembayaran() {
                   {tagihan.map(t => {
                     const nominalSetelahBeasiswa = hitungBeasiswa(t.nominal, t.beasiswa);
                     return (
-                      <label key={t.id} onClick={() => { setSelectedTagihan(t.id); setNominalBayar(String(t.sisa)); }}
+                      <label key={t.id} onClick={() => { setSelectedTagihan(t.id as string); setNominalBayar(String(t.sisa)); }}
                         className={`block p-4 rounded-2xl border-2 cursor-pointer transition-all ${selectedTagihan === t.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-600'}`}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-bold text-sm text-slate-800 dark:text-white">{t.jenis_pembayaran?.nama}</span>
