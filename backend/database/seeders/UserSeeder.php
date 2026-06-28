@@ -13,6 +13,7 @@ class UserSeeder extends Seeder
         // Superadmin
         User::create([
             'name' => 'Admin SMAS Muh 1',
+            'username' => 'admin',
             'email' => 'admin@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'superadmin',
@@ -23,6 +24,7 @@ class UserSeeder extends Seeder
         // Guru
         User::create([
             'name' => 'Rina Fitriani, S.Pd',
+            'username' => 'rina',
             'email' => 'rina.guru@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'guru',
@@ -34,6 +36,7 @@ class UserSeeder extends Seeder
         // Wali Kelas
         User::create([
             'name' => 'Ahmad Fauzi, S.Pd',
+            'username' => 'ahmad',
             'email' => 'ahmad.wali@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'walikelas',
@@ -46,6 +49,7 @@ class UserSeeder extends Seeder
         // Kepala Sekolah
         User::create([
             'name' => 'Drs. H. Sugeng, M.Pd',
+            'username' => 'sugeng',
             'email' => 'sugeng.kepsek@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'kepala_sekolah',
@@ -57,6 +61,7 @@ class UserSeeder extends Seeder
         // Kurikulum
         User::create([
             'name' => 'Dewi Sartika, S.Pd',
+            'username' => 'dewi',
             'email' => 'dewi.kuri@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'kurikulum',
@@ -68,6 +73,7 @@ class UserSeeder extends Seeder
         // Bendahara
         User::create([
             'name' => 'Siti Nurhaliza, S.E',
+            'username' => 'siti',
             'email' => 'siti.bendahara@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'bendahara',
@@ -79,6 +85,7 @@ class UserSeeder extends Seeder
         // Siswa 1
         User::create([
             'name' => 'Agus Setiawan',
+            'username' => 'agus',
             'email' => 'agus.siswa@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'siswa',
@@ -91,6 +98,7 @@ class UserSeeder extends Seeder
         // Siswa 2
         User::create([
             'name' => 'Budi Santoso',
+            'username' => 'budi',
             'email' => 'budi.siswa@sit.sch.id',
             'password' => Hash::make('1234'),
             'role' => 'siswa',

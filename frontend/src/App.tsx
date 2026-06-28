@@ -8,6 +8,9 @@ import NewsHub from './pages/NewsHub';
 import NewsDetail from './pages/NewsDetail';
 import Downloads from './pages/Downloads';
 import Login from './pages/Login';
+import LoginSiswa from './pages/LoginSiswa';
+import LoginGuru from './pages/LoginGuru';
+import LoginAdmin from './pages/LoginAdmin';
 import SPMB from './pages/SPMB';
 import FormSPMB from './pages/FormSPMB';
 
@@ -119,6 +122,9 @@ export default function App() {
         <Route path="/spmb" element={<PublicLayout><SPMB /></PublicLayout>} />
         <Route path="/spmb/form/:gelombangId" element={<PublicLayout><FormSPMB /></PublicLayout>} />
         <Route path="/login" element={<Login />} />
+        <Route path="/login/siswa" element={<LoginSiswa />} />
+        <Route path="/login/guru" element={<LoginGuru />} />
+        <Route path="/login/admin" element={<LoginAdmin />} />
         <Route path="/tap/absensi" element={<TapAbsensi />} />
         <Route path="/tap/pembayaran" element={<TapPembayaran />} />
 

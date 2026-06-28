@@ -27,10 +27,11 @@
         <thead>
             <tr>
                 <th style="width: 5%;">No</th>
-                <th style="width: 25%;">Nama Lengkap</th>
-                <th style="width: 25%;">Email</th>
+                <th style="width: 20%;">Nama Lengkap</th>
+                <th style="width: 15%;">Username</th>
+                <th style="width: 20%;">Email</th>
                 <th style="width: 15%;">NIP / NISN</th>
-                <th style="width: 15%;">Role</th>
+                <th style="width: 10%;">Role</th>
                 <th style="width: 15%;">Info Tambahan</th>
             </tr>
         </thead>
@@ -39,6 +40,7 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td><strong>{{ $user->name }}</strong></td>
+                    <td><code>{{ $user->username }}</code></td>
                     <td>{{ $user->email }}</td>
                     <td>{{ $user->nip_nisn ?? '—' }}</td>
                     <td class="text-center">

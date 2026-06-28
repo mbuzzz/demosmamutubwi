@@ -31,6 +31,7 @@ class UserController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('nip_nisn', 'like', "%{$search}%");
             });
@@ -43,6 +44,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,siswa,admin',
@@ -75,6 +77,12 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users')->ignore($user->id),
+            ],
             'email' => [
                 'required',
                 'string',
@@ -166,8 +174,8 @@ class UserController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Pengguna');
 
-        // Set Headers
-        $headers = ['No', 'Nama Lengkap', 'Email', 'NIP / NISN', 'Peran (Role)', 'Info Tambahan'];
+        // Set Headers: Added Username
+        $headers = ['No', 'Nama Lengkap', 'Username', 'Email', 'NIP / NISN', 'Peran (Role)', 'Info Tambahan'];
         foreach ($headers as $colIndex => $header) {
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
             $sheet->setCellValue($colLetter . '1', $header);
@@ -179,10 +187,11 @@ class UserController extends Controller
             $rowNum = $rowIndex + 2;
             $sheet->setCellValue('A' . $rowNum, $rowIndex + 1);
             $sheet->setCellValue('B' . $rowNum, $user->name);
-            $sheet->setCellValue('C' . $rowNum, $user->email);
-            $sheet->setCellValue('D' . $rowNum, $user->nip_nisn ?: '—');
-            $sheet->setCellValue('E' . $rowNum, strtoupper($user->role));
-            $sheet->setCellValue('F' . $rowNum, $user->kelas ? 'Kelas ' . $user->kelas : ($user->jabatan ?: '—'));
+            $sheet->setCellValue('C' . $rowNum, $user->username);
+            $sheet->setCellValue('D' . $rowNum, $user->email);
+            $sheet->setCellValue('E' . $rowNum, $user->nip_nisn ?: '—');
+            $sheet->setCellValue('F' . $rowNum, strtoupper($user->role));
+            $sheet->setCellValue('G' . $rowNum, $user->kelas ? 'Kelas ' . $user->kelas : ($user->jabatan ?: '—'));
         }
 
         // Auto-fit Column Widths
@@ -216,7 +225,6 @@ class UserController extends Controller
 
         $importedCount = 0;
         
-        // Skip header row
         $header = true;
         foreach ($rows as $row) {
             if ($header) {
@@ -224,12 +232,13 @@ class UserController extends Controller
                 continue;
             }
 
-            // Map columns: B = Nama, C = Email, D = NIP/NISN, E = Role, F = Info
+            // Map: B = Nama, C = Username, D = Email, E = NIP/NISN, F = Role, G = Info
             $name = $row['B'];
-            $email = $row['C'] ?: 'user_' . uniqid() . '@smasmuh1.sch.id';
-            $nip_nisn = $row['D'] ?: null;
-            $rawRole = strtolower($row['E'] ?: 'siswa');
-            $info = $row['F'] ?: null;
+            $username = $row['C'] ?: 'user_' . uniqid();
+            $email = $row['D'] ?: $username . '@smasmuh1.sch.id';
+            $nip_nisn = $row['E'] ?: null;
+            $rawRole = strtolower($row['F'] ?: 'siswa');
+            $info = $row['G'] ?: null;
 
             if (!$name) continue;
 
@@ -243,15 +252,16 @@ class UserController extends Controller
             elseif (str_contains($rawRole, 'super')) $role = 'superadmin';
             elseif (str_contains($rawRole, 'admin')) $role = 'admin';
 
-            // Check if email already exists
-            if (User::where('email', $email)->exists()) {
+            // Check if username or email already exists
+            if (User::where('username', $username)->orWhere('email', $email)->exists()) {
                 continue;
             }
 
             User::create([
                 'name' => $name,
+                'username' => $username,
                 'email' => $email,
-                'password' => Hash::make('password'), // default password
+                'password' => Hash::make('1234'), // default password: 1234
                 'role' => $role,
                 'nip_nisn' => $nip_nisn,
                 'kelas' => $role === 'siswa' ? $info : null,

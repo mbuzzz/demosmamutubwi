@@ -19,7 +19,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: AuthUser | null;
-  login: (email: string, password: string) => Promise<AuthUser>;
+  login: (username: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
 }
@@ -51,14 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkSession();
   }, []);
 
-  const login = async (email: string, password: string): Promise<AuthUser> => {
+  const login = async (username: string, password: string): Promise<AuthUser> => {
     setIsLoading(true);
     try {
       // 1. Fetch CSRF cookie
       await getCsrfCookie();
       
       // 2. Perform login
-      const res = await api.post('/login', { email, password });
+      const res = await api.post('/login', { username, password });
       const authenticatedUser = res.data.user;
       
       setUser(authenticatedUser);
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err: any) {
       setUser(null);
       setIsAuthenticated(false);
-      throw new Error(err.response?.data?.message || 'Gagal login. Periksa email dan password Anda.');
+      throw new Error(err.response?.data?.message || 'Gagal login. Periksa username dan password Anda.');
     } finally {
       setIsLoading(false);
     }
