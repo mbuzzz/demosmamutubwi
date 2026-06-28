@@ -15,11 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
         
-        // Enable sessions on API routes for Sanctum SPA cookie persistence
-        $middleware->api(prepend: [
-            \Illuminate\Session\Middleware\StartSession::class,
-        ]);
-        
         // Register global middleware
         $middleware->append(\App\Http\Middleware\SanitizeInputs::class);
 
