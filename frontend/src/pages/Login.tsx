@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, ShieldAlert, ArrowRight } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, ArrowRight } from 'lucide-react';
 
 export default function Login() {
   return (
@@ -10,7 +10,7 @@ export default function Login() {
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl opacity-50"></div>
       </div>
 
-      <div className="w-full max-w-4xl relative z-10 space-y-8">
+      <div className="w-full max-w-3xl relative z-10 space-y-8">
         <div className="text-center space-y-3">
           <Link to="/" className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
@@ -28,8 +28,8 @@ export default function Login() {
           </p>
         </div>
 
-        {/* 3 Portal Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 2 Portal Cards (Admin & Bendahara Hidden) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
           
           {/* Card 1: Siswa */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-800 transition-all flex flex-col justify-between group">
@@ -63,28 +63,9 @@ export default function Login() {
             </div>
             <Link 
               to="/login/guru" 
-              className="mt-auto w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
+              className="mt-auto w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
             >
               Masuk Portal Guru <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Card 3: Admin & Bendahara */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-800 transition-all flex flex-col justify-between group">
-            <div>
-              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-5">
-                <ShieldAlert className="w-6 h-6" />
-              </div>
-              <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Admin & Keuangan</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Akses khusus administrator untuk tata kelola sistem web, data master, konfigurasi RFID, serta bendahara keuangan sekolah.
-              </p>
-            </div>
-            <Link 
-              to="/login/admin" 
-              className="mt-auto w-full flex items-center justify-center gap-2 bg-indigo-650 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
-            >
-              Masuk Portal Admin <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 

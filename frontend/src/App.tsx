@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import LoginSiswa from './pages/LoginSiswa';
 import LoginGuru from './pages/LoginGuru';
 import LoginAdmin from './pages/LoginAdmin';
+import LoginBendahara from './pages/LoginBendahara';
 import SPMB from './pages/SPMB';
 import FormSPMB from './pages/FormSPMB';
 
@@ -124,7 +125,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/login/siswa" element={<LoginSiswa />} />
         <Route path="/login/guru" element={<LoginGuru />} />
-        <Route path="/login/admin" element={<LoginAdmin />} />
+        <Route path="/adminlogin" element={<LoginAdmin />} />
+        <Route path="/bendahara" element={<LoginBendahara />} />
         <Route path="/tap/absensi" element={<TapAbsensi />} />
         <Route path="/tap/pembayaran" element={<TapPembayaran />} />
 
