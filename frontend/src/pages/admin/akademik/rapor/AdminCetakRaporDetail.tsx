@@ -1,13 +1,45 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { ArrowLeft, Printer, CheckCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { getNilaiEkskulSiswa } from '../../../../stores/ekskulStore';
-import { getRekapAbsensiData } from '../../../../stores/absensiStore';
+import { Link, useParams } from 'react-router-dom';
+import { useRapor } from '../../../../hooks/useRapor';
 
 export default function AdminCetakRaporDetail() {
-  // Load dynamic data for student Agus Setiawan (ID: 's1')
-  const ekskuls = getNilaiEkskulSiswa('s1');
-  const rekap = getRekapAbsensiData().find(r => r.siswaId === 's1');
+  const { id } = useParams<{ id: string }>();
+
+  // Fetch report card data dynamically
+  const { data: responseData, isLoading, isError } = useRapor(id);
+
+  const handlePrint = () => {
+    if (!id) return;
+    const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const rootURL = apiURL.replace(/\/api\/?$/, '');
+    window.open(`${rootURL}/api/rapors/${id}/pdf`, '_blank');
+  };
+
+  if (isLoading) {
+    return (
+      <AdminLayout title="Preview Cetak Rapor">
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <div className="w-8 h-8 border-4 border-indigo-650 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs text-slate-400 font-semibold">Memuat data rapor...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (isError || !responseData) {
+    return (
+      <AdminLayout title="Preview Cetak Rapor">
+        <div className="text-center py-16 text-red-500 font-bold text-sm">
+          Gagal memuat data rapor dari server
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const { rapor, nilais = [], wali_kelas_name, kepsek_name } = responseData as any;
+  const siswa = rapor.siswa || {};
+  const initials = siswa.name ? siswa.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : 'AS';
 
   return (
     <AdminLayout title="Preview Cetak Rapor">
@@ -15,7 +47,7 @@ export default function AdminCetakRaporDetail() {
         <Link to="/panel/rapor" className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-colors font-medium text-sm">
           <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar Cetak
         </Link>
-        <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm">
+        <button onClick={handlePrint} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm active:scale-95">
           <Printer className="w-4 h-4" /> Cetak Rapor (PDF)
         </button>
       </div>
@@ -25,9 +57,11 @@ export default function AdminCetakRaporDetail() {
         {/* Status Panel */}
         <div className="w-full lg:w-64 shrink-0 space-y-4">
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5">
-            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-3">AS</div>
-            <h3 className="font-bold text-center text-slate-800 dark:text-white">Agus Setiawan</h3>
-            <p className="text-center text-xs text-slate-500 dark:text-slate-400 mb-4">NISN: 0081234501 • Kelas X-1</p>
+            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-3">
+              {initials}
+            </div>
+            <h3 className="font-bold text-center text-slate-800 dark:text-white">{siswa.name}</h3>
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400 mb-4">NISN: {siswa.nip_nisn || '—'} • Kelas {siswa.kelas}</p>
             
             <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
@@ -60,11 +94,11 @@ export default function AdminCetakRaporDetail() {
             {/* Biodata Mini */}
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-xs font-semibold mb-8">
               <div className="flex"><span className="w-32">Nama Sekolah</span> <span>: SMAS Muhammadiyah 1</span></div>
-              <div className="flex"><span className="w-32">Kelas</span> <span>: X-1</span></div>
-              <div className="flex"><span className="w-32">Nama Peserta Didik</span> <span>: AGUS SETIAWAN</span></div>
-              <div className="flex"><span className="w-32">Semester</span> <span>: 1 (Ganjil)</span></div>
-              <div className="flex"><span className="w-32">Nomor Induk / NISN</span> <span>: 1029 / 0081234501</span></div>
-              <div className="flex"><span className="w-32">Tahun Pelajaran</span> <span>: 2024/2025</span></div>
+              <div className="flex"><span className="w-32">Kelas</span> <span>: {siswa.kelas}</span></div>
+              <div className="flex"><span className="w-32">Nama Peserta Didik</span> <span>: {siswa.name?.toUpperCase()}</span></div>
+              <div className="flex"><span className="w-32">Semester</span> <span>: {rapor.semester === 'ganjil' ? '1 (Ganjil)' : '2 (Genap)'}</span></div>
+              <div className="flex"><span className="w-32">Nomor Induk / NISN</span> <span>: {siswa.nip_nisn || '—'}</span></div>
+              <div className="flex"><span className="w-32">Tahun Pelajaran</span> <span>: {rapor.tahun_ajaran}</span></div>
             </div>
 
             {/* Tabel Nilai */}
@@ -81,35 +115,28 @@ export default function AdminCetakRaporDetail() {
                   <td className="border border-slate-800 p-2 w-10">No</td>
                   <td className="border border-slate-800 p-2 text-left">Mata Pelajaran</td>
                   <td className="border border-slate-800 p-2 w-16">KKM</td>
-                  <td className="border border-slate-800 p-2 w-16">Nilai</td>
+                  <td className="border border-slate-800 p-2 w-16">Nilai Akhir</td>
                   <td className="border border-slate-800 p-2 w-16">Predikat</td>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="border border-slate-800 p-2" colSpan={5} align="left"><strong>Kelompok A (Nasional)</strong></td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-800 p-2">1</td>
-                  <td className="border border-slate-800 p-2 text-left">Pendidikan Agama Islam</td>
-                  <td className="border border-slate-800 p-2">75</td>
-                  <td className="border border-slate-800 p-2 font-bold">88</td>
-                  <td className="border border-slate-800 p-2">B</td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-800 p-2">2</td>
-                  <td className="border border-slate-800 p-2 text-left">Bahasa Indonesia</td>
-                  <td className="border border-slate-800 p-2">75</td>
-                  <td className="border border-slate-800 p-2 font-bold">85</td>
-                  <td className="border border-slate-800 p-2">B</td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-800 p-2">3</td>
-                  <td className="border border-slate-800 p-2 text-left">Matematika</td>
-                  <td className="border border-slate-800 p-2">75</td>
-                  <td className="border border-slate-800 p-2 font-bold">92</td>
-                  <td className="border border-slate-800 p-2">A</td>
-                </tr>
+                {nilais.length > 0 ? (
+                  nilais.map((n: any, idx: number) => (
+                    <tr key={n.id}>
+                      <td className="border border-slate-800 p-2">{idx + 1}</td>
+                      <td className="border border-slate-800 p-2 text-left">{n.mapel?.nama}</td>
+                      <td className="border border-slate-800 p-2">{n.mapel?.kkm || 75}</td>
+                      <td className="border border-slate-800 p-2 font-bold">{n.nilai_akhir}</td>
+                      <td className="border border-slate-800 p-2 uppercase">{n.predikat}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="border border-slate-800 p-4 text-slate-400">
+                      Belum ada nilai akademik
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
 
@@ -119,10 +146,10 @@ export default function AdminCetakRaporDetail() {
                 <h3 className="font-bold text-sm mb-2 uppercase">C. Ekstrakurikuler</h3>
                 <table className="w-full border-collapse border border-slate-800 text-xs">
                   <tbody>
-                    {ekskuls.length > 0 ? (
-                      ekskuls.map((ne, i) => (
+                    {rapor.nilai_ekskuls && rapor.nilai_ekskuls.length > 0 ? (
+                      rapor.nilai_ekskuls.map((ne: any, i: number) => (
                         <tr key={i}>
-                          <td className="border border-slate-800 p-2 font-bold">{ne.ekskulNama}</td>
+                          <td className="border border-slate-800 p-2 font-bold">{ne.ekskul?.nama}</td>
                           <td className="border border-slate-800 p-2 text-center">
                             {ne.nilai} ({ne.nilai === 'A' ? 'Sangat Baik' : ne.nilai === 'B' ? 'Baik' : ne.nilai === 'C' ? 'Cukup' : 'Kurang'})
                           </td>
@@ -144,19 +171,19 @@ export default function AdminCetakRaporDetail() {
                   <tbody>
                     <tr>
                       <td className="border border-slate-800 p-2">Sakit</td>
-                      <td className="border border-slate-800 p-2 text-center">{rekap ? rekap.sakit : 0} Hari</td>
+                      <td className="border border-slate-800 p-2 text-center">{rapor.sakit || 0} Hari</td>
                     </tr>
                     <tr>
                       <td className="border border-slate-800 p-2">Izin</td>
-                      <td className="border border-slate-800 p-2 text-center">{rekap ? rekap.izin : 0} Hari</td>
+                      <td className="border border-slate-800 p-2 text-center">{rapor.izin || 0} Hari</td>
                     </tr>
                     <tr>
                       <td className="border border-slate-800 p-2">Tanpa Keterangan (Alpha)</td>
-                      <td className="border border-slate-800 p-2 text-center">{rekap ? rekap.alpha : 0} Hari</td>
+                      <td className="border border-slate-800 p-2 text-center">{rapor.alpha || 0} Hari</td>
                     </tr>
                     <tr>
                       <td className="border border-slate-800 p-2 font-bold">Terlambat</td>
-                      <td className="border border-slate-800 p-2 text-center font-bold">{rekap ? rekap.terlambat : 0} Hari</td>
+                      <td className="border border-slate-800 p-2 text-center font-bold">{rapor.terlambat || 0} Hari</td>
                     </tr>
                   </tbody>
                 </table>
@@ -172,12 +199,12 @@ export default function AdminCetakRaporDetail() {
               </div>
               <div>
                 Banyuwangi, 18 Desember 2024<br/>Wali Kelas<br/><br/><br/><br/><br/>
-                <strong>Ahmad Fauzi, S.Pd</strong><br/>NBM. 1234567
+                <strong>{wali_kelas_name}</strong>
               </div>
             </div>
             <div className="text-center text-xs mt-12">
               Kepala Sekolah<br/><br/><br/><br/><br/>
-              <strong>Drs. H. Sugeng, M.Pd</strong><br/>NBM. 19650412
+              <strong>{kepsek_name}</strong>
             </div>
 
           </div>

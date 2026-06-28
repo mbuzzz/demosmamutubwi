@@ -31,7 +31,35 @@ class RaporController extends Controller
     public function show($id)
     {
         $rapor = Rapor::with(['siswa', 'nilaiEkskuls.ekskul'])->findOrFail($id);
-        return response()->json($rapor);
+        $siswa = $rapor->siswa;
+
+        // Get class info
+        $kelas = Kelas::where('nama', $siswa->kelas)->first();
+        
+        // Get active curriculum
+        $config = SistemKonfigurasi::first();
+        $kurikulum = null;
+        if ($kelas && $kelas->kurikulum_id) {
+            $kurikulum = Kurikulum::find($kelas->kurikulum_id);
+        }
+        if (!$kurikulum && $config && $config->kurikulum_aktif_id) {
+            $kurikulum = Kurikulum::find($config->kurikulum_aktif_id);
+        }
+        
+        // Get student grades
+        $nilais = Nilai::with('mapel')
+            ->where('siswa_id', $siswa->id)
+            ->where('tahun_ajaran', $rapor->tahun_ajaran)
+            ->where('semester', $rapor->semester)
+            ->get();
+
+        return response()->json([
+            'rapor' => $rapor,
+            'nilais' => $nilais,
+            'kurikulum' => $kurikulum,
+            'wali_kelas_name' => $kelas && $kelas->wali_kelas_id ? (User::find($kelas->wali_kelas_id)->name ?? '—') : '—',
+            'kepsek_name' => User::where('role', 'kepala_sekolah')->first()->name ?? 'Drs. H. Sugeng, M.Pd'
+        ]);
     }
 
     public function store(Request $request)
