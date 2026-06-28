@@ -4,23 +4,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
-
-interface UserRecord {
-  id: string;
-  nama: string;
-  email: string;
-  nipNisn: string;
-  role: 'superadmin' | 'guru' | 'siswa' | 'admin' | 'walikelas' | 'kepala_sekolah' | 'kurikulum' | 'bendahara';
-  info: string;
-}
-
-const initialUsers: UserRecord[] = [
-  { id: 'u1', nama: 'Ahmad Fauzi, S.Pd', email: 'ahmad.fauzi@smasmuh1.sch.id', nipNisn: '198001012005011002', role: 'walikelas', info: 'Wali Kelas X-1' },
-  { id: 'u2', nama: 'Siti Nurhaliza', email: 'siti.siswa@smasmuh1.sch.id', nipNisn: '0051234567', role: 'siswa', info: 'Kelas X-1' },
-  { id: 'u3', nama: 'Budi Santoso', email: 'budi.siswa@smasmuh1.sch.id', nipNisn: '0081234502', role: 'siswa', info: 'Kelas X-1' },
-  { id: 'u4', nama: 'Drs. H. Sugeng, M.Pd', email: 'sugeng.kepsek@smasmuh1.sch.id', nipNisn: '196504121990031001', role: 'kepala_sekolah', info: 'Kepala Sekolah' },
-  { id: 'u5', nama: 'Evi Rahmawati, S.Pd', email: 'evi.kurikulum@smasmuh1.sch.id', nipNisn: '198512102010012003', role: 'kurikulum', info: 'Waka Kurikulum' },
-];
+import { useUsers, useDeleteUser, useCreateUser, type UserRecord } from '../../../hooks/useUsers';
 
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   superadmin: { label: 'Superadmin', color: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400' },
@@ -35,9 +19,13 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function AdminUserList() {
   const [activeTab, setActiveTab] = useState('semua');
-  const [users, setUsers] = useState<UserRecord[]>(initialUsers);
   const [search, setSearch] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Queries & Mutations
+  const { data: users = [], isLoading, isError } = useUsers(activeTab, search);
+  const deleteUserMutation = useDeleteUser();
+  const createUserMutation = useCreateUser();
 
   const tabs = [
     { id: 'semua', label: 'Semua User' },
@@ -46,41 +34,27 @@ export default function AdminUserList() {
     { id: 'admin', label: 'Admin & Staf' },
   ];
 
-  const filtered = users.filter(u => {
-    // Tab filter
-    if (activeTab === 'guru' && !['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'].includes(u.role)) return false;
-    if (activeTab === 'siswa' && u.role !== 'siswa') return false;
-    if (activeTab === 'admin' && !['admin', 'superadmin', 'bendahara'].includes(u.role)) return false;
-
-    // Search filter
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        u.nama.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.nipNisn.includes(q)
-      );
-    }
-    return true;
-  });
-
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm('Hapus pengguna ini dari sistem?')) return;
-    setUsers(users.filter(u => u.id !== id));
-    toast.success('Pengguna berhasil dihapus');
+    try {
+      await deleteUserMutation.mutateAsync(id);
+      toast.success('Pengguna berhasil dihapus');
+    } catch (err) {
+      toast.error('Gagal menghapus pengguna');
+    }
   };
 
   const handleExportExcel = () => {
-    if (filtered.length === 0) {
+    if (users.length === 0) {
       toast.error('Tidak ada data untuk diekspor');
       return;
     }
-    const reportData = filtered.map(u => ({
-      'Nama Lengkap': u.nama,
+    const reportData = users.map(u => ({
+      'Nama Lengkap': u.name,
       'Email': u.email,
-      'NIP / NISN': u.nipNisn,
+      'NIP / NISN': u.nip_nisn || '—',
       'Peran (Role)': u.role.toUpperCase(),
-      'Keterangan / Info': u.info
+      'Keterangan / Info': u.kelas ? `Kelas ${u.kelas}` : u.jabatan || '—'
     }));
 
     const ws = XLSX.utils.json_to_sheet(reportData);
@@ -99,7 +73,7 @@ export default function AdminUserList() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
         const dataArr = evt.target?.result;
         if (!dataArr) return;
@@ -113,14 +87,16 @@ export default function AdminUserList() {
           return;
         }
 
-        const newRecords: UserRecord[] = [];
-        json.forEach((row, i) => {
-          // Robust mapping of common header names
-          const nama = row['Nama Lengkap'] || row['Nama'] || row['nama'];
-          const email = row['Email'] || row['email'] || `${i + Date.now()}@sekolah.com`;
-          const nipNisn = String(row['NIP / NISN'] || row['NIP'] || row['NISN'] || row['nip'] || row['nisn'] || '');
+        toast.info(`Memproses ${json.length} baris data...`);
+        let importedCount = 0;
+
+        for (let i = 0; i < json.length; i++) {
+          const row = json[i];
+          const name = row['Nama Lengkap'] || row['Nama'] || row['nama'];
+          const email = row['Email'] || row['email'] || `${Date.now()}-${i}@smasmuh1.sch.id`;
+          const nip_nisn = String(row['NIP / NISN'] || row['NIP'] || row['NISN'] || row['nip'] || row['nisn'] || '');
           const rawRole = String(row['Peran (Role)'] || row['Role'] || row['role'] || 'siswa').toLowerCase();
-          const info = row['Keterangan / Info'] || row['Info'] || row['info'] || 'Diimpor via Excel';
+          const info = row['Keterangan / Info'] || row['Info'] || row['info'] || '';
 
           let role: UserRecord['role'] = 'siswa';
           if (rawRole.includes('guru')) role = 'guru';
@@ -131,27 +107,25 @@ export default function AdminUserList() {
           else if (rawRole.includes('super')) role = 'superadmin';
           else if (rawRole.includes('admin')) role = 'admin';
 
-          if (nama) {
-            newRecords.push({
-              id: `u-${Date.now()}-${i}`,
-              nama,
+          if (name) {
+            await createUserMutation.mutateAsync({
+              name,
               email,
-              nipNisn,
+              password: 'password', // default password for imported accounts
               role,
-              info
+              nip_nisn: nip_nisn || null,
+              kelas: role === 'siswa' ? info : null,
+              jabatan: role !== 'siswa' ? info : null,
+              is_active: true
             });
+            importedCount++;
           }
-        });
-
-        if (newRecords.length > 0) {
-          setUsers([...users, ...newRecords]);
-          toast.success(`Berhasil mengimpor ${newRecords.length} pengguna baru dari Excel!`);
-        } else {
-          toast.error('Tidak ada baris data valid yang terbaca');
         }
+
+        toast.success(`Berhasil mengimpor ${importedCount} pengguna baru ke database!`);
       } catch (err) {
         console.error(err);
-        toast.error('Gagal membaca berkas Excel. Pastikan format kolom sesuai.');
+        toast.error('Gagal membaca berkas Excel atau ada data duplikat (Email/NIP/NISN).');
       }
     };
     reader.readAsArrayBuffer(file);
@@ -217,67 +191,80 @@ export default function AdminUserList() {
           </Link>
         </div>
         
-        {/* Table */}
+        {/* Table / Loading states */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
-            <thead className="bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-extrabold tracking-wider">
-              <tr>
-                <th className="px-6 py-5">Nama Lengkap</th>
-                <th className="px-6 py-5">NIP / NISN</th>
-                <th className="px-6 py-5">Role</th>
-                <th className="px-6 py-5">Info Tambahan</th>
-                <th className="px-6 py-5 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {filtered.length > 0 ? (
-                filtered.map((u) => {
-                  const initial = u.nama.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                  const roleStyle = ROLE_LABELS[u.role] || { label: u.role, color: 'bg-slate-100 text-slate-700 border-slate-200' };
-                  
-                  return (
-                    <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-sm shadow-inner">
-                            {initial}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-800 dark:text-white text-sm">{u.nama}</div>
-                            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{u.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-mono text-xs text-slate-750 dark:text-slate-350">{u.nipNisn}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${roleStyle.color}`}>
-                          {roleStyle.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-300">{u.info}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link to="/panel/users/tambah" className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"><Edit className="w-4 h-4" /></Link>
-                          <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="w-8 h-8 border-4 border-indigo-650 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-xs text-slate-400 font-semibold">Memuat data pengguna...</p>
+            </div>
+          ) : isError ? (
+            <div className="text-center py-16 text-red-500 font-bold text-sm">
+              Gagal memuat data dari server
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
+              <thead className="bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-extrabold tracking-wider">
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 font-medium">
-                    Tidak ada pengguna ditemukan
-                  </td>
+                  <th className="px-6 py-5">Nama Lengkap</th>
+                  <th className="px-6 py-5">NIP / NISN</th>
+                  <th className="px-6 py-5">Role</th>
+                  <th className="px-6 py-5">Info Tambahan</th>
+                  <th className="px-6 py-5 text-right">Aksi</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {users.length > 0 ? (
+                  users.map((u) => {
+                    const initial = u.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                    const roleStyle = ROLE_LABELS[u.role] || { label: u.role, color: 'bg-slate-100 text-slate-700 border-slate-200' };
+                    
+                    return (
+                      <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-sm shadow-inner">
+                              {initial}
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-800 dark:text-white text-sm">{u.name}</div>
+                              <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{u.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-mono text-xs text-slate-750 dark:text-slate-355">{u.nip_nisn || '—'}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${roleStyle.color}`}>
+                            {roleStyle.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-300">
+                          {u.kelas ? `Kelas ${u.kelas}` : u.jabatan || '—'}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Link to={`/panel/users/edit/${u.id}`} className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"><Edit className="w-4 h-4" /></Link>
+                            <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 font-medium">
+                      Tidak ada pengguna ditemukan
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
         
         {/* Pagination */}
         <div className="p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30 dark:bg-slate-900/30">
-          <div>Menampilkan 1-{filtered.length} dari {filtered.length} data</div>
+          <div>Menampilkan 1-{users.length} dari {users.length} data</div>
           <div className="flex gap-2">
             <button className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-400 dark:text-slate-500 dark:text-slate-400 cursor-not-allowed font-bold">Seb</button>
             <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-sm font-bold">1</button>

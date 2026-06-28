@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, User, GraduationCap, ShieldCheck, Mail, Lock, LogIn, Wallet, Users } from 'lucide-react';
+import { ArrowLeft, User, GraduationCap, ShieldCheck, Mail, Lock, LogIn, Wallet, Users, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
+import { toast } from 'sonner';
 
 const GROUPS: { key: string; label: string; icon: typeof User; roles: { value: Role; label: string; panel: string }[] }[] = [
   {
@@ -44,25 +45,29 @@ export default function Login() {
   const [subRole, setSubRole] = useState('siswa');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const group = GROUPS.find(g => g.key === groupKey)!;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const role = groupKey === 'guru-group' ? subRole : group.roles[0].value;
-    const panel = group.roles.find(r => r.value === role)?.panel || group.roles[0].panel;
-    const nameMap: Record<string, string> = {
-      superadmin: 'Admin SMAS Muh 1',
-      guru: 'Rina Fitriani, S.Pd',
-      walikelas: 'Ahmad Hidayat, S.Pd',
-      kepala_sekolah: 'Drs. H. Sugeng, M.Pd',
-      kurikulum: 'Dewi Sartika, S.Pd',
-      bendahara: 'Siti Nurhaliza, S.E',
-      siswa: 'Agus Setiawan',
-    };
-    login(role, nameMap[role] || 'Pengguna');
-    setSimulatedRole(role as Role);
-    navigate(panel);
+    setError(null);
+    try {
+      // Sanctum expects email and password
+      const user = await login(identifier, password);
+      
+      // Also update the simulated role to match the authenticated user's role
+      setSimulatedRole(user.role as Role);
+      
+      const role = user.role;
+      const targetGroup = GROUPS.find(g => g.roles.some(r => r.value === role));
+      const panel = targetGroup?.roles.find(r => r.value === role)?.panel || '/panel';
+      navigate(panel);
+      
+      toast.success(`Selamat datang, ${user.name}!`);
+    } catch (err: any) {
+      setError(err.message || 'Gagal masuk. Silakan coba lagi.');
+    }
   };
 
   const activeGroup = GROUPS.find(g => g.key === groupKey);
@@ -152,6 +157,13 @@ export default function Login() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 p-3.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/25 rounded-[15px] flex items-center gap-2 text-xs font-bold text-red-600 dark:text-red-400 animate-shake">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 

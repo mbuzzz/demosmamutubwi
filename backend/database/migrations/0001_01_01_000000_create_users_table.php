@@ -17,7 +17,14 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role')->default('siswa'); // admin, guru, siswa
+            $table->string('role')->default('siswa'); // superadmin, guru, walikelas, kepala_sekolah, kurikulum, bendahara, siswa, admin
+            $table->string('nip_nisn')->nullable()->unique();
+            $table->string('uid_rfid')->nullable()->unique();
+            $table->string('kelas')->nullable();
+            $table->string('jabatan')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('foto')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

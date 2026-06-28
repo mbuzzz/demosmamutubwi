@@ -138,6 +138,7 @@ export default function App() {
         <Route path="/panel/downloads" element={<ProtectedRoute requiredRole="superadmin"><AdminDownloadsList /></ProtectedRoute>} />
         <Route path="/panel/users" element={<ProtectedRoute requiredRole="superadmin"><AdminUserList /></ProtectedRoute>} />
         <Route path="/panel/users/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminUserForm /></ProtectedRoute>} />
+        <Route path="/panel/users/edit/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminUserForm /></ProtectedRoute>} />
         <Route path="/panel/penugasan" element={<ProtectedRoute requiredRole="superadmin"><AdminPenugasanList /></ProtectedRoute>} />
         <Route path="/panel/jadwal" element={<ProtectedRoute requiredRole="superadmin"><AdminJadwalPelajaran /></ProtectedRoute>} />
         <Route path="/panel/kehadiran" element={<ProtectedRoute requiredRole="superadmin"><AdminKehadiranSiswa /></ProtectedRoute>} />
