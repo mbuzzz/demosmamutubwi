@@ -1,14 +1,32 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { CalendarDays, Clock, FileText, Bell, ArrowRight, AlertCircle, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useDashboardStats } from '../../../hooks/useDashboard';
 
 export default function SiswaDashboard() {
-  const stats = [
+  const { stats, loading } = useDashboardStats();
+
+  const fallbackStats = [
     { label: 'Rata-rata Nilai', value: '88.4', sub: 'Semester Ganjil', icon: Award, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
     { label: 'Kehadiran', value: '98.5%', sub: 'Hadir: 65, Absen: 1', icon: Clock, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
     { label: 'Tugas Belum Kumpul', value: '2', sub: 'Deadline terdekat: Besok', icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { label: 'Ujian Aktif (CBT)', value: '1', sub: 'Token diperlukan', icon: CheckSquare, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
   ];
+
+  const displayStats = stats?.cards?.map((card: any) => {
+    let icon = Award;
+    if (card.icon === 'UserCheck') icon = Clock;
+    if (card.icon === 'CreditCard') icon = AlertCircle;
+
+    return {
+      label: card.name,
+      value: String(card.value),
+      sub: '',
+      icon: icon,
+      color: 'text-white',
+      bg: card.color
+    };
+  }) || fallbackStats;
 
   const todayClasses = [
     { time: '07:00 - 08:30', mapel: 'Matematika Wajib', guru: 'Ahmad Hidayat, S.Pd', status: 'sekarang' },
@@ -34,8 +52,8 @@ export default function SiswaDashboard() {
       <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white mb-8 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
         <div className="relative z-10">
-          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Pagi, Agus Setiawan!</h2>
-          <p className="text-violet-100 font-medium mb-6">Siswa Kelas X-1 • NISN: 0081234501</p>
+          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Pagi, Siswa!</h2>
+          <p className="text-violet-100 font-medium mb-6">Portal Akademik Siswa</p>
           
           <div className="bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -56,16 +74,18 @@ export default function SiswaDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((s, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        {loading ? (
+            <div className="col-span-4 flex justify-center py-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+        ) : displayStats.map((s: any, i: number) => (
+          <div key={i} className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm`}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{s.label}</span>
-              <div className={`p-2 rounded-lg ${s.bg}`}>
-                <s.icon className={`w-4 h-4 ${s.color}`} />
+              <div className={`p-2 rounded-lg ${s.bg} text-white`}>
+                <s.icon className={`w-4 h-4`} />
               </div>
             </div>
             <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">{s.value}</p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{s.sub}</p>
+            {s.sub && <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{s.sub}</p>}
           </div>
         ))}
       </div>

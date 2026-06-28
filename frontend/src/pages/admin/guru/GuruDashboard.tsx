@@ -2,16 +2,36 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useGuruClasses } from '../../../hooks/usePenugasan';
+import { useDashboardStats } from '../../../hooks/useDashboard';
 
 export default function GuruDashboard() {
   const { data: guruClasses = [] } = useGuruClasses();
+  const { stats, loading } = useDashboardStats();
 
-  const stats = [
+  const fallbackStats = [
     { label: 'Kelas Diampu', value: String(guruClasses.length), sub: 'Berdasarkan Jadwal', icon: Users, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
     { label: 'Jam Mengajar', value: '18 Jam', sub: '/minggu', icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
     { label: 'Tugas Belum Dinilai', value: '3', sub: '25 pengumpulan baru', icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { label: 'Kehadiran Kelas Wali', value: '98.2%', sub: 'Hari ini di X-1', icon: TrendingUp, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
   ];
+
+  // We map returned stats or use fallback
+  const displayStats = stats?.cards?.map((card: any) => {
+    // try to match icon
+    let icon = Users;
+    if (card.icon === 'BookOpen') icon = BookOpen;
+    if (card.icon === 'ClipboardList') icon = AlertCircle;
+    if (card.icon === 'UserCheck') icon = TrendingUp;
+
+    return {
+      label: card.name,
+      value: String(card.value),
+      sub: '',
+      icon: icon,
+      color: 'text-white', // adjusting to use background color from backend
+      bg: card.color
+    };
+  }) || fallbackStats;
 
   const pendingTasks = [
     { id: 1, title: 'Tugas Eksponen', kelas: 'Kelas X-2', submitted: 28, total: 30, date: 'Kemarin' },
@@ -53,16 +73,18 @@ export default function GuruDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((s, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        {loading ? (
+            <div className="col-span-4 flex justify-center py-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+        ) : displayStats.map((s: any, i: number) => (
+          <div key={i} className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm`}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{s.label}</span>
-              <div className={`p-2 rounded-lg ${s.bg}`}>
-                <s.icon className={`w-4 h-4 ${s.color}`} />
+              <div className={`p-2 rounded-lg ${s.bg} text-white`}>
+                <s.icon className={`w-4 h-4`} />
               </div>
             </div>
             <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">{s.value}</p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{s.sub}</p>
+            {s.sub && <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{s.sub}</p>}
           </div>
         ))}
       </div>

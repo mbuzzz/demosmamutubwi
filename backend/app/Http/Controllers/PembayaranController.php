@@ -1,0 +1,272 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\JenisPembayaran;
+use App\Models\TagihanSiswa;
+use App\Models\TransaksiPembayaran;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
+class PembayaranController extends Controller
+{
+    // === Jenis Pembayaran ===
+    public function getJenisPembayaran()
+    {
+        $jenis = JenisPembayaran::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => $jenis
+        ]);
+    }
+
+    public function storeJenisPembayaran(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string|max:255',
+            'nominal_default' => 'required|numeric|min:0',
+            'tipe_siklus' => 'required|in:bulanan,tahunan,sekali',
+            'is_wajib' => 'boolean',
+            'deskripsi' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        $jenis = JenisPembayaran::create($validator->validated());
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Jenis pembayaran berhasil ditambahkan',
+            'data' => $jenis
+        ], 201);
+    }
+
+    public function updateJenisPembayaran(Request $request, $id)
+    {
+        $jenis = JenisPembayaran::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'nama' => 'sometimes|string|max:255',
+            'nominal_default' => 'sometimes|numeric|min:0',
+            'tipe_siklus' => 'sometimes|in:bulanan,tahunan,sekali',
+            'is_wajib' => 'boolean',
+            'deskripsi' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        $jenis->update($validator->validated());
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Jenis pembayaran berhasil diperbarui',
+            'data' => $jenis
+        ]);
+    }
+
+    public function deleteJenisPembayaran($id)
+    {
+        $jenis = JenisPembayaran::findOrFail($id);
+        $jenis->delete();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Jenis pembayaran berhasil dihapus'
+        ]);
+    }
+
+    // === Tagihan Siswa ===
+    public function getTagihanSiswa(Request $request)
+    {
+        $query = TagihanSiswa::with(['siswa', 'jenisPembayaran']);
+
+        if ($request->has('siswa_id')) {
+            $query->where('siswa_id', $request->siswa_id);
+        }
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $tagihan = $query->orderBy('tenggat_waktu', 'asc')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $tagihan
+        ]);
+    }
+
+    public function createTagihanSiswa(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'jenis_pembayaran_id' => 'required|exists:jenis_pembayaran,id',
+            'siswa_ids' => 'required|array',
+            'siswa_ids.*' => 'exists:users,id',
+            'nama_tagihan' => 'required|string',
+            'bulan' => 'nullable|integer|between:1,12',
+            'tahun' => 'nullable|integer',
+            'nominal_tagihan' => 'nullable|numeric|min:0',
+            'tenggat_waktu' => 'nullable|date'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        $jenis = JenisPembayaran::findOrFail($request->jenis_pembayaran_id);
+        $nominal = $request->nominal_tagihan ?? $jenis->nominal_default;
+
+        DB::beginTransaction();
+        try {
+            $tagihanList = [];
+            foreach ($request->siswa_ids as $siswaId) {
+                $tagihanList[] = TagihanSiswa::create([
+                    'siswa_id' => $siswaId,
+                    'jenis_pembayaran_id' => $jenis->id,
+                    'nama_tagihan' => $request->nama_tagihan,
+                    'bulan' => $request->bulan,
+                    'tahun' => $request->tahun,
+                    'nominal_tagihan' => $nominal,
+                    'nominal_terbayar' => 0,
+                    'status' => 'belum',
+                    'tenggat_waktu' => $request->tenggat_waktu,
+                ]);
+            }
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Tagihan berhasil dibuat untuk ' . count($request->siswa_ids) . ' siswa',
+                'data' => $tagihanList
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat membuat tagihan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // === Proses Pembayaran ===
+    public function prosesPembayaran(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'tagihan_id' => 'required|exists:tagihan_siswa,id',
+            'jumlah_bayar' => 'required|numeric|min:1',
+            'metode' => 'required|in:tunai,transfer,rfid',
+            'catatan' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        $tagihan = TagihanSiswa::findOrFail($request->tagihan_id);
+        $sisaTagihan = $tagihan->nominal_tagihan - $tagihan->nominal_terbayar;
+
+        if ($sisaTagihan <= 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tagihan sudah lunas'
+            ], 400);
+        }
+
+        if ($request->jumlah_bayar > $sisaTagihan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Jumlah bayar melebihi sisa tagihan'
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $transaksi = TransaksiPembayaran::create([
+                'tagihan_id' => $tagihan->id,
+                'kode_transaksi' => 'TRX-' . strtoupper(Str::random(10)),
+                'jumlah_bayar' => $request->jumlah_bayar,
+                'tanggal_bayar' => now(),
+                'metode' => $request->metode,
+                'status' => 'berhasil',
+                'diterima_oleh_id' => $request->user()->id,
+                'catatan' => $request->catatan
+            ]);
+
+            $tagihan->nominal_terbayar += $request->jumlah_bayar;
+            
+            if ($tagihan->nominal_terbayar >= $tagihan->nominal_tagihan) {
+                $tagihan->status = 'lunas';
+            } else {
+                $tagihan->status = 'sebagian';
+            }
+            $tagihan->save();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pembayaran berhasil diproses',
+                'data' => $transaksi
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat memproses pembayaran',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getTransaksi(Request $request)
+    {
+        $query = TransaksiPembayaran::with(['tagihan.siswa', 'tagihan.jenisPembayaran', 'penerima']);
+
+        if ($request->has('tanggal_awal') && $request->has('tanggal_akhir')) {
+            $query->whereBetween('tanggal_bayar', [$request->tanggal_awal, $request->tanggal_akhir]);
+        }
+        
+        $transaksi = $query->orderBy('tanggal_bayar', 'desc')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $transaksi
+        ]);
+    }
+
+    public function getStatistik()
+    {
+        $totalTagihan = TagihanSiswa::sum('nominal_tagihan');
+        $totalTerkumpul = TagihanSiswa::sum('nominal_terbayar');
+        $totalBelumDibayar = $totalTagihan - $totalTerkumpul;
+
+        $persentaseTerkumpul = $totalTagihan > 0 ? ($totalTerkumpul / $totalTagihan) * 100 : 0;
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'total_tagihan' => $totalTagihan,
+                'total_terkumpul' => $totalTerkumpul,
+                'total_belum_dibayar' => $totalBelumDibayar,
+                'persentase_terkumpul' => round($persentaseTerkumpul, 2)
+            ]
+        ]);
+    }
+}

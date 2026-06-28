@@ -3,25 +3,31 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { CreditCard, Receipt, BarChart3, Wallet, ArrowRight } from 'lucide-react';
 import { rupiah } from '../../../types/pembayaran';
 import { usePembayaranStatistik, useTransaksiList } from '../../../hooks/usePembayaran';
+import { useDashboardStats } from '../../../hooks/useDashboard';
 
 export default function BendaharaDashboard() {
-  const { data: stats } = usePembayaranStatistik();
+  const { data: statsData } = usePembayaranStatistik();
   const { data: transaksiList = [] } = useTransaksiList({ limit: 5 });
+  const { stats, loading } = useDashboardStats();
 
-  const totalTerkumpul = stats?.total_penerimaan || 0;
-  const totalTunggakan = stats?.total_tunggakan || 0;
-  const siswaBelumLunas = stats?.siswa_nunggak || 0;
+  const totalTerkumpul = statsData?.total_penerimaan || 0;
+  const totalTunggakan = statsData?.total_tunggakan || 0;
+  const siswaBelumLunas = statsData?.siswa_nunggak || 0;
 
   return (
     <AdminLayout title="Dashboard Bendahara">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-sm">
-          <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider">Total Terkumpul</p>
-          <h3 className="text-2xl font-black mt-1">{rupiah(totalTerkumpul)}</h3>
+          <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider">Total Terkumpul (Bulan Ini)</p>
+          <h3 className="text-2xl font-black mt-1">
+             {loading ? '...' : (stats?.kas_bulan_ini ? rupiah(stats.kas_bulan_ini) : rupiah(totalTerkumpul))}
+          </h3>
         </div>
         <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-5 text-white shadow-sm">
-          <p className="text-xs font-bold text-red-100 uppercase tracking-wider">Tunggakan</p>
-          <h3 className="text-2xl font-black mt-1">{rupiah(totalTunggakan)}</h3>
+          <p className="text-xs font-bold text-red-100 uppercase tracking-wider">Total Tunggakan</p>
+          <h3 className="text-2xl font-black mt-1">
+            {loading ? '...' : (stats?.total_tunggakan ? rupiah(stats.total_tunggakan) : rupiah(totalTunggakan))}
+          </h3>
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Siswa Belum Lunas</p>

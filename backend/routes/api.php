@@ -19,6 +19,13 @@ use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\RaporController;
 use App\Http\Controllers\SistemKonfigurasiController;
 use App\Http\Controllers\SPMBController;
+use App\Http\Controllers\PembayaranController;
+
+use App\Http\Controllers\Api\CbtBankSoalController;
+use App\Http\Controllers\Api\CbtSesiController;
+use App\Http\Controllers\Api\CbtUjianController;
+
+use App\Http\Controllers\DashboardController;
 
 // Public RFID Tap Routes
 Route::post('/absensi/tap', [AbsensiController::class, 'tap']);
@@ -31,6 +38,8 @@ Route::match(['PUT', 'POST'], '/user/profile', [AuthController::class, 'updatePr
 Route::put('/user/password', [AuthController::class, 'updatePassword'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+
     // 1. USER MANAGEMENT (Only Superadmin & Admin)
     Route::middleware('role:superadmin,admin')->group(function () {
         Route::get('/users/export/pdf', [UserController::class, 'exportPdf']);
@@ -149,6 +158,44 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/spmb/form-fields', [SPMBController::class, 'storeFormField']);
         Route::put('/spmb/form-fields/{id}', [SPMBController::class, 'updateFormField']);
         Route::delete('/spmb/form-fields/{id}', [SPMBController::class, 'destroyFormField']);
+    });
+
+    // 11. PEMBAYARAN (Superadmin, Admin)
+    Route::middleware('role:superadmin,admin')->group(function () {
+        // Jenis Pembayaran
+        Route::get('/pembayaran/jenis', [PembayaranController::class, 'getJenisPembayaran']);
+        Route::post('/pembayaran/jenis', [PembayaranController::class, 'storeJenisPembayaran']);
+        Route::put('/pembayaran/jenis/{id}', [PembayaranController::class, 'updateJenisPembayaran']);
+        Route::delete('/pembayaran/jenis/{id}', [PembayaranController::class, 'deleteJenisPembayaran']);
+
+        // Tagihan
+        Route::get('/pembayaran/tagihan', [PembayaranController::class, 'getTagihanSiswa']);
+        Route::post('/pembayaran/tagihan', [PembayaranController::class, 'createTagihanSiswa']);
+
+        // Transaksi & Proses Bayar
+        Route::post('/pembayaran/proses', [PembayaranController::class, 'prosesPembayaran']);
+        Route::get('/pembayaran/transaksi', [PembayaranController::class, 'getTransaksi']);
+        Route::get('/pembayaran/statistik', [PembayaranController::class, 'getStatistik']);
+    });
+
+    // 12. CBT (Computer Based Test)
+    // Bank Soal & Sesi Management (Superadmin, Admin, Guru)
+    Route::middleware('role:superadmin,admin,guru')->group(function () {
+        Route::apiResource('cbt/bank-soal', CbtBankSoalController::class);
+        Route::post('cbt/bank-soal/{bankSoal}/soals', [CbtBankSoalController::class, 'storeSoal']);
+        Route::put('cbt/bank-soal/{bankSoal}/soals/{soal}', [CbtBankSoalController::class, 'updateSoal']);
+        Route::delete('cbt/bank-soal/{bankSoal}/soals/{soal}', [CbtBankSoalController::class, 'destroySoal']);
+
+        Route::apiResource('cbt/sesi', CbtSesiController::class);
+        Route::post('cbt/sesi/{sesiUjian}/refresh-token', [CbtSesiController::class, 'refreshToken']);
+    });
+
+    // Ujian Execution (Siswa)
+    Route::middleware('role:siswa')->group(function () {
+        Route::get('cbt/ujian/sesi-aktif', [CbtUjianController::class, 'getSesiAktif']);
+        Route::post('cbt/ujian/mulai', [CbtUjianController::class, 'mulaiUjian']);
+        Route::post('cbt/ujian/simpan-jawaban', [CbtUjianController::class, 'simpanJawaban']);
+        Route::post('cbt/ujian/selesai', [CbtUjianController::class, 'selesaiUjian']);
     });
 });
 

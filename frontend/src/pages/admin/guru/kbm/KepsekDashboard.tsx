@@ -1,22 +1,33 @@
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { FileText, Users, ArrowRight, Award } from 'lucide-react';
+import { useDashboardStats } from '../../../../hooks/useDashboard';
 import { MOCK_REKAP_ABSENSI } from '../../../../types/absensi';
 
 export default function KepsekDashboard() {
-  const totalSiswa = MOCK_REKAP_ABSENSI.length;
-  const rataKehadiran = Math.round(MOCK_REKAP_ABSENSI.reduce((a, r) => a + r.hadir, 0) / (MOCK_REKAP_ABSENSI.reduce((a, r) => a + r.hadir + r.alpha + r.terlambat, 0)) * 100);
+  const { stats, loading } = useDashboardStats();
+
+  const totalSiswa = stats?.total_siswa || MOCK_REKAP_ABSENSI.length;
+  // Use mock for attendance percent if backend doesn't provide it yet, 
+  // or calculate from stats.kehadiran_hari_ini
+  let rataKehadiran = Math.round(MOCK_REKAP_ABSENSI.reduce((a, r) => a + r.hadir, 0) / (MOCK_REKAP_ABSENSI.reduce((a, r) => a + r.hadir + r.alpha + r.terlambat, 0) || 1) * 100);
+  
+  if (stats?.kehadiran_hari_ini) {
+    const { hadir, alpha, terlambat } = stats.kehadiran_hari_ini;
+    const total = hadir + alpha + terlambat;
+    if (total > 0) rataKehadiran = Math.round((hadir / total) * 100);
+  }
 
   return (
     <AdminLayout title="Dashboard Kepala Sekolah">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-5 text-white shadow-sm">
           <p className="text-xs font-bold text-indigo-100 uppercase tracking-wider">Total Siswa</p>
-          <h3 className="text-3xl font-black mt-1">{totalSiswa}</h3>
+          <h3 className="text-3xl font-black mt-1">{loading ? '...' : totalSiswa}</h3>
         </div>
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-sm">
-          <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider">Rata-rata Kehadiran</p>
-          <h3 className="text-3xl font-black mt-1">{rataKehadiran}%</h3>
+          <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider">Kehadiran (Hari Ini)</p>
+          <h3 className="text-3xl font-black mt-1">{loading ? '...' : `${rataKehadiran}%`}</h3>
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Semester Aktif</p>
