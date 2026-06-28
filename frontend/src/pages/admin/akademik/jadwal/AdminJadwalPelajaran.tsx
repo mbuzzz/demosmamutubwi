@@ -73,6 +73,27 @@ export default function AdminJadwalPelajaran() {
   // Reconstruct UI state from DB data
   useEffect(() => {
     if (dbSchedules.length > 0) {
+      // Extract unique days
+      const uniqueDaysMap = new Map<string, DayItem>();
+      dbSchedules.forEach(item => {
+        const id = item.hari.toLowerCase().replace(/\s+/g, '-');
+        if (!uniqueDaysMap.has(id)) {
+          uniqueDaysMap.set(id, { id, name: item.hari });
+        }
+      });
+      // Sort days based on standard order if possible, or just keep insertion order
+      const standardOrder = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+      const newDays = Array.from(uniqueDaysMap.values()).sort((a, b) => {
+        const idxA = standardOrder.indexOf(a.id);
+        const idxB = standardOrder.indexOf(b.id);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return 0;
+      });
+      
+      setDays(newDays.length > 0 ? newDays : defaultDays);
+
       // Extract unique time slots
       const uniqueSlotsMap = new Map<number, TimeSlot>();
       dbSchedules.forEach(item => {
@@ -95,7 +116,7 @@ export default function AdminJadwalPelajaran() {
       const newSchedule: Record<string, ScheduleCell> = {};
       dbSchedules.forEach(item => {
         if (!item.is_break && item.mapel_id) {
-          const dayIdx = days.findIndex(d => d.name.toLowerCase() === item.hari.toLowerCase());
+          const dayIdx = newDays.findIndex(d => d.name.toLowerCase() === item.hari.toLowerCase());
           const slotIdx = newSlots.findIndex(s => s.urutan_jam === item.urutan_jam);
           if (dayIdx !== -1 && slotIdx !== -1) {
             newSchedule[`${slotIdx}-${dayIdx}`] = {
@@ -108,6 +129,7 @@ export default function AdminJadwalPelajaran() {
       setSchedule(newSchedule);
     } else {
       // Default empty state
+      setDays(defaultDays);
       setSlots([
         { id: '1', urutan_jam: 1, start: '07:00', end: '08:30', label: 'Jam ke-1', isBreak: false },
         { id: '2', urutan_jam: 2, start: '08:30', end: '10:00', label: 'Jam ke-2', isBreak: false },
@@ -116,7 +138,7 @@ export default function AdminJadwalPelajaran() {
       ]);
       setSchedule({});
     }
-  }, [dbSchedules, days]);
+  }, [dbSchedules]);
 
   // Modals state
   const [showSlotModal, setShowSlotModal] = useState(false);
