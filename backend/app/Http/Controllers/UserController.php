@@ -59,6 +59,26 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         $user = User::create($validated);
 
+        // Handle student class history (Kenaikan Kelas / Riwayat Kelas)
+        if ($user->role === 'siswa' && $user->kelas) {
+            $config = \App\Models\SistemKonfigurasi::first();
+            $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+            
+            $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
+            if ($kelasObj) {
+                \App\Models\RiwayatKelas::updateOrCreate(
+                    [
+                        'siswa_id' => $user->id,
+                        'tahun_ajaran' => $tahunAjaran,
+                    ],
+                    [
+                        'kelas_id' => $kelasObj->id,
+                        'status' => 'aktif',
+                    ]
+                );
+            }
+        }
+
         return response()->json([
             'message' => 'User berhasil dibuat',
             'user' => $user,
@@ -115,6 +135,26 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
+        // Handle student class history (Kenaikan Kelas / Riwayat Kelas)
+        if ($user->role === 'siswa' && $user->kelas) {
+            $config = \App\Models\SistemKonfigurasi::first();
+            $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+            
+            $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
+            if ($kelasObj) {
+                \App\Models\RiwayatKelas::updateOrCreate(
+                    [
+                        'siswa_id' => $user->id,
+                        'tahun_ajaran' => $tahunAjaran,
+                    ],
+                    [
+                        'kelas_id' => $kelasObj->id,
+                        'status' => 'aktif',
+                    ]
+                );
+            }
+        }
 
         return response()->json([
             'message' => 'User berhasil diperbarui',

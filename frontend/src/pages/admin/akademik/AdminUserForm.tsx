@@ -5,6 +5,7 @@ import { Save, ArrowLeft, User as UserIcon, Lock, Camera, Mail, Phone, Building,
 import { toast } from 'sonner';
 import { randomUid } from '../../../types/rfid';
 import { useUser, useCreateUser, useUpdateUser } from '../../../hooks/useUsers';
+import { useKelasList } from '../../../hooks/useKelas';
 
 export default function AdminUserForm() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function AdminUserForm() {
 
   // Queries & Mutations
   const { data: user, isLoading: isUserLoading } = useUser(id);
+  const { data: kelasList = [] } = useKelasList();
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
 
@@ -235,9 +237,9 @@ export default function AdminUserForm() {
                   <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">Penempatan Kelas</label>
                   <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                     <option value="">-- Belum Ada Kelas --</option>
-                    <option value="X-1">X-1 (Fase E)</option>
-                    <option value="X-2">X-2 (Fase E)</option>
-                    <option value="XI-IPA-1">XI IPA 1</option>
+                    {kelasList.map(k => (
+                      <option key={k.id} value={k.nama}>{k.nama}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -282,9 +284,9 @@ export default function AdminUserForm() {
                     <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">Wali Kelas dari Kelas</label>
                     <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                       <option value="">-- Pilih Kelas Binaan --</option>
-                      <option value="X-1">X-1 (Fase E)</option>
-                      <option value="X-2">X-2 (Fase E)</option>
-                      <option value="XI-IPA-1">XI IPA 1</option>
+                      {kelasList.map(k => (
+                        <option key={k.id} value={k.nama}>{k.nama}</option>
+                      ))}
                     </select>
                   </div>
                 )}

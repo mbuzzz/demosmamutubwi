@@ -43,6 +43,7 @@ export default function AdminPenugasanList() {
   const [editStrukturalId, setEditStrukturalId] = useState<string | null>(null);
   const [strukturalRole, setStrukturalRole] = useState('guru');
   const [strukturalJabatan, setStrukturalJabatan] = useState('');
+  const [strukturalKelasId, setStrukturalKelasId] = useState('');
 
   // Queries & Mutations
   const { data: penugasanList = [], isLoading: isPenugasanLoading } = usePenugasanList(search);
@@ -78,10 +79,15 @@ export default function AdminPenugasanList() {
     setShowForm(true);
   };
 
-  const openEditStruktural = (user: any) => {
-    setEditStrukturalId(user.id);
-    setStrukturalRole(user.role);
-    setStrukturalJabatan(user.jabatan || '');
+  const openEditStruktural = (u: any) => {
+    setEditStrukturalId(u.id);
+    setStrukturalRole(u.role);
+    setStrukturalJabatan(u.jabatan || '');
+    
+    // Find if this user is a wali kelas for a class
+    const cls = kelasList.find(k => k.wali_kelas_id === u.id);
+    setStrukturalKelasId(cls ? String(cls.id) : '');
+    
     setShowForm(false);
   };
 
@@ -115,7 +121,13 @@ export default function AdminPenugasanList() {
 
   const handleSaveStruktural = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editStrukturalId || !strukturalJabatan) {
+    if (!editStrukturalId) return;
+
+    if (strukturalRole === 'walikelas' && !strukturalKelasId) {
+      toast.error('Pilih kelas binaan');
+      return;
+    }
+    if (strukturalRole !== 'walikelas' && !strukturalJabatan) {
       toast.error('Lengkapi jabatan struktural');
       return;
     }
@@ -125,12 +137,14 @@ export default function AdminPenugasanList() {
         id: editStrukturalId,
         data: {
           role: strukturalRole,
-          jabatan: strukturalJabatan,
+          jabatan: strukturalRole === 'walikelas' ? '' : strukturalJabatan,
+          kelas_id: strukturalRole === 'walikelas' ? strukturalKelasId : null,
         }
       });
       toast.success('Tugas struktural berhasil disimpan');
       setEditStrukturalId(null);
       setStrukturalJabatan('');
+      setStrukturalKelasId('');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Gagal menyimpan tugas struktural.');
     }
@@ -296,17 +310,32 @@ export default function AdminPenugasanList() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Jabatan Struktural</label>
-                  <input 
-                    type="text" 
-                    value={strukturalJabatan} 
-                    onChange={e => setStrukturalJabatan(e.target.value)} 
-                    placeholder="Contoh: Kepala Sekolah / Waka Kurikulum" 
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" 
-                    required 
-                  />
-                </div>
+                {strukturalRole === 'walikelas' ? (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Pilih Kelas Binaan</label>
+                    <select 
+                      value={strukturalKelasId} 
+                      onChange={e => setStrukturalKelasId(e.target.value)} 
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                      required
+                    >
+                      <option value="">-- Pilih Kelas --</option>
+                      {kelasList.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Jabatan Struktural</label>
+                    <input 
+                      type="text" 
+                      value={strukturalJabatan} 
+                      onChange={e => setStrukturalJabatan(e.target.value)} 
+                      placeholder="Contoh: Kepala Sekolah / Waka Kurikulum" 
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" 
+                      required 
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Hak Akses Panel (Role)</label>

@@ -80,13 +80,14 @@ export function useStrukturalList() {
 export function useUpdateStruktural() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { role: string; jabatan: string } }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { role: string; jabatan: string; kelas_id?: string | null } }) => {
       const res = await api.put(`/penugasan/struktural/${id}`, data);
       return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['struktural'] });
       queryClient.invalidateQueries({ queryKey: ['users'] }); // Invalidate general users list too
+      queryClient.invalidateQueries({ queryKey: ['kelas'] }); // Invalidate kelas list to refresh wali kelas relation
     },
   });
 }

@@ -128,10 +128,38 @@ class PenugasanController extends Controller
 
         $validated = $request->validate([
             'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,admin',
-            'jabatan' => 'required|string|max:255',
+            'jabatan' => 'required_unless:role,walikelas|string|max:255|nullable',
+            'kelas_id' => 'required_if:role,walikelas|exists:kelas,id|nullable',
         ]);
 
-        $user->update($validated);
+        // If role was previously walikelas, clear old wali kelas relation in kelas table
+        if ($user->role === 'walikelas') {
+            \App\Models\Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
+        }
+
+        if ($validated['role'] === 'walikelas') {
+            $kelas = \App\Models\Kelas::findOrFail($validated['kelas_id']);
+            
+            // Set another class to null if this user is already wali kelas somewhere (handled above, but double check)
+            \App\Models\Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
+            
+            // Assign user as wali kelas of the new class
+            $kelas->update(['wali_kelas_id' => $user->id]);
+
+            // Update user profile fields
+            $user->update([
+                'role' => 'walikelas',
+                'kelas' => $kelas->nama,
+                'jabatan' => 'Wali Kelas ' . $kelas->nama,
+            ]);
+        } else {
+            // Non-walikelas role
+            $user->update([
+                'role' => $validated['role'],
+                'kelas' => null,
+                'jabatan' => $validated['jabatan'],
+            ]);
+        }
 
         return response()->json([
             'message' => 'Tugas struktural berhasil diperbarui',
