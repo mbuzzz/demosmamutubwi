@@ -44,6 +44,7 @@ export default function AdminPenugasanList() {
   const [strukturalRole, setStrukturalRole] = useState('guru');
   const [strukturalJabatan, setStrukturalJabatan] = useState('');
   const [strukturalKelasId, setStrukturalKelasId] = useState('');
+  const [selectedStrukturalUserId, setSelectedStrukturalUserId] = useState('');
 
   // Queries & Mutations
   const { data: penugasanList = [], isLoading: isPenugasanLoading } = usePenugasanList(search);
@@ -79,10 +80,21 @@ export default function AdminPenugasanList() {
     setShowForm(true);
   };
 
+  const openNewStruktural = () => {
+    setEditId(null);
+    setEditStrukturalId('new');
+    setStrukturalRole('guru');
+    setStrukturalJabatan('');
+    setStrukturalKelasId('');
+    setSelectedStrukturalUserId('');
+    setShowForm(false);
+  };
+
   const openEditStruktural = (u: any) => {
     setEditStrukturalId(u.id);
     setStrukturalRole(u.role);
     setStrukturalJabatan(u.jabatan || '');
+    setSelectedStrukturalUserId(u.id);
     
     // Find if this user is a wali kelas for a class
     const cls = kelasList.find(k => k.wali_kelas_id === u.id);
@@ -123,6 +135,12 @@ export default function AdminPenugasanList() {
     e.preventDefault();
     if (!editStrukturalId) return;
 
+    const targetUserId = editStrukturalId === 'new' ? selectedStrukturalUserId : editStrukturalId;
+    if (!targetUserId) {
+      toast.error('Pilih pegawai / staf terlebih dahulu');
+      return;
+    }
+
     if (strukturalRole === 'walikelas' && !strukturalKelasId) {
       toast.error('Pilih kelas binaan');
       return;
@@ -134,7 +152,7 @@ export default function AdminPenugasanList() {
 
     try {
       await updateStrukturalMutation.mutateAsync({
-        id: editStrukturalId,
+        id: targetUserId,
         data: {
           role: strukturalRole,
           jabatan: strukturalRole === 'walikelas' ? '' : strukturalJabatan,
@@ -145,6 +163,7 @@ export default function AdminPenugasanList() {
       setEditStrukturalId(null);
       setStrukturalJabatan('');
       setStrukturalKelasId('');
+      setSelectedStrukturalUserId('');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Gagal menyimpan tugas struktural.');
     }
@@ -210,6 +229,11 @@ export default function AdminPenugasanList() {
           {activeTab === 'mengajar' && (
             <button onClick={openNew} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 shrink-0 shadow-sm">
               <Plus className="w-4 h-4" /> Tambah Penugasan
+            </button>
+          )}
+          {activeTab === 'struktural' && (
+            <button onClick={openNewStruktural} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 shrink-0 shadow-sm">
+              <Plus className="w-4 h-4" /> Tambah Tugas Struktural
             </button>
           )}
         </div>
@@ -304,12 +328,28 @@ export default function AdminPenugasanList() {
             <form onSubmit={handleSaveStruktural} className="max-w-xl space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-indigo-800 dark:text-indigo-300 text-sm flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4" /> Edit Tugas Struktural: <span className="text-indigo-600">{strukturalList.find(u => u.id === editStrukturalId)?.name}</span>
+                  <UserCheck className="w-4 h-4" /> 
+                  {editStrukturalId === 'new' ? 'Tambah Tugas Struktural' : `Edit Tugas Struktural: ${strukturalList.find(u => u.id === editStrukturalId)?.name}`}
                 </h3>
                 <button type="button" onClick={() => setEditStrukturalId(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X className="w-4 h-4" /></button>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
+                {editStrukturalId === 'new' && (
+                  <div className="col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Pilih Pegawai / Staf</label>
+                    <select 
+                      value={selectedStrukturalUserId} 
+                      onChange={e => setSelectedStrukturalUserId(e.target.value)} 
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                      required
+                    >
+                      <option value="">-- Pilih Pegawai --</option>
+                      {strukturalList.map(u => <option key={u.id} value={u.id}>{u.name} ({ROLE_LABELS[u.role] || u.role})</option>)}
+                    </select>
+                  </div>
+                )}
+
                 {strukturalRole === 'walikelas' ? (
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Pilih Kelas Binaan</label>
