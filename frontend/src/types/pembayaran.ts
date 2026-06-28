@@ -55,9 +55,9 @@ export const STATUS_PEMBAYARAN_BADGE: Record<StatusPembayaran, { label: string; 
 };
 
 export const JENIS_PEMBAYARAN_MOCK: JenisPembayaran[] = [
-  { id: 'jp1', nama: 'SPP Bulanan', nominal: 150000, tipe: 'wajib', periode: 'Bulanan', deskripsi: 'Sumbangan Pembinaan Pendidikan', jatuhTempo: 'Setiap tanggal 10' },
-  { id: 'jp2', nama: 'Uang Gedung', nominal: 500000, tipe: 'wajib', periode: 'Sekali', deskripsi: 'Biaya pembangunan & renovasi', jatuhTempo: 'Semester 1' },
-  { id: 'jp3', nama: 'Dana Kegiatan', nominal: 75000, tipe: 'sukarela', periode: 'Bulanan', deskripsi: 'Iuran kegiatan ekstrakurikuler' },
+  { id: 'jp1', nama: 'SPP Bulanan', nominal: 150000, tipe: 'wajib', periode: 'Bulanan', deskripsi: 'Sumbangan Pembinaan Pendidikan', jatuhTempo: '10' },
+  { id: 'jp2', nama: 'Uang Gedung', nominal: 500000, tipe: 'wajib', periode: 'Sekali', deskripsi: 'Biaya pembangunan & renovasi', jatuhTempo: '2026-07-01' },
+  { id: 'jp3', nama: 'Dana Kegiatan', nominal: 75000, tipe: 'sukarela', periode: 'Bulanan', deskripsi: 'Iuran kegiatan ekstrakurikuler', jatuhTempo: '15' },
   { id: 'jp4', nama: 'Buku & LKS', nominal: 200000, tipe: 'sukarela', periode: 'Semester', deskripsi: 'Pembelian buku paket & LKS' },
 ];
 

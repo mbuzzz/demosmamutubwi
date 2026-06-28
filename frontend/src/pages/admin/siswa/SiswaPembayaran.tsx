@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { CreditCard, CheckCircle2, Banknote } from 'lucide-react';
+import { CreditCard, CheckCircle2, Banknote, QrCode } from 'lucide-react';
 import { PEMBAYARAN_SISWA_MOCK, STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa } from '../../../types/pembayaran';
+import { useBankSettings } from '../../../stores/bankSettingsStore';
 
 export default function SiswaPembayaran() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const settings = useBankSettings();
 
   const tagihanSaya = PEMBAYARAN_SISWA_MOCK.filter(p => p.siswaId === 's1');
   const totalTagihan = tagihanSaya.reduce((a, p) => a + p.nominal, 0);
@@ -82,14 +85,40 @@ export default function SiswaPembayaran() {
         </div>
       </div>
 
-      <div className="mt-6 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl p-6 text-white shadow-sm flex items-center gap-4">
+          <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center shrink-0">
             <Banknote className="w-7 h-7" />
           </div>
           <div>
             <h3 className="font-extrabold text-lg">Pembayaran via RFID</h3>
-            <p className="text-sm text-emerald-100">Tap kartu di mesin RFID sekolah untuk bayar tagihan</p>
+            <p className="text-sm text-emerald-100 mt-1">Tap kartu di mesin RFID sekolah untuk bayar tagihan secara instan.</p>
+          </div>
+        </div>
+
+        {/* Informasi Pembayaran Online / Transfer */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between transition-colors">
+          <div className="space-y-3 flex-1">
+            <h4 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-indigo-500" /> Informasi Transfer / QRIS
+            </h4>
+            <div className="space-y-1 text-xs">
+              <div className="text-slate-500 dark:text-slate-400">Bank: <strong className="text-slate-850 dark:text-white">{settings.bankName}</strong></div>
+              <div className="text-slate-500 dark:text-slate-400">No. Rekening: <strong className="text-slate-850 dark:text-white font-mono text-sm">{settings.noRekening}</strong></div>
+              <div className="text-slate-500 dark:text-slate-400">Atas Nama: <strong className="text-slate-850 dark:text-white">{settings.atasNama}</strong></div>
+            </div>
+            <p className="text-[10px] text-slate-400">Konfirmasi bukti pembayaran manual ke petugas bendahara setelah transfer.</p>
+          </div>
+          <div className="shrink-0 flex flex-col items-center gap-1">
+            <img 
+              src={settings.qrisImage} 
+              alt="QRIS Barcode" 
+              className="w-24 h-24 object-contain rounded border border-slate-200 dark:border-slate-700 bg-white"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=SMAS-MUHAMMADIYAH-1-BANYUWANGI';
+              }}
+            />
+            <span className="text-[9px] font-extrabold text-slate-400 uppercase flex items-center gap-1 tracking-wider"><QrCode className="w-3.5 h-3.5" /> QRIS Sekolah</span>
           </div>
         </div>
       </div>

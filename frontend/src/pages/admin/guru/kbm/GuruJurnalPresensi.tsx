@@ -35,10 +35,10 @@ export default function GuruJurnalPresensi() {
 
         {/* Tabel Absensi */}
         <div className="p-6 lg:p-8 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
             <div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Kehadiran Siswa Kelas X-1</h3>
-              <p className="text-sm text-slate-500 mt-1">Semua siswa default Hadir. Ubah jika ada yang berhalangan.</p>
+              <p className="text-xs text-slate-500 mt-1">Semua siswa default Hadir. Ubah jika berhalangan. <strong>Catatan:</strong> Presensi kelas KBM ini terpisah dari absensi gerbang RFID utama sekolah.</p>
             </div>
             <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
               <Save className="w-4 h-4" /> Simpan Jurnal & Absen

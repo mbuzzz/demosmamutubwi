@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, SmartphoneNfc, CreditCard, CheckCircle2, Clock, Receipt, Banknote } from 'lucide-react';
+import { ArrowLeft, SmartphoneNfc, CreditCard, CheckCircle2, XCircle, Clock, Receipt, Banknote } from 'lucide-react';
 import { KONFIGURASI_RFID_DEFAULT, MOCK_KARTU_RFID, waktuSekarang, type KonfigurasiRfid } from '../types/rfid';
 import { PEMBAYARAN_SISWA_MOCK, STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa, type PembayaranSiswa, type TransaksiPembayaran } from '../types/pembayaran';
 import { toast } from 'sonner';
 
-type Step = 'pin' | 'scan' | 'student' | 'confirm' | 'done';
+type Step = 'pin' | 'scan' | 'student' | 'confirm' | 'done' | 'error';
 
 export default function TapPembayaran() {
   const [step, setStep] = useState<Step>('pin');
@@ -17,8 +17,49 @@ export default function TapPembayaran() {
   const [selectedTagihan, setSelectedTagihan] = useState<string | null>(null);
   const [nominalBayar, setNominalBayar] = useState('');
   const [transaksi, setTransaksi] = useState<TransaksiPembayaran | null>(null);
+  const [scanError, setScanError] = useState('');
   const [waktu, setWaktu] = useState(waktuSekarang());
   const rfidInputRef = useRef<HTMLInputElement>(null);
+  const [rfidValue, setRfidValue] = useState('');
+  const rfidTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoBackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const processRfidScan = useCallback((uid: string) => {
+    if (!uid || uid.length < 4) return;
+    const normalized = uid.toUpperCase().trim();
+
+    const kartu = MOCK_KARTU_RFID.find(k => k.uid === normalized && k.status === 'aktif');
+    if (!kartu) {
+      const msg = 'Kartu RFID tidak terdaftar atau tidak aktif';
+      setScanError(msg);
+      setStep('error');
+      if (autoBackRef.current) clearTimeout(autoBackRef.current);
+      autoBackRef.current = setTimeout(() => { setStep('scan'); setScanError(''); }, 2500);
+      toast.error(msg);
+      return;
+    }
+
+    const tagihanSiswa = PEMBAYARAN_SISWA_MOCK.filter(p => p.siswaId === kartu.siswaId && p.status !== 'lunas' && p.status !== 'bebas');
+    setKartuTerdaftar(kartu);
+    setTagihan(tagihanSiswa);
+
+    if (tagihanSiswa.length === 0) {
+      toast.info(`${kartu.nama} — semua tagihan sudah lunas`);
+    }
+    setStep('student');
+  }, []);
+
+  useEffect(() => {
+    if (rfidValue.length < 2) return;
+    if (rfidTimerRef.current) clearTimeout(rfidTimerRef.current);
+    rfidTimerRef.current = setTimeout(() => {
+      processRfidScan(rfidValue);
+      setRfidValue('');
+    }, 80);
+    return () => {
+      if (rfidTimerRef.current) clearTimeout(rfidTimerRef.current);
+    };
+  }, [rfidValue, processRfidScan]);
 
   useEffect(() => {
     const timer = setInterval(() => setWaktu(waktuSekarang()), 10000);
@@ -41,25 +82,11 @@ export default function TapPembayaran() {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const input = form.elements.namedItem('rfidUid') as HTMLInputElement;
-    const uid = input.value.toUpperCase().trim();
-    if (!uid) return;
-
-    const kartu = MOCK_KARTU_RFID.find(k => k.uid === uid && k.status === 'aktif');
-    if (!kartu) {
-      toast.error('Kartu tidak terdaftar atau tidak aktif');
+    if (input.value.trim()) {
+      processRfidScan(input.value);
+      setRfidValue('');
       input.value = '';
-      return;
     }
-
-    const tagihanSiswa = PEMBAYARAN_SISWA_MOCK.filter(p => p.siswaId === kartu.siswaId && p.status !== 'lunas' && p.status !== 'bebas');
-    setKartuTerdaftar(kartu);
-    setTagihan(tagihanSiswa);
-    input.value = '';
-
-    if (tagihanSiswa.length === 0) {
-      toast.info(`${kartu.nama} — semua tagihan sudah lunas`);
-    }
-    setStep('student');
   };
 
   const handleBayar = () => {
@@ -99,12 +126,14 @@ export default function TapPembayaran() {
   };
 
   const handleReset = () => {
+    if (autoBackRef.current) clearTimeout(autoBackRef.current);
     setStep('scan');
     setKartuTerdaftar(null);
     setTagihan([]);
     setSelectedTagihan(null);
     setNominalBayar('');
     setTransaksi(null);
+    setScanError('');
     setTimeout(() => rfidInputRef.current?.focus(), 300);
   };
 
@@ -151,20 +180,40 @@ export default function TapPembayaran() {
               </div>
             </div>
             <form onSubmit={handleRfidScan}>
-              <input ref={rfidInputRef} name="rfidUid" type="text" autoComplete="off"
+              <input ref={rfidInputRef} name="rfidUid" type="text" autoComplete="off" value={rfidValue} onChange={e => setRfidValue(e.target.value)}
                 className="w-full text-center text-lg uppercase tracking-widest px-4 py-4 bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-emerald-300 dark:border-emerald-600 rounded-2xl text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-solid"
                 placeholder="Scan RFID di sini..." />
+              <p className="text-[10px] text-slate-400 text-center mt-2">Pembaca RFID akan mendeteksi kartu secara otomatis — tanpa perlu Enter</p>
             </form>
+          </div>
+        )}
+
+        {step === 'error' && (
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-red-200 dark:border-red-700 animate-in fade-in zoom-in duration-300">
+            <div className="text-center mb-6">
+              <div className="w-24 h-24 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-500">
+                <XCircle className="w-12 h-12 text-red-500 dark:text-red-400" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-red-600 dark:text-red-400 mb-1">TAP GAGAL</h2>
+              <p className="text-slate-600 dark:text-slate-300 text-sm font-semibold mt-2">{scanError}</p>
+            </div>
+
+            <button onClick={handleReset} className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3.5 px-4 rounded-2xl text-sm transition-all">
+              <SmartphoneNfc className="w-5 h-5 inline mr-2" /> Coba Lagi
+            </button>
+
+            <p className="text-center text-[10px] text-slate-400 mt-4">Kembali ke mode scan otomatis dalam 3 detik...</p>
           </div>
         )}
 
         {step === 'student' && kartuTerdaftar && (
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+              <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h2 className="text-xl font-extrabold text-slate-800 dark:text-white">{kartuTerdaftar.nama}</h2>
+              <h2 className="text-xl font-extrabold text-emerald-700 dark:text-emerald-300 mb-1">TAP BERHASIL</h2>
+              <h3 className="text-lg font-black text-slate-800 dark:text-white">{kartuTerdaftar.nama}</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">{kartuTerdaftar.kelas}</p>
             </div>
 
@@ -260,15 +309,15 @@ export default function TapPembayaran() {
 
         {step === 'done' && (
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+            <div className="text-center mb-6">
+              <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-500">
+                <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white">Pembayaran Berhasil!</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Transaksi telah dicatat</p>
+              <h2 className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300 mb-1">PEMBAYARAN BERHASIL</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">Transaksi telah dicatat</p>
             </div>
 
-            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white text-center mb-6">
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white text-center mb-6 shadow-lg">
               <p className="text-sm opacity-80 font-semibold">Nominal Dibayar</p>
               <p className="text-4xl font-black mt-1">{rupiah(transaksi?.nominal || 0)}</p>
             </div>
@@ -277,6 +326,9 @@ export default function TapPembayaran() {
               <button onClick={handleReset} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-all shadow-md">
                 <SmartphoneNfc className="w-5 h-5 inline mr-2" /> Bayar Lagi
               </button>
+              <Link to="/panel/bendahara/pembayaran/siswa" className="block w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3.5 px-4 rounded-2xl text-sm text-center transition-all">
+                Lihat Data Tagihan
+              </Link>
               <Link to="/" className="block text-center text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 font-semibold transition-colors">
                 Selesai
               </Link>

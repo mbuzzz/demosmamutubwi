@@ -100,6 +100,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
             { name: "Dashboard Bayar", path: "/panel/bendahara/pembayaran", icon: CreditCard },
             { name: "Jenis Pembayaran", path: "/panel/bendahara/pembayaran/jenis", icon: FileText },
             { name: "Pembayaran Siswa", path: "/panel/bendahara/pembayaran/siswa", icon: Users },
+            { name: "Rekening & QRIS", path: "/panel/bendahara/settings", icon: Settings },
           ]
         }
       ]
@@ -185,6 +186,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
           title: "Master Data",
           items: [
             { name: "Users & Pegawai", path: "/panel/users", icon: Users },
+            { name: "Ekstrakurikuler", path: "/panel/ekskul", icon: School },
             { name: "Pengaturan Kurikulum", path: "/panel/kurikulum", icon: Settings },
           ]
         },
@@ -192,6 +194,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
           title: "Pengaturan",
           items: [
             { name: "Pengaturan RFID", path: "/panel/settings/rfid", icon: ScanLine },
+            { name: "Rekening & QRIS", path: "/panel/settings/bank", icon: Settings },
           ]
         },
         {

@@ -25,6 +25,7 @@ import {
   SmartphoneNfc,
   CreditCard,
   ScanLine,
+  Award,
   type LucideIcon
 } from 'lucide-react';
 import { useRoleSimulator } from '../simulator/RoleContext';
@@ -70,6 +71,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Kelas & Jurusan", path: "/panel/kelas", icon: School },
           { name: "Mata Pelajaran", path: "/panel/mapel", icon: BookOpen },
           { name: "Kurikulum & Rumus", path: "/panel/kurikulum", icon: Settings },
+          { name: "Ekstrakurikuler", path: "/panel/ekskul", icon: Award },
         ]
       },
       {
@@ -128,6 +130,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Pengaturan Web", path: "/panel/settings", icon: Settings },
           { name: "Pengaturan RFID", path: "/panel/settings/rfid", icon: SmartphoneNfc },
+          { name: "Rekening & QRIS", path: "/panel/settings/bank", icon: CreditCard },
         ]
       },
     ];
@@ -145,6 +148,12 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Dashboard Bayar", path: "/panel/bendahara/pembayaran", icon: CreditCard },
           { name: "Jenis Pembayaran", path: "/panel/bendahara/pembayaran/jenis", icon: FileText },
           { name: "Pembayaran Siswa", path: "/panel/bendahara/pembayaran/siswa", icon: Users },
+        ]
+      },
+      {
+        title: "Pengaturan",
+        items: [
+          { name: "Rekening & QRIS", path: "/panel/bendahara/settings", icon: Settings },
         ]
       },
     ];

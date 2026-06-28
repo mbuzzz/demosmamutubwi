@@ -59,6 +59,8 @@ import AdminPembayaran from './pages/admin/pembayaran/AdminPembayaran';
 import AdminJenisPembayaran from './pages/admin/pembayaran/AdminJenisPembayaran';
 import AdminPembayaranSiswa from './pages/admin/pembayaran/AdminPembayaranSiswa';
 import AdminSettingsRfid from './pages/admin/settings/AdminSettingsRfid';
+import AdminEkstrakurikuler from './pages/admin/akademik/AdminEkstrakurikuler';
+import AdminSettingsBank from './pages/admin/settings/AdminSettingsBank';
 
 // Guru Group Pages (shared by guru, walikelas, kepsek, kurikulum)
 import GuruDashboard from './pages/admin/guru/GuruDashboard';
@@ -149,6 +151,8 @@ export default function App() {
         <Route path="/panel/rapor/cetak/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminCetakRaporDetail /></ProtectedRoute>} />
         <Route path="/panel/settings" element={<ProtectedRoute requiredRole="superadmin"><AdminSettings /></ProtectedRoute>} />
         <Route path="/panel/settings/rfid" element={<ProtectedRoute requiredRole="superadmin"><AdminSettingsRfid /></ProtectedRoute>} />
+        <Route path="/panel/settings/bank" element={<ProtectedRoute requiredRole="superadmin"><AdminSettingsBank /></ProtectedRoute>} />
+        <Route path="/panel/ekskul" element={<ProtectedRoute requiredRole="superadmin"><AdminEkstrakurikuler /></ProtectedRoute>} />
         <Route path="/panel/profile" element={<ProtectedRoute requiredRole="superadmin"><AdminProfile /></ProtectedRoute>} />
         <Route path="/panel/absensi" element={<ProtectedRoute requiredRole="superadmin"><AdminAbsensi /></ProtectedRoute>} />
         <Route path="/panel/absensi/rekap" element={<ProtectedRoute requiredRole="superadmin"><AdminRekapAbsensi /></ProtectedRoute>} />
@@ -188,6 +192,7 @@ export default function App() {
         <Route path="/panel/bendahara/pembayaran" element={<ProtectedRoute requiredRole="bendahara"><AdminPembayaran /></ProtectedRoute>} />
         <Route path="/panel/bendahara/pembayaran/jenis" element={<ProtectedRoute requiredRole="bendahara"><AdminJenisPembayaran /></ProtectedRoute>} />
         <Route path="/panel/bendahara/pembayaran/siswa" element={<ProtectedRoute requiredRole="bendahara"><AdminPembayaranSiswa /></ProtectedRoute>} />
+        <Route path="/panel/bendahara/settings" element={<ProtectedRoute requiredRole="bendahara"><AdminSettingsBank /></ProtectedRoute>} />
 
         {/* ========== SISWA ========== */}
         <Route path="/panel/siswa" element={<ProtectedRoute requiredRole="siswa"><SiswaDashboard /></ProtectedRoute>} />

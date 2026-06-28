@@ -1,6 +1,8 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { FileText, Printer, Award, BarChart3 } from 'lucide-react';
+import { FileText, Printer, Award, BarChart3, UserCheck } from 'lucide-react';
 import { useState } from 'react';
+import { getRekapAbsensiData } from '../../../stores/absensiStore';
+import { getNilaiEkskulSiswa } from '../../../stores/ekskulStore';
 
 interface GradeItem {
   name: string;
@@ -38,6 +40,10 @@ export default function SiswaRapor() {
   const [activeTab, setActiveTab] = useState<'tugas' | 'kuis' | 'ujian' | 'rapor'>('tugas');
 
   const averageGrade = Math.round(finalRapor.reduce((a, s) => a + s.akhir, 0) / finalRapor.length);
+
+  // Load dynamic data for student ID: 's1' (Agus Setiawan)
+  const rekap = getRekapAbsensiData().find(r => r.siswaId === 's1');
+  const ekskuls = getNilaiEkskulSiswa('s1');
 
   return (
     <AdminLayout title="Rapor & Nilai Saya">
@@ -106,9 +112,9 @@ export default function SiswaRapor() {
                     <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400 shrink-0">{g.grade}</div>
                   </div>
                   {g.feedback && (
-                    <div className="mt-3 p-3 bg-white dark:bg-slate-900 border border-slate-250/50 dark:border-slate-750/50 rounded-xl">
+                    <div className="mt-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                       <span className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">Catatan Guru</span>
-                      <p className="text-xs text-slate-600 dark:text-slate-350 italic">"{g.feedback}"</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-355 italic">"{g.feedback}"</p>
                     </div>
                   )}
                 </div>
@@ -181,23 +187,56 @@ export default function SiswaRapor() {
                 </button>
               </div>
 
-              <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl p-5 border border-emerald-100 dark:border-emerald-500/20">
-                <h4 className="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2 mb-3">
-                  <Award className="w-4 h-4" /> Rekap Absensi Semester
-                </h4>
-                <div className="grid grid-cols-5 gap-3 text-center">
-                  {[
-                    { label: 'Hadir', value: 42, color: 'text-emerald-600' },
-                    { label: 'Izin', value: 1, color: 'text-blue-600' },
-                    { label: 'Sakit', value: 2, color: 'text-amber-600' },
-                    { label: 'Alpha', value: 0, color: 'text-red-600' },
-                    { label: 'Terlambat', value: 1, color: 'text-orange-600' },
-                  ].map(item => (
-                    <div key={item.label} className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-emerald-100 dark:border-emerald-500/20">
-                      <p className={`text-lg font-black ${item.color}`}>{item.value}</p>
-                      <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{item.label}</p>
+              {/* Grid: Absensi & Ekskul */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Kehadiran */}
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl p-5 border border-emerald-100 dark:border-emerald-500/20">
+                  <h4 className="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2 mb-3">
+                    <UserCheck className="w-4 h-4" /> Rekap Absensi Semester
+                  </h4>
+                  <div className="grid grid-cols-5 gap-2 text-center">
+                    {[
+                      { label: 'Hadir', value: rekap ? rekap.hadir : 0, color: 'text-emerald-600' },
+                      { label: 'Izin', value: rekap ? rekap.izin : 0, color: 'text-blue-600' },
+                      { label: 'Sakit', value: rekap ? rekap.sakit : 0, color: 'text-amber-600' },
+                      { label: 'Alpha', value: rekap ? rekap.alpha : 0, color: 'text-red-600' },
+                      { label: 'Terlambat', value: rekap ? rekap.terlambat : 0, color: 'text-orange-600' },
+                    ].map(item => (
+                      <div key={item.label} className="bg-white dark:bg-slate-900 rounded-xl p-2 border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
+                        <p className={`text-base font-black ${item.color}`}>{item.value}</p>
+                        <p className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">{item.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ekstrakurikuler */}
+                <div className="bg-purple-50 dark:bg-purple-500/10 rounded-2xl p-5 border border-purple-100 dark:border-purple-500/20">
+                  <h4 className="font-bold text-purple-800 dark:text-purple-300 text-sm flex items-center gap-2 mb-3">
+                    <Award className="w-4 h-4" /> Ekstrakurikuler Diikuti
+                  </h4>
+                  {ekskuls.length > 0 ? (
+                    <div className="space-y-2">
+                      {ekskuls.map((ne, i) => (
+                        <div key={i} className="flex justify-between items-center p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-purple-100 dark:border-purple-500/15 shadow-sm text-xs font-semibold">
+                          <span className="text-slate-800 dark:text-white">{ne.ekskulNama}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-purple-600 font-bold bg-purple-50 dark:bg-purple-500/10 px-2 py-0.5 rounded">
+                              Nilai: {ne.nilai}
+                            </span>
+                            {ne.keterangan && (
+                              <span className="text-[10px] text-slate-400 font-normal italic max-w-[120px] truncate" title={ne.keterangan}>
+                                {ne.keterangan}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <p className="text-xs text-slate-400 italic text-center py-4">Belum ada kegiatan ekstrakurikuler diikuti</p>
+                  )}
                 </div>
               </div>
 
@@ -220,9 +259,9 @@ export default function SiswaRapor() {
                       <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="px-5 py-4 font-bold text-slate-850 dark:text-white">{r.mapel}</td>
                         <td className="px-5 py-4 text-center font-bold text-slate-500">{r.kkm}</td>
-                        <td className="px-5 py-4 text-center font-medium text-slate-750 dark:text-slate-350">{r.tugas}</td>
-                        <td className="px-5 py-4 text-center font-medium text-slate-750 dark:text-slate-350">{r.kuis}</td>
-                        <td className="px-5 py-4 text-center font-medium text-slate-750 dark:text-slate-350">{r.ujian}</td>
+                        <td className="px-5 py-4 text-center font-medium text-slate-750 dark:text-slate-355">{r.tugas}</td>
+                        <td className="px-5 py-4 text-center font-medium text-slate-750 dark:text-slate-355">{r.kuis}</td>
+                        <td className="px-5 py-4 text-center font-medium text-slate-750 dark:text-slate-355">{r.ujian}</td>
                         <td className="px-5 py-4 text-center font-black text-indigo-600 dark:text-indigo-400 text-lg bg-slate-50 dark:bg-slate-800/50">{r.akhir}</td>
                         <td className="px-5 py-4 text-center font-bold text-emerald-600">{r.predikat}</td>
                         <td className="px-5 py-4 text-xs font-semibold text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs truncate md:max-w-none md:whitespace-normal">{r.catatan}</td>

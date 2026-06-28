@@ -56,27 +56,31 @@ export default function AdminSettingsRfid() {
           <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
             <Clock className="w-4 h-4 text-indigo-500" /> Jam Absensi
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Jam Masuk</label>
-              <input type="time" value={config.jamMasuk} onChange={e => setConfig({ ...config, jamMasuk: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="time" value={config.jamMasuk} onChange={e => setConfig({ ...config, jamMasuk: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Jam Pulang</label>
-              <input type="time" value={config.jamPulang} onChange={e => setConfig({ ...config, jamPulang: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="time" value={config.jamPulang} onChange={e => setConfig({ ...config, jamPulang: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 <span className="flex items-center gap-1">Toleransi Terlambat <AlertTriangle className="w-3 h-3 text-amber-500" /></span>
               </label>
               <div className="relative">
-                <input type="number" min={0} max={120} value={config.toleransiTerlambat} onChange={e => setConfig({ ...config, toleransiTerlambat: Number(e.target.value) })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="number" min={0} max={120} value={config.toleransiTerlambat} onChange={e => setConfig({ ...config, toleransiTerlambat: Number(e.target.value) })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold">menit</span>
               </div>
             </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Batas Dianggap Alpha</label>
+              <input type="time" value={config.batasAlpha || '08:00'} onChange={e => setConfig({ ...config, batasAlpha: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+            </div>
           </div>
           <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl text-xs text-blue-800 dark:text-blue-300">
-            <strong>Logika:</strong> Tap sebelum {config.jamMasuk} + {config.toleransiTerlambat} menit = Hadir. Tap setelahnya = Terlambat. Tap setelah {config.jamPulang} = Pulang.
+            <strong>Logika:</strong> Tap sebelum {config.jamMasuk} + {config.toleransiTerlambat} menit = Hadir. Tap setelahnya hingga {config.batasAlpha || '08:00'} = Terlambat. Tap setelah {config.batasAlpha || '08:00'} = Otomatis Alpha. Tap setelah {config.jamPulang} = Pulang.
           </div>
         </div>
 

@@ -15,6 +15,7 @@ export interface KonfigurasiRfid {
   jamMasuk: string;
   jamPulang: string;
   toleransiTerlambat: number;
+  batasAlpha: string;
   updatedAt: string;
 }
 
@@ -31,6 +32,7 @@ export const KONFIGURASI_RFID_DEFAULT: KonfigurasiRfid = {
   jamMasuk: '07:00',
   jamPulang: '15:30',
   toleransiTerlambat: 15,
+  batasAlpha: '08:00',
   updatedAt: new Date().toISOString(),
 };
 
@@ -54,9 +56,17 @@ export function waktuSekarang(): string {
   return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
-export function statusDariJam(jam: string, konfig: KonfigurasiRfid): 'hadir' | 'terlambat' {
+export function statusDariJam(jam: string, konfig: KonfigurasiRfid): 'hadir' | 'terlambat' | 'alpha' {
   const [j, m] = jam.split(':').map(Number);
   const [jm, mm] = konfig.jamMasuk.split(':').map(Number);
-  const batas = jm * 60 + mm + konfig.toleransiTerlambat;
-  return (j * 60 + m) <= batas ? 'hadir' : 'terlambat';
+  const [ja, ma] = (konfig.batasAlpha || '08:00').split(':').map(Number);
+  
+  const waktuTapMenit = j * 60 + m;
+  const batasMasukMenit = jm * 60 + mm;
+  const batasLateMenit = batasMasukMenit + konfig.toleransiTerlambat;
+  const batasAlphaMenit = ja * 60 + ma;
+  
+  if (waktuTapMenit > batasAlphaMenit) return 'alpha';
+  if (waktuTapMenit > batasLateMenit) return 'terlambat';
+  return 'hadir';
 }

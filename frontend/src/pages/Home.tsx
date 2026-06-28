@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from 'react-router-dom';
-import { Award, Users, BookOpen, GraduationCap, ArrowRight, Quote } from 'lucide-react';
+import { Award, BookOpen, GraduationCap, ArrowRight, Quote } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -154,12 +154,7 @@ export default function Home() {
       {/* Stats Widget */}
       <section className="py-12 bg-slate-50 dark:bg-slate-800 border-t border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 text-center">
-            <div className="p-6 border border-slate-100 dark:border-slate-800 rounded-[15px] shadow-card dark:shadow-none bg-white dark:bg-slate-900 hover:shadow-card dark:shadow-none-hover transition-shadow">
-              <Users className="h-8 w-8 text-brand-blueDark dark:text-brand-yellow mx-auto mb-2" />
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-white">850+</div>
-              <div className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Siswa Aktif</div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 text-center">
             <div className="p-6 border border-slate-100 dark:border-slate-800 rounded-[15px] shadow-card dark:shadow-none bg-white dark:bg-slate-900 hover:shadow-card dark:shadow-none-hover transition-shadow">
               <GraduationCap className="h-8 w-8 text-brand-teal dark:text-emerald-400 mx-auto mb-2" />
               <div className="text-3xl font-extrabold text-slate-900 dark:text-white">45+</div>

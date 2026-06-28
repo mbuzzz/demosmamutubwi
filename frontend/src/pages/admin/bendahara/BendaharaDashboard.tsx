@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { CreditCard, Receipt, BarChart3, PiggyBank, ArrowRight } from 'lucide-react';
+import { CreditCard, Receipt, BarChart3, Wallet, ArrowRight } from 'lucide-react';
 import { PEMBAYARAN_SISWA_MOCK, rupiah } from '../../../types/pembayaran';
 
 export default function BendaharaDashboard() {
@@ -55,7 +55,7 @@ export default function BendaharaDashboard() {
             <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center">
-                  <PiggyBank className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{rupiah(t.nominal)}</p>

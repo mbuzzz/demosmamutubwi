@@ -1,8 +1,14 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { ArrowLeft, Printer, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getNilaiEkskulSiswa } from '../../../../stores/ekskulStore';
+import { getRekapAbsensiData } from '../../../../stores/absensiStore';
 
 export default function AdminCetakRaporDetail() {
+  // Load dynamic data for student Agus Setiawan (ID: 's1')
+  const ekskuls = getNilaiEkskulSiswa('s1');
+  const rekap = getRekapAbsensiData().find(r => r.siswaId === 's1');
+
   return (
     <AdminLayout title="Preview Cetak Rapor">
       <div className="mb-6 flex items-center justify-between">
@@ -112,25 +118,49 @@ export default function AdminCetakRaporDetail() {
               <div>
                 <h3 className="font-bold text-sm mb-2 uppercase">C. Ekstrakurikuler</h3>
                 <table className="w-full border-collapse border border-slate-800 text-xs">
-                  <tr>
-                    <td className="border border-slate-800 p-2 font-bold">Pramuka</td>
-                    <td className="border border-slate-800 p-2 text-center">B (Baik)</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-slate-800 p-2 font-bold">Tapak Suci</td>
-                    <td className="border border-slate-800 p-2 text-center">A (Sangat Baik)</td>
-                  </tr>
+                  <tbody>
+                    {ekskuls.length > 0 ? (
+                      ekskuls.map((ne, i) => (
+                        <tr key={i}>
+                          <td className="border border-slate-800 p-2 font-bold">{ne.ekskulNama}</td>
+                          <td className="border border-slate-800 p-2 text-center">
+                            {ne.nilai} ({ne.nilai === 'A' ? 'Sangat Baik' : ne.nilai === 'B' ? 'Baik' : ne.nilai === 'C' ? 'Cukup' : 'Kurang'})
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={2} className="border border-slate-800 p-2 text-center text-slate-400">
+                          Tidak mengikuti ekstrakurikuler
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
                 </table>
               </div>
               <div>
                 <h3 className="font-bold text-sm mb-2 uppercase">D. Ketidakhadiran</h3>
                 <table className="w-full border-collapse border border-slate-800 text-xs">
-                  <tr><td className="border border-slate-800 p-2">Sakit</td><td className="border border-slate-800 p-2 text-center">2 Hari</td></tr>
-                  <tr><td className="border border-slate-800 p-2">Izin</td><td className="border border-slate-800 p-2 text-center">-</td></tr>
-                  <tr><td className="border border-slate-800 p-2">Tanpa Keterangan</td><td className="border border-slate-800 p-2 text-center">-</td></tr>
-                  <tr><td className="border border-slate-800 p-2 font-bold">Terlambat</td><td className="border border-slate-800 p-2 text-center font-bold">1 Hari</td></tr>
+                  <tbody>
+                    <tr>
+                      <td className="border border-slate-800 p-2">Sakit</td>
+                      <td className="border border-slate-800 p-2 text-center">{rekap ? rekap.sakit : 0} Hari</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-slate-800 p-2">Izin</td>
+                      <td className="border border-slate-800 p-2 text-center">{rekap ? rekap.izin : 0} Hari</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-slate-800 p-2">Tanpa Keterangan (Alpha)</td>
+                      <td className="border border-slate-800 p-2 text-center">{rekap ? rekap.alpha : 0} Hari</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-slate-800 p-2 font-bold">Terlambat</td>
+                      <td className="border border-slate-800 p-2 text-center font-bold">{rekap ? rekap.terlambat : 0} Hari</td>
+                    </tr>
+                  </tbody>
                 </table>
-                <p className="text-[9px] text-slate-500 mt-1">Data absensi dari sistem RFID & manual</p>
+                <p className="text-[9px] text-slate-500 mt-1">Data absensi terintegrasi dari gerbang RFID & dispensasi Wali Kelas</p>
               </div>
             </div>
 
@@ -142,7 +172,7 @@ export default function AdminCetakRaporDetail() {
               </div>
               <div>
                 Banyuwangi, 18 Desember 2024<br/>Wali Kelas<br/><br/><br/><br/><br/>
-                <strong>Ahmad Hidayat, S.Pd</strong><br/>NBM. 1234567
+                <strong>Ahmad Fauzi, S.Pd</strong><br/>NBM. 1234567
               </div>
             </div>
             <div className="text-center text-xs mt-12">

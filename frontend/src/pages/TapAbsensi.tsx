@@ -1,21 +1,87 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, SmartphoneNfc, CheckCircle2, Lock, Clock, LogOut } from 'lucide-react';
+import { ArrowLeft, SmartphoneNfc, CheckCircle2, XCircle, Lock, Clock } from 'lucide-react';
 import { KONFIGURASI_RFID_DEFAULT, MOCK_KARTU_RFID, waktuSekarang, statusDariJam, type KonfigurasiRfid } from '../types/rfid';
 import { MOCK_ABSENSI_HARI_INI, STATUS_ABSENSI_BADGE, type SiswaAbsensi } from '../types/absensi';
 import { toast } from 'sonner';
 
-type Step = 'pin' | 'scan' | 'result';
+type Step = 'pin' | 'scan' | 'success' | 'error';
 
 export default function TapAbsensi() {
   const [step, setStep] = useState<Step>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
   const [scanResult, setScanResult] = useState<SiswaAbsensi | null>(null);
+  const [scanError, setScanError] = useState('');
   const [config] = useState<KonfigurasiRfid>(KONFIGURASI_RFID_DEFAULT);
   const [waktu, setWaktu] = useState(waktuSekarang());
   const rfidInputRef = useRef<HTMLInputElement>(null);
   const [scanCount, setScanCount] = useState(0);
+  const [rfidValue, setRfidValue] = useState('');
+  const rfidTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoBackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const processRfidScan = useCallback((uid: string) => {
+    if (!uid || uid.length < 4) return;
+    const normalized = uid.toUpperCase().trim();
+
+    const kartu = MOCK_KARTU_RFID.find(k => k.uid === normalized && k.status === 'aktif');
+    if (!kartu) {
+      const msg = 'Kartu RFID tidak terdaftar atau tidak aktif';
+      setScanError(msg);
+      setStep('error');
+      if (autoBackRef.current) clearTimeout(autoBackRef.current);
+      autoBackRef.current = setTimeout(() => setStep('scan'), 2500);
+      toast.error(msg);
+      return;
+    }
+
+    const absenHariIni = MOCK_ABSENSI_HARI_INI.find(a => a.siswaId === kartu.siswaId && a.tanggal === '2026-06-24');
+    const sudahPulang = absenHariIni?.jamPulang;
+    const sudahAbsenMasuk = absenHariIni?.jamMasuk;
+    const now = waktu;
+    const jenis = sudahPulang ? 'full' : sudahAbsenMasuk ? 'pulang' : 'masuk';
+
+    if (jenis === 'full') {
+      const msg = `${kartu.nama} sudah absen masuk & pulang hari ini`;
+      setScanError(msg);
+      setStep('error');
+      if (autoBackRef.current) clearTimeout(autoBackRef.current);
+      autoBackRef.current = setTimeout(() => setStep('scan'), 2500);
+      toast.info(msg);
+      return;
+    }
+
+    const statusAbsen = jenis === 'masuk' ? statusDariJam(now, config) : 'hadir';
+
+    setScanResult({
+      id: `scan-${Date.now()}`,
+      siswaId: kartu.siswaId,
+      nama: kartu.nama,
+      kelas: kartu.kelas,
+      tanggal: new Date().toISOString().split('T')[0],
+      jamMasuk: jenis === 'masuk' ? now : absenHariIni?.jamMasuk,
+      jamPulang: jenis === 'pulang' ? now : undefined,
+      statusMasuk: jenis === 'masuk' ? statusAbsen : (absenHariIni?.statusMasuk || 'hadir'),
+      statusPulang: jenis === 'pulang' ? 'hadir' : undefined,
+      metode: 'rfid',
+      rfidCard: normalized,
+    });
+    setStep('success');
+    setScanCount(prev => prev + 1);
+  }, [waktu, config]);
+
+  useEffect(() => {
+    if (rfidValue.length < 2) return;
+    if (rfidTimerRef.current) clearTimeout(rfidTimerRef.current);
+    rfidTimerRef.current = setTimeout(() => {
+      processRfidScan(rfidValue);
+      setRfidValue('');
+    }, 80);
+    return () => {
+      if (rfidTimerRef.current) clearTimeout(rfidTimerRef.current);
+    };
+  }, [rfidValue, processRfidScan]);
 
   useEffect(() => {
     const timer = setInterval(() => setWaktu(waktuSekarang()), 10000);
@@ -38,55 +104,18 @@ export default function TapAbsensi() {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const input = form.elements.namedItem('rfidUid') as HTMLInputElement;
-    const uid = input.value.toUpperCase().trim();
-
-    if (!uid) return;
-
-    const kartu = MOCK_KARTU_RFID.find(k => k.uid === uid && k.status === 'aktif');
-    if (!kartu) {
-      toast.error('Kartu RFID tidak terdaftar atau tidak aktif');
+    if (input.value.trim()) {
+      processRfidScan(input.value);
+      setRfidValue('');
       input.value = '';
-      return;
     }
-
-    const absenHariIni = MOCK_ABSENSI_HARI_INI.find(a => a.siswaId === kartu.siswaId && a.tanggal === '2026-06-24');
-    const sudahPulang = absenHariIni?.jamPulang;
-    const sudahAbsenMasuk = absenHariIni?.jamMasuk;
-
-    const now = waktu;
-    const jenis = sudahPulang ? 'full' : sudahAbsenMasuk ? 'pulang' : 'masuk';
-
-    if (jenis === 'full') {
-      toast.info(`${kartu.nama} sudah absen masuk & pulang hari ini`);
-      input.value = '';
-      return;
-    }
-
-    const statusAbsen = jenis === 'masuk' ? statusDariJam(now, config) : 'hadir';
-
-    setScanResult({
-      id: `scan-${Date.now()}`,
-      siswaId: kartu.siswaId,
-      nama: kartu.nama,
-      kelas: kartu.kelas,
-      tanggal: new Date().toISOString().split('T')[0],
-      jamMasuk: jenis === 'masuk' ? now : absenHariIni?.jamMasuk,
-      jamPulang: jenis === 'pulang' ? now : undefined,
-      statusMasuk: jenis === 'masuk' ? statusAbsen : (absenHariIni?.statusMasuk || 'hadir'),
-      statusPulang: jenis === 'pulang' ? 'hadir' : undefined,
-      metode: 'rfid',
-      rfidCard: uid,
-    });
-
-    setStep('result');
-    setScanCount(prev => prev + 1);
-    toast.success(`${kartu.nama} - ${jenis === 'masuk' ? 'Absen Masuk' : 'Absen Pulang'} berhasil`);
-    input.value = '';
   };
 
   const handleScanAgain = () => {
+    if (autoBackRef.current) clearTimeout(autoBackRef.current);
     setStep('scan');
     setScanResult(null);
+    setScanError('');
     setTimeout(() => rfidInputRef.current?.focus(), 300);
   };
 
@@ -134,62 +163,39 @@ export default function TapAbsensi() {
             </div>
 
             <form onSubmit={handleRfidScan}>
-              <input ref={rfidInputRef} name="rfidUid" type="text" autoComplete="off"
+              <input ref={rfidInputRef} name="rfidUid" type="text" autoComplete="off" value={rfidValue} onChange={e => setRfidValue(e.target.value)}
                 className="w-full text-center text-lg uppercase tracking-widest px-4 py-4 bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-indigo-300 dark:border-indigo-600 rounded-2xl text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-solid"
                 placeholder="Scan RFID di sini..." />
-              <p className="text-[10px] text-slate-400 text-center mt-2">Pembaca RFID akan memasukkan kode secara otomatis</p>
+              <p className="text-[10px] text-slate-400 text-center mt-2">Pembaca RFID akan mendeteksi kartu secara otomatis — tanpa perlu Enter</p>
             </form>
-
-            <div className="mt-6 flex justify-center">
-              <button onClick={handleScanAgain} className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
-                Tap Ulang
-              </button>
-            </div>
           </div>
         )}
 
-        {step === 'result' && scanResult && (
+        {step === 'success' && scanResult && (
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
             <div className="text-center mb-6">
-              <div className={`w-20 h-20 ${!scanResult.jamPulang ? 'bg-emerald-100 dark:bg-emerald-500/20' : 'bg-blue-100 dark:bg-blue-500/20'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                {!scanResult.jamPulang ? <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400" /> : <LogOut className="w-10 h-10 text-blue-600 dark:text-blue-400" />}
+              <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-500">
+                <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white">{scanResult.nama}</h2>
+              <h2 className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300 mb-1">TAP BERHASIL</h2>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white">{scanResult.nama}</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">{scanResult.kelas}</p>
             </div>
 
-            <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5">
+            <div className="space-y-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Jenis</span>
-                <span className="text-sm font-bold text-slate-800 dark:text-white">{scanResult.jamPulang ? 'Absen Pulang' : scanResult.jamMasuk && !scanResult.jamPulang ? 'Absen Masuk' : 'Absen Masuk & Pulang'}</span>
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Jenis</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-white">{scanResult.jamPulang ? 'Absen Pulang' : 'Absen Masuk'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Waktu Masuk</span>
-                <span className="text-sm font-bold text-slate-800 dark:text-white">{scanResult.jamMasuk || '-'}</span>
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Waktu</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-white">{scanResult.jamMasuk || scanResult.jamPulang || '-'}</span>
               </div>
-              {scanResult.jamPulang && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Waktu Pulang</span>
-                  <span className="text-sm font-bold text-slate-800 dark:text-white">{scanResult.jamPulang}</span>
-                </div>
-              )}
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Status Masuk</span>
-                <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_ABSENSI_BADGE[scanResult.statusMasuk].color}`}>
-                  {STATUS_ABSENSI_BADGE[scanResult.statusMasuk].label}
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Status</span>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_ABSENSI_BADGE[scanResult.jamPulang ? scanResult.statusPulang || 'hadir' : scanResult.statusMasuk].color}`}>
+                  {STATUS_ABSENSI_BADGE[scanResult.jamPulang ? scanResult.statusPulang || 'hadir' : scanResult.statusMasuk].label}
                 </span>
-              </div>
-              {scanResult.statusPulang && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Status Pulang</span>
-                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_ABSENSI_BADGE[scanResult.statusPulang].color}`}>
-                    {STATUS_ABSENSI_BADGE[scanResult.statusPulang].label}
-                  </span>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Metode</span>
-                <span className="text-sm font-bold text-slate-800 dark:text-white">RFID</span>
               </div>
             </div>
 
@@ -205,6 +211,24 @@ export default function TapAbsensi() {
             <div className="mt-4 text-center text-[10px] text-slate-400">
               Total tap hari ini: {scanCount}
             </div>
+          </div>
+        )}
+
+        {step === 'error' && (
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-red-200 dark:border-red-700 animate-in fade-in zoom-in duration-300">
+            <div className="text-center mb-6">
+              <div className="w-24 h-24 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-500">
+                <XCircle className="w-12 h-12 text-red-500 dark:text-red-400" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-red-600 dark:text-red-400 mb-1">TAP GAGAL</h2>
+              <p className="text-slate-600 dark:text-slate-300 text-sm font-semibold mt-2">{scanError}</p>
+            </div>
+
+            <button onClick={handleScanAgain} className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3.5 px-4 rounded-2xl text-sm transition-all">
+              <SmartphoneNfc className="w-5 h-5 inline mr-2" /> Coba Lagi
+            </button>
+
+            <p className="text-center text-[10px] text-slate-400 mt-4">Kembali ke mode scan otomatis dalam 3 detik...</p>
           </div>
         )}
 

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Save, ArrowLeft, User as UserIcon, Lock, Camera, Mail, Phone, MapPin, Building, Shield } from 'lucide-react';
+import { Save, ArrowLeft, User as UserIcon, Lock, Camera, Mail, Phone, MapPin, Building, Shield, ScanLine } from 'lucide-react';
 import { toast } from 'sonner';
+import { randomUid } from '../../../types/rfid';
 
 export default function AdminUserForm() {
   const navigate = useNavigate();
   const [role, setRole] = useState('siswa');
+  const [rfidUid, setRfidUid] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,12 +129,30 @@ export default function AdminUserForm() {
             {role === 'siswa' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-900 mb-1.5">NIS / NISN</label>
-                  <input type="text" placeholder="Nomor Induk Siswa Nasional" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <label className="block text-sm font-semibold text-indigo-900 mb-1.5">UID Kartu RFID</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={rfidUid}
+                      onChange={e => setRfidUid(e.target.value)}
+                      placeholder="RF:XX:XX:XX:XX" 
+                      className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setRfidUid(randomUid());
+                        toast.success('Kartu RFID Terdeteksi (Mock)!');
+                      }}
+                      className="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-bold px-4 rounded-lg text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap dark:bg-indigo-950 dark:border-indigo-900 dark:text-indigo-400"
+                    >
+                      <ScanLine className="w-4 h-4" /> Scan
+                    </button>
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-900 mb-1.5">UID Kartu RFID</label>
-                  <input type="text" placeholder="RF:XX:XX:XX:XX" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+                  <label className="block text-sm font-semibold text-indigo-900 mb-1.5">NIS / NISN</label>
+                  <input type="text" placeholder="Nomor Induk Siswa Nasional" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-indigo-900 mb-1.5">Penempatan Kelas</label>
