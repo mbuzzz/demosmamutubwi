@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama')->unique(); // e.g. X-1, XI-1
             $table->string('tingkat'); // e.g. 10, 11, 12
+            $table->unsignedBigInteger('kurikulum_id')->nullable(); // will be constrained in a later migration or when kurikulum table exists
             $table->foreignId('wali_kelas_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });

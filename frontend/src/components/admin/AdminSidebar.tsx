@@ -214,6 +214,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: CalendarDays },
           { name: "Absensi Siswa", path: "/panel/guru/absensi", icon: UserCheck },
+          { name: "Tujuan Pembelajaran (TP)", path: "/panel/guru/tp", icon: Award },
+          { name: "Nilai per TP", path: "/panel/guru/nilai-tp", icon: FileText },
           { name: "Buku Nilai Harian", path: "/panel/guru/nilai", icon: FileText },
           { name: "Bank Materi", path: "/panel/guru/materi", icon: BookOpen },
           { name: "Daftar Tugas", path: "/panel/guru/tugas", icon: ClipboardList },

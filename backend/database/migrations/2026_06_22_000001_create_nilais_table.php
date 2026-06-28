@@ -12,13 +12,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('siswa_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('guru_id')->constrained('users')->onDelete('cascade');
-            $table->string('mata_pelajaran');
-            $table->integer('nilai_pengetahuan');
-            $table->integer('nilai_keterampilan');
-            $table->integer('nilai_akhir');
-            $table->string('semester');
+            $table->foreignId('mapel_id')->constrained('mapels')->onDelete('cascade');
+            $table->integer('nilai_tugas')->default(0);
+            $table->integer('nilai_uts')->default(0);
+            $table->integer('nilai_uas')->default(0);
+            $table->integer('nilai_akhir')->default(0);
+            $table->string('predikat', 2)->default('C');
+            $table->string('semester'); // ganjil, genap
             $table->string('tahun_ajaran');
-            $table->text('keterangan')->nullable();
+            $table->text('catatan')->nullable();
             $table->timestamps();
         });
     }

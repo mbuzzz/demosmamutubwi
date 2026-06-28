@@ -78,6 +78,8 @@ import GuruBankSoalEditor from './pages/admin/guru/cbt/GuruBankSoalEditor';
 import GuruUjianList from './pages/admin/guru/cbt/GuruUjianList';
 import GuruWaliSiswa from './pages/admin/guru/kbm/GuruWaliSiswa';
 import GuruCatatanWali from './pages/admin/guru/kbm/GuruCatatanWali';
+import GuruTujuanPembelajaran from './pages/admin/guru/kbm/GuruTujuanPembelajaran';
+import GuruNilaiTp from './pages/admin/guru/kbm/GuruNilaiTp';
 import GuruAbsensi from './pages/admin/guru/kbm/GuruAbsensi';
 import KepsekDashboard from './pages/admin/guru/kbm/KepsekDashboard';
 import KurikulumDashboard from './pages/admin/guru/kbm/KurikulumDashboard';
@@ -187,6 +189,8 @@ export default function App() {
         <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruUjianList /></ProtectedRoute>} />
         <Route path="/panel/guru/wali-siswa" element={<ProtectedRoute requiredRole={['walikelas']}><GuruWaliSiswa /></ProtectedRoute>} />
         <Route path="/panel/guru/catatan-wali" element={<ProtectedRoute requiredRole={['walikelas']}><GuruCatatanWali /></ProtectedRoute>} />
+        <Route path="/panel/guru/tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruTujuanPembelajaran /></ProtectedRoute>} />
+        <Route path="/panel/guru/nilai-tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruNilaiTp /></ProtectedRoute>} />
         <Route path="/panel/guru/absensi" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruAbsensi /></ProtectedRoute>} />
         <Route path="/panel/guru/absensi/rekap" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas']}><AdminRekapAbsensi /></ProtectedRoute>} />
         <Route path="/panel/guru/rapor" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas', 'guru', 'kurikulum']}><AdminRaporList /></ProtectedRoute>} />

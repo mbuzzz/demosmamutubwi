@@ -133,6 +133,8 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
           title: "KBM",
           items: [
             { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: ClipboardList },
+            { name: "Tujuan Pembelajaran (TP)", path: "/panel/guru/tp", icon: BookOpen },
+            { name: "Nilai per TP", path: "/panel/guru/nilai-tp", icon: FileText },
             { name: "Bank Materi", path: "/panel/guru/materi", icon: BookOpen },
             { name: "Daftar Tugas", path: "/panel/guru/tugas", icon: ClipboardList },
             { name: "Bank Soal", path: "/panel/guru/soal", icon: FileQuestion },
@@ -151,6 +153,8 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
           title: "KBM",
           items: [
             { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: ClipboardList },
+            { name: "Tujuan Pembelajaran (TP)", path: "/panel/guru/tp", icon: BookOpen },
+            { name: "Nilai per TP", path: "/panel/guru/nilai-tp", icon: FileText },
             { name: "Bank Materi", path: "/panel/guru/materi", icon: BookOpen },
             { name: "Daftar Tugas", path: "/panel/guru/tugas", icon: ClipboardList },
             { name: "Bank Soal", path: "/panel/guru/soal", icon: FileQuestion },
