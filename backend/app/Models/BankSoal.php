@@ -9,7 +9,16 @@ class BankSoal extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'guru_id',
+        'mapel_id',
+        'tingkat',
+        'judul',
+        'tipe',
+        'deskripsi',
+        'waktu_pengerjaan',
+        'status'
+    ];
 
     public function guru()
     {

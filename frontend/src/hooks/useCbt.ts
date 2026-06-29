@@ -58,6 +58,24 @@ export function useUpdateBankSoal() {
   });
 }
 
+// 4.1 Delete Bank Soal
+export function useDeleteBankSoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await api.delete(`/cbt/bank-soal/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank-soal'] });
+      toast.success('Paket Soal berhasil dihapus');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Gagal menghapus Paket Soal');
+    }
+  });
+}
+
 // 5. Save Soal (Create/Update in Bank Soal)
 export function useSaveSoal() {
   const queryClient = useQueryClient();

@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('guru_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('mapel_id')->constrained('mapels')->onDelete('cascade');
-            $table->string('tingkat_kelas');
+            $table->integer('tingkat');
             $table->string('judul');
-            $table->enum('tipe', ['UAS', 'UTS', 'Kuis']);
+            $table->enum('tipe', ['ujian', 'ulangan_harian', 'kuis']);
             $table->text('deskripsi')->nullable();
+            $table->integer('waktu_pengerjaan')->default(60);
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
         });
     }

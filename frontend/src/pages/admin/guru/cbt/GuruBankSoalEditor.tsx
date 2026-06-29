@@ -4,13 +4,18 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useState, useEffect } from 'react';
 import { type PaketSoal, type TipeUjian, type SoalItem, type OpsiJawaban, TIPE_BADGE } from '../../../../types/cbt';
-import { useBankSoalList, useCreateBankSoal, useBankSoalDetail, useSaveSoal, useDeleteSoal } from '../../../../hooks/useCbt';
+import { useBankSoalList, useCreateBankSoal, useBankSoalDetail, useSaveSoal, useDeleteSoal, useDeleteBankSoal } from '../../../../hooks/useCbt';
+import { useMapelList } from '../../../../hooks/useMapel';
+import { useAuth } from '../../../../components/auth/AuthContext';
 
 export default function GuruBankSoalEditor() {
   const { data: bankSoalList, isLoading: isListLoading } = useBankSoalList();
   const createBankSoal = useCreateBankSoal();
+  const deleteBankSoal = useDeleteBankSoal();
   const saveSoalMutation = useSaveSoal();
   const deleteSoalMutation = useDeleteSoal();
+  const { data: mapelList } = useMapelList();
+  const { user } = useAuth();
 
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [selectedPaketId, setSelectedPaketId] = useState<number | null>(null);
@@ -27,7 +32,7 @@ export default function GuruBankSoalEditor() {
 
   // Modals
   const [showPurposeModal, setShowPurposeModal] = useState(false);
-  const [createPaketForm, setCreatePaketForm] = useState({ title: '', mapel: 'Matematika Wajib', kelas: 'Kelas X-1', time: '', tipe: 'ujian' as TipeUjian });
+  const [createPaketForm, setCreatePaketForm] = useState({ title: '', mapel_id: '', tingkat: '', time: '', tipe: 'ujian' as TipeUjian });
 
   const pakets = bankSoalList || [];
   const filteredPakets = pakets.filter(p => p.judul?.toLowerCase().includes(search.toLowerCase()) || p.deskripsi?.toLowerCase().includes(search.toLowerCase()));
@@ -48,20 +53,20 @@ export default function GuruBankSoalEditor() {
   }
 
   function openCreatePaket() {
-    setCreatePaketForm({ title: '', mapel: 'Matematika Wajib', kelas: 'Kelas X-1', time: '', tipe: 'ujian' });
+    setCreatePaketForm({ title: '', mapel_id: mapelList?.[0]?.id || '', tingkat: '10', time: '', tipe: 'ujian' });
     setShowPurposeModal(true);
   }
 
   function createPaket() {
-    if (!createPaketForm.title || !createPaketForm.time) return;
+    if (!createPaketForm.title || !createPaketForm.time || !createPaketForm.mapel_id) return;
     createBankSoal.mutate({
       judul: createPaketForm.title,
       tipe: createPaketForm.tipe,
       waktu_pengerjaan: parseInt(createPaketForm.time),
       status: 'draft',
-      tingkat: parseInt(createPaketForm.kelas.replace(/[^0-9]/g, '')) || 10,
-      mapel_id: 1, // hardcoded for now, need mapel dropdown
-      guru_id: 1, // hardcoded for now, need user context
+      tingkat: parseInt(createPaketForm.tingkat) || 10,
+      mapel_id: parseInt(createPaketForm.mapel_id),
+      guru_id: user?.id ? user.id : 1, // fallback to 1 if user.id is not available (though it should be)
     }, {
       onSuccess: (newPaket) => {
         setShowPurposeModal(false);
@@ -70,8 +75,10 @@ export default function GuruBankSoalEditor() {
     });
   }
 
-  function deletePaket(_id: number) {
-    // Implement delete paket mutation
+  function deletePaket(id: number) {
+    if (window.confirm('Apakah Anda yakin ingin menghapus paket soal ini?')) {
+      deleteBankSoal.mutate(id);
+    }
   }
 
   function addNewSoal() {
@@ -450,7 +457,7 @@ export default function GuruBankSoalEditor() {
                     </div>
                   </div>
                   <h4 className="font-bold text-slate-800 dark:text-white mb-1 leading-tight">{paket.judul}</h4>
-                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-3">{paket.mapel?.nama_mapel} • Tingkat {paket.tingkat}</p>
+                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-3">{mapelList?.find(m => m.id === paket.mapel_id?.toString())?.nama || 'Mapel'} • Tingkat {paket.tingkat}</p>
                   <div className="flex items-center gap-2 mb-4">
                     <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${TIPE_BADGE[paket.tipe]?.color || 'bg-gray-100 text-gray-800'}`}>
                       {TIPE_BADGE[paket.tipe]?.label || paket.tipe}
@@ -495,15 +502,19 @@ export default function GuruBankSoalEditor() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Mata Pelajaran</label>
-                  <select value={createPaketForm.mapel} onChange={e => setCreatePaketForm(prev => ({ ...prev, mapel: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white">
-                    <option value="Matematika Wajib">Matematika Wajib</option>
+                  <select value={createPaketForm.mapel_id} onChange={e => setCreatePaketForm(prev => ({ ...prev, mapel_id: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white">
+                    <option value="">Pilih Mata Pelajaran...</option>
+                    {mapelList?.map(m => (
+                      <option key={m.id} value={m.id}>{m.nama}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Kelas</label>
-                  <select value={createPaketForm.kelas} onChange={e => setCreatePaketForm(prev => ({ ...prev, kelas: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white">
-                    <option value="Kelas X-1">Kelas X-1</option>
-                    <option value="Kelas X-2">Kelas X-2</option>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Tingkat</label>
+                  <select value={createPaketForm.tingkat} onChange={e => setCreatePaketForm(prev => ({ ...prev, tingkat: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white">
+                    <option value="10">Kelas 10</option>
+                    <option value="11">Kelas 11</option>
+                    <option value="12">Kelas 12</option>
                   </select>
                 </div>
               </div>

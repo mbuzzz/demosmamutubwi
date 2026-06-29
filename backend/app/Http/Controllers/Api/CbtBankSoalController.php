@@ -18,8 +18,8 @@ class CbtBankSoalController extends Controller
             $query->where('mapel_id', $request->mapel_id);
         }
 
-        if ($request->has('tingkat_kelas')) {
-            $query->where('tingkat_kelas', $request->tingkat_kelas);
+        if ($request->has('tingkat')) {
+            $query->where('tingkat', $request->tingkat);
         }
 
         $bankSoals = $query->latest()->paginate($request->per_page ?? 10);
@@ -31,10 +31,12 @@ class CbtBankSoalController extends Controller
     {
         $validated = $request->validate([
             'mapel_id' => 'required|exists:mapels,id',
-            'tingkat_kelas' => 'required|string',
+            'tingkat' => 'required|integer',
             'judul' => 'required|string',
-            'tipe' => 'required|in:UAS,UTS,Kuis',
+            'tipe' => 'required|in:ujian,ulangan_harian,kuis',
             'deskripsi' => 'nullable|string',
+            'waktu_pengerjaan' => 'required|integer',
+            'status' => 'required|in:draft,published',
         ]);
 
         $validated['guru_id'] = $request->user()->id;
@@ -57,10 +59,12 @@ class CbtBankSoalController extends Controller
     {
         $validated = $request->validate([
             'mapel_id' => 'sometimes|exists:mapels,id',
-            'tingkat_kelas' => 'sometimes|string',
+            'tingkat' => 'sometimes|integer',
             'judul' => 'sometimes|string',
-            'tipe' => 'sometimes|in:UAS,UTS,Kuis',
+            'tipe' => 'sometimes|in:ujian,ulangan_harian,kuis',
             'deskripsi' => 'nullable|string',
+            'waktu_pengerjaan' => 'sometimes|integer',
+            'status' => 'sometimes|in:draft,published',
         ]);
 
         $bankSoal->update($validated);
