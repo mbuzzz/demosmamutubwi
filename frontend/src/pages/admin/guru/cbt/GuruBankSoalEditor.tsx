@@ -1,23 +1,29 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { Save, Plus, HelpCircle, ImageIcon, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, X } from 'lucide-react';
+import { Save, Plus, HelpCircle, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, X } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { useState } from 'react';
-import { type PaketSoal, type TipeUjian, TIPE_BADGE } from '../../../../types/cbt';
-import { useBankSoalList, useCreateBankSoal } from '../../../../hooks/useCbt';
+import { useState, useEffect } from 'react';
+import { type PaketSoal, type TipeUjian, type SoalItem, type OpsiJawaban, TIPE_BADGE } from '../../../../types/cbt';
+import { useBankSoalList, useCreateBankSoal, useBankSoalDetail, useSaveSoal, useDeleteSoal } from '../../../../hooks/useCbt';
 
 export default function GuruBankSoalEditor() {
-  const { data: bankSoalList, isLoading } = useBankSoalList();
+  const { data: bankSoalList, isLoading: isListLoading } = useBankSoalList();
   const createBankSoal = useCreateBankSoal();
-  // const saveSoal = useSaveSoal(); // Need to implement the usage
+  const saveSoalMutation = useSaveSoal();
+  const deleteSoalMutation = useDeleteSoal();
 
   const [view, setView] = useState<'list' | 'editor'>('list');
-  const [selectedPaket, setSelectedPaket] = useState<PaketSoal | null>(null);
+  const [selectedPaketId, setSelectedPaketId] = useState<number | null>(null);
+
+  // Fetch full details for editor
+  const { data: detailPaket, isLoading: isDetailLoading, refetch: refetchDetail } = useBankSoalDetail(selectedPaketId);
 
   // Editor states
   const [activeSoalIdx, setActiveSoalIdx] = useState(0);
-  const [jenisSoal, setJenisSoal] = useState('pg');
   const [search, setSearch] = useState('');
+
+  // Local state for soal to allow editing without immediate save
+  const [localSoals, setLocalSoals] = useState<Partial<SoalItem>[]>([]);
 
   // Modals
   const [showPurposeModal, setShowPurposeModal] = useState(false);
@@ -26,8 +32,17 @@ export default function GuruBankSoalEditor() {
   const pakets = bankSoalList || [];
   const filteredPakets = pakets.filter(p => p.judul?.toLowerCase().includes(search.toLowerCase()) || p.deskripsi?.toLowerCase().includes(search.toLowerCase()));
 
+  // Initialize localSoals when detailPaket is loaded
+  useEffect(() => {
+    if (detailPaket?.soal) {
+      setLocalSoals(JSON.parse(JSON.stringify(detailPaket.soal))); // deep copy
+    } else {
+      setLocalSoals([]);
+    }
+  }, [detailPaket]);
+
   function openEditor(p: PaketSoal) {
-    setSelectedPaket(p);
+    setSelectedPaketId(p.id);
     setActiveSoalIdx(0);
     setView('editor');
   }
@@ -56,10 +71,128 @@ export default function GuruBankSoalEditor() {
   }
 
   function deletePaket(_id: number) {
-    // Implement delete mutation
+    // Implement delete paket mutation
   }
 
-  if (view === 'editor' && selectedPaket) {
+  function addNewSoal() {
+    const newSoal: Partial<SoalItem> = {
+      jenis: 'pg',
+      pertanyaan: '',
+      bobot_nilai: 2.5,
+      opsiJawabans: [
+        { teks_opsi: '', is_benar: false },
+        { teks_opsi: '', is_benar: false },
+        { teks_opsi: '', is_benar: false },
+        { teks_opsi: '', is_benar: false },
+        { teks_opsi: '', is_benar: false },
+      ]
+    };
+    setLocalSoals(prev => [...prev, newSoal]);
+    setActiveSoalIdx(localSoals.length); // point to new soal
+  }
+
+  function saveCurrentSoal() {
+    if (!selectedPaketId) return;
+    const currentSoal = localSoals[activeSoalIdx];
+    if (!currentSoal) return;
+
+    saveSoalMutation.mutate({
+      bank_soal_id: selectedPaketId,
+      soal_id: currentSoal.id,
+      data: {
+        jenis: currentSoal.jenis,
+        pertanyaan: currentSoal.pertanyaan,
+        bobot_nilai: currentSoal.bobot_nilai,
+        opsi_jawabans: currentSoal.opsiJawabans, // backend expects opsi_jawabans
+      } as any // type override for opsi_jawabans mapping
+    }, {
+      onSuccess: () => {
+        refetchDetail();
+      }
+    });
+  }
+
+  function hapusSoal(idx: number) {
+    const soalToDel = localSoals[idx];
+    if (soalToDel?.id && selectedPaketId) {
+      // It exists in backend, delete via API
+      deleteSoalMutation.mutate({ bank_soal_id: selectedPaketId, soal_id: soalToDel.id }, {
+        onSuccess: () => {
+          refetchDetail();
+          setActiveSoalIdx(Math.max(0, idx - 1));
+        }
+      });
+    } else {
+      // Just a local new unsaved soal
+      const newSoals = [...localSoals];
+      newSoals.splice(idx, 1);
+      setLocalSoals(newSoals);
+      setActiveSoalIdx(Math.max(0, idx - 1));
+    }
+  }
+
+  function updateLocalSoal(updates: Partial<SoalItem>) {
+    setLocalSoals(prev => {
+      const newArr = [...prev];
+      newArr[activeSoalIdx] = { ...newArr[activeSoalIdx], ...updates };
+      
+      // If switching jenis to pg, ensure options exist
+      if (updates.jenis === 'pg' && (!newArr[activeSoalIdx].opsiJawabans || newArr[activeSoalIdx].opsiJawabans!.length < 2)) {
+        newArr[activeSoalIdx].opsiJawabans = [
+          { teks_opsi: '', is_benar: false },
+          { teks_opsi: '', is_benar: false },
+          { teks_opsi: '', is_benar: false },
+          { teks_opsi: '', is_benar: false },
+          { teks_opsi: '', is_benar: false },
+        ];
+      } else if (updates.jenis === 'bs' && (!newArr[activeSoalIdx].opsiJawabans || newArr[activeSoalIdx].opsiJawabans!.length < 2)) {
+        newArr[activeSoalIdx].opsiJawabans = [
+          { teks_opsi: 'Benar', is_benar: false },
+          { teks_opsi: 'Salah', is_benar: false }
+        ];
+      }
+      return newArr;
+    });
+  }
+
+  function updateOpsiJawaban(opsiIdx: number, updates: Partial<OpsiJawaban>) {
+    setLocalSoals(prev => {
+      const newArr = [...prev];
+      const soal = { ...newArr[activeSoalIdx] };
+      const opsiList = [...(soal.opsiJawabans || [])];
+      
+      if (opsiList[opsiIdx]) {
+        opsiList[opsiIdx] = { ...opsiList[opsiIdx], ...updates };
+        
+        // If type is pg or bs, enforce single correct answer
+        if (updates.is_benar && (soal.jenis === 'pg' || soal.jenis === 'bs')) {
+          for (let i = 0; i < opsiList.length; i++) {
+            if (i !== opsiIdx) opsiList[i].is_benar = false;
+          }
+        }
+      }
+      
+      soal.opsiJawabans = opsiList;
+      newArr[activeSoalIdx] = soal;
+      return newArr;
+    });
+  }
+
+  if (view === 'editor' && selectedPaketId) {
+    if (isDetailLoading) {
+      return (
+        <AdminLayout title="Editor Butir Soal (CBT)">
+          <div className="flex justify-center items-center h-64">
+             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          </div>
+        </AdminLayout>
+      );
+    }
+
+    const activeSoal = localSoals[activeSoalIdx] || null;
+    const isEditing = !!activeSoal;
+    const opsiLables = ['A', 'B', 'C', 'D', 'E', 'F'];
+
     return (
       <AdminLayout title="Editor Butir Soal (CBT)">
         <div className="mb-6">
@@ -68,15 +201,10 @@ export default function GuruBankSoalEditor() {
           </button>
         </div>
 
-          <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-black text-slate-800 dark:text-white">{selectedPaket.judul}</h2>
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">Total Soal: {selectedPaket.soal?.length || 0} Butir • Pilihan Ganda & Essay</p>
-          </div>
-          <div className="flex gap-3">
-            <button onClick={() => setView('list')} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
-              <Save className="w-4 h-4" /> Simpan Bank Soal
-            </button>
+            <h2 className="text-xl font-black text-slate-800 dark:text-white">{detailPaket?.judul}</h2>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">Total Soal: {localSoals.length} Butir</p>
           </div>
         </div>
 
@@ -85,139 +213,190 @@ export default function GuruBankSoalEditor() {
           {/* Kiri: Navigator Soal */}
           <div className="xl:col-span-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 sticky top-24 transition-colors">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4 text-indigo-500" /> Navigasi Soal</h3>
-            <div className="grid grid-cols-5 gap-2">
-              {[...Array(Math.max(selectedPaket.soal?.length || 0, 1))].map((_, i) => (
-                <button 
-                  key={i} 
-                  onClick={() => setActiveSoalIdx(i)}
-                  className={`w-10 h-10 rounded-xl font-bold text-sm flex items-center justify-center transition-colors border
-                    ${i === activeSoalIdx ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30' : 
-                      'bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700'
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button className="w-full mt-6 flex items-center justify-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 px-4 py-3 rounded-xl text-sm font-bold transition-colors border border-indigo-200 dark:border-indigo-500/30 border-dashed">
+            
+            {localSoals.length === 0 ? (
+               <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">Belum ada soal</p>
+            ) : (
+              <div className="grid grid-cols-5 gap-2">
+                {localSoals.map((_, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setActiveSoalIdx(i)}
+                    className={`w-10 h-10 rounded-xl font-bold text-sm flex items-center justify-center transition-colors border
+                      ${i === activeSoalIdx ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30' : 
+                        'bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700'
+                      }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button onClick={addNewSoal} className="w-full mt-6 flex items-center justify-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 px-4 py-3 rounded-xl text-sm font-bold transition-colors border border-indigo-200 dark:border-indigo-500/30 border-dashed">
               <Plus className="w-4 h-4" /> Tambah Soal Baru
             </button>
           </div>
 
           {/* Kanan: Editor Soal Aktif */}
           <div className="xl:col-span-3 space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
-              
-              {/* Header Konfigurasi Soal */}
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-indigo-50/50 dark:bg-slate-800/50 flex flex-wrap justify-between items-center gap-4 transition-colors">
-                <h3 className="font-extrabold text-indigo-900 dark:text-indigo-400 text-lg">
-                  Soal Nomor {activeSoalIdx + 1}
-                </h3>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jenis Soal:</label>
-                    <select 
-                      value={jenisSoal}
-                      onChange={(e) => setJenisSoal(e.target.value)}
-                      className="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition-colors"
-                    >
-                      <option value="pg">Pilihan Ganda</option>
-                      <option value="pg_kompleks">PG Kompleks (Multi Jawaban)</option>
-                      <option value="essay">Uraian / Essay</option>
-                      <option value="bs">Benar / Salah</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bobot Skor:</label>
-                    <input type="number" defaultValue="2.5" className="w-16 px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-colors" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-6 lg:p-8 space-y-6">
+            {!isEditing ? (
+               <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
+                  <FileQuestion className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+                  <h3 className="font-bold text-slate-700 dark:text-slate-300 text-lg mb-2">Pilih atau Tambah Soal</h3>
+                  <p className="text-slate-500 dark:text-slate-400">Silakan klik tombol "Tambah Soal Baru" atau pilih soal di panel navigasi.</p>
+               </div>
+            ) : (
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
                 
-                {/* Teks Pertanyaan */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><AlignLeft className="w-4 h-4 text-indigo-500"/> Teks Pertanyaan</label>
-                  <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden quill-custom-dark transition-colors">
-                    <ReactQuill theme="snow" value="<p>Berapakah hasil dari 2log 8 + 3log 9?</p>" className="h-40 pb-10" />
+                {/* Header Konfigurasi Soal */}
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-indigo-50/50 dark:bg-slate-800/50 flex flex-wrap justify-between items-center gap-4 transition-colors">
+                  <h3 className="font-extrabold text-indigo-900 dark:text-indigo-400 text-lg flex items-center gap-3">
+                    Soal Nomor {activeSoalIdx + 1}
+                    {activeSoal.id && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md font-bold">Tersimpan</span>}
+                  </h3>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jenis Soal:</label>
+                      <select 
+                        value={activeSoal.jenis || 'pg'}
+                        onChange={(e) => updateLocalSoal({ jenis: e.target.value as any })}
+                        className="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition-colors"
+                      >
+                        <option value="pg">Pilihan Ganda</option>
+                        <option value="pg_kompleks">PG Kompleks (Multi Jawaban)</option>
+                        <option value="essay">Uraian / Essay</option>
+                        <option value="bs">Benar / Salah</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bobot Skor:</label>
+                      <input 
+                        type="number" 
+                        value={activeSoal.bobot_nilai || 2.5}
+                        onChange={e => updateLocalSoal({ bobot_nilai: parseFloat(e.target.value) || 0 })} 
+                        className="w-20 px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-colors" />
+                    </div>
                   </div>
-                  <button className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <ImageIcon className="w-4 h-4" /> Sisipkan Gambar ke Pertanyaan
-                  </button>
                 </div>
-
-                {/* Dynamic Answer Area Based on jenisSoal */}
-                {jenisSoal === 'pg' && (
+                
+                <div className="p-6 lg:p-8 space-y-6">
+                  
+                  {/* Teks Pertanyaan */}
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"><CheckSquare className="w-4 h-4 text-emerald-500"/> Opsi Jawaban (Pilih 1 Kunci yang Benar)</label>
-                    <div className="space-y-3">
-                      {['A', 'B', 'C', 'D', 'E'].map((opsi, idx) => (
-                        <div key={opsi} className={`flex items-start gap-3 p-3 rounded-2xl border transition-all ${idx === 1 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm shadow-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'}`}>
-                          <div className="mt-2.5 ml-2">
-                            <input type="radio" name="kunci_pg" defaultChecked={idx === 1} className="w-5 h-5 text-emerald-500 focus:ring-emerald-500 cursor-pointer" />
-                          </div>
-                          <div className="flex-1 flex gap-3">
-                            <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black border transition-colors ${idx === 1 ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
-                              {opsi}
-                            </div>
-                            <input type="text" defaultValue={idx === 1 ? "5" : idx === 0 ? "4" : idx === 2 ? "6" : ""} placeholder={`Ketik teks opsi ${opsi}...`} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium dark:text-white transition-colors" />
-                          </div>
-                        </div>
-                      ))}
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><AlignLeft className="w-4 h-4 text-indigo-500"/> Teks Pertanyaan</label>
+                    <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden quill-custom-dark transition-colors">
+                      <ReactQuill 
+                        theme="snow" 
+                        value={activeSoal.pertanyaan || ''}
+                        onChange={val => updateLocalSoal({ pertanyaan: val })} 
+                        className="h-40 pb-10" 
+                      />
                     </div>
+                    {/* Add Image support here later if needed */}
                   </div>
-                )}
 
-                {jenisSoal === 'pg_kompleks' && (
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"><CheckSquare className="w-4 h-4 text-emerald-500"/> Opsi Jawaban (Centang semua kunci yang benar)</label>
-                    <div className="space-y-3">
-                      {['A', 'B', 'C', 'D'].map((opsi, idx) => (
-                        <div key={opsi} className={`flex items-start gap-3 p-3 rounded-2xl border transition-all ${idx === 0 || idx === 2 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm shadow-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'}`}>
-                          <div className="mt-2.5 ml-2">
-                            <input type="checkbox" defaultChecked={idx === 0 || idx === 2} className="w-5 h-5 rounded text-emerald-500 focus:ring-emerald-500 cursor-pointer border-slate-300 dark:border-slate-600" />
-                          </div>
-                          <div className="flex-1 flex gap-3">
-                            <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black border transition-colors ${idx === 0 || idx === 2 ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
-                              {opsi}
-                            </div>
-                            <input type="text" placeholder={`Ketik pernyataan opsi ${opsi}...`} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium dark:text-white transition-colors" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {jenisSoal === 'bs' && (
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"><CheckSquare className="w-4 h-4 text-emerald-500"/> Tentukan Kunci Jawaban</label>
-                    <div className="flex gap-4">
-                      <label className="flex-1 p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm cursor-pointer flex items-center gap-3 transition-colors">
-                        <input type="radio" name="kunci_bs" defaultChecked className="w-5 h-5 text-emerald-500" />
-                        <span className="font-bold text-lg text-emerald-700 dark:text-emerald-400">BENAR</span>
+                  {/* Dynamic Answer Area Based on jenisSoal */}
+                  {(activeSoal.jenis === 'pg' || activeSoal.jenis === 'pg_kompleks') && (
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                        <CheckSquare className="w-4 h-4 text-emerald-500"/> 
+                        {activeSoal.jenis === 'pg' ? 'Opsi Jawaban (Pilih 1 Kunci yang Benar)' : 'Opsi Jawaban (Centang semua kunci yang benar)'}
                       </label>
-                      <label className="flex-1 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer flex items-center gap-3 hover:border-red-400 transition-colors">
-                        <input type="radio" name="kunci_bs" className="w-5 h-5 text-red-500" />
-                        <span className="font-bold text-lg text-slate-600 dark:text-slate-400">SALAH</span>
-                      </label>
+                      <div className="space-y-3">
+                        {activeSoal.opsiJawabans?.map((opsi, idx) => (
+                          <div key={idx} className={`flex items-start gap-3 p-3 rounded-2xl border transition-all ${opsi.is_benar ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm shadow-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'}`}>
+                            <div className="mt-2.5 ml-2">
+                              <input 
+                                type={activeSoal.jenis === 'pg' ? 'radio' : 'checkbox'} 
+                                name={`kunci_${activeSoalIdx}`} 
+                                checked={opsi.is_benar || false}
+                                onChange={e => updateOpsiJawaban(idx, { is_benar: e.target.checked })} 
+                                className="w-5 h-5 text-emerald-500 focus:ring-emerald-500 cursor-pointer border-slate-300 dark:border-slate-600 rounded-sm" 
+                              />
+                            </div>
+                            <div className="flex-1 flex gap-3">
+                              <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black border transition-colors ${opsi.is_benar ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
+                                {opsiLables[idx] || idx+1}
+                              </div>
+                              <input 
+                                type="text" 
+                                value={opsi.teks_opsi || ''}
+                                onChange={e => updateOpsiJawaban(idx, { teks_opsi: e.target.value })} 
+                                placeholder={`Ketik teks opsi ${opsiLables[idx] || idx+1}...`} 
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium dark:text-white transition-colors" 
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {jenisSoal === 'essay' && (
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"><Type className="w-4 h-4 text-amber-500"/> Rubrik / Kunci Jawaban Essay (Panduan Korektor)</label>
-                    <div className="bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4">
-                      <textarea rows={4} placeholder="Ketik kata kunci atau langkah-langkah yang harus ada untuk mendapat nilai penuh..." className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white transition-colors"></textarea>
-                      <p className="text-xs text-amber-600 dark:text-amber-500/80 font-medium mt-2">Siswa akan diberikan kotak teks kosong untuk mengetik jawaban mereka. Kunci ini hanya panduan untuk Anda saat menilai manual.</p>
+                  {activeSoal.jenis === 'bs' && (
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"><CheckSquare className="w-4 h-4 text-emerald-500"/> Tentukan Kunci Jawaban</label>
+                      <div className="flex gap-4">
+                        {activeSoal.opsiJawabans?.slice(0,2).map((opsi, idx) => (
+                           <label key={idx} className={`flex-1 p-4 rounded-2xl border-2 shadow-sm cursor-pointer flex items-center gap-3 transition-colors ${opsi.is_benar ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-emerald-300'}`}>
+                              <input 
+                                type="radio" 
+                                name={`kunci_bs_${activeSoalIdx}`} 
+                                checked={opsi.is_benar || false}
+                                onChange={() => updateOpsiJawaban(idx, { is_benar: true })}
+                                className="w-5 h-5 text-emerald-500" 
+                              />
+                              <span className={`font-bold text-lg ${opsi.is_benar ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                                {opsi.teks_opsi || (idx === 0 ? 'BENAR' : 'SALAH')}
+                              </span>
+                           </label>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
+                  {activeSoal.jenis === 'essay' && (
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"><Type className="w-4 h-4 text-amber-500"/> Rubrik / Kunci Jawaban Essay (Panduan Korektor)</label>
+                      <div className="bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4">
+                        {/* We use first option of opsiJawabans for essay rubric or add a special field in db. Assuming opsiJawabans[0].teks_opsi for now. */}
+                        <textarea 
+                          rows={4} 
+                          value={activeSoal.opsiJawabans?.[0]?.teks_opsi || ''}
+                          onChange={(e) => {
+                             if (!activeSoal.opsiJawabans?.length) {
+                                updateLocalSoal({ opsiJawabans: [{ teks_opsi: e.target.value, is_benar: true }] });
+                             } else {
+                                updateOpsiJawaban(0, { teks_opsi: e.target.value });
+                             }
+                          }}
+                          placeholder="Ketik kata kunci atau langkah-langkah yang harus ada untuk mendapat nilai penuh..." 
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white transition-colors"
+                        ></textarea>
+                        <p className="text-xs text-amber-600 dark:text-amber-500/80 font-medium mt-2">Siswa akan diberikan kotak teks kosong untuk mengetik jawaban mereka. Kunci ini hanya panduan untuk Anda saat menilai manual.</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Actions for current Soal */}
+                  <div className="flex justify-between items-center pt-6 border-t border-slate-100 dark:border-slate-800">
+                     <button onClick={() => hapusSoal(activeSoalIdx)} className="text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-500/10 px-4 py-2 rounded-xl transition-colors">
+                        <Trash2 className="w-4 h-4" /> Hapus Soal
+                     </button>
+                     <button 
+                       onClick={saveCurrentSoal}
+                       disabled={saveSoalMutation.isPending}
+                       className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 flex items-center gap-2">
+                        {saveSoalMutation.isPending ? (
+                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                           <Save className="w-4 h-4" />
+                        )}
+                        Simpan Soal Ini
+                     </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
         </div>
@@ -230,7 +409,7 @@ export default function GuruBankSoalEditor() {
       <div className="bg-white dark:bg-slate-900 rounded-[20px] shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex flex-wrap gap-4 items-end justify-between">
           <div>
-            <h3 className="font-extrabold text-slate-800 dark:text-white text-lg">Bank Soal Matematika</h3>
+            <h3 className="font-extrabold text-slate-800 dark:text-white text-lg">Bank Soal CBT</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">Kelola paket soal ujian & kuis untuk kelas Anda.</p>
           </div>
           <button onClick={openCreatePaket} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
@@ -247,7 +426,7 @@ export default function GuruBankSoalEditor() {
             </div>
           </div>
 
-          {isLoading ? (
+          {isListLoading ? (
             <div className="text-center py-12">
               <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Loading bank soal...</p>

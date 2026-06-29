@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Kelas;
-use App\Models\PembayaranTagihan;
-use App\Models\PembayaranTransaksi;
+use App\Models\TagihanSiswa;
+use App\Models\TransaksiPembayaran;
 use App\Models\Absensi;
 use App\Models\Penugasan;
 use Carbon\Carbon;
@@ -31,7 +31,7 @@ class DashboardController extends Controller
             $stats['total_kelas'] = Kelas::count();
 
             // Total Tagihan / Kas Masuk (simplification: total sum of successful transactions)
-            $stats['total_kas_masuk'] = PembayaranTransaksi::where('status', 'sukses')->sum('jumlah');
+            $stats['total_kas_masuk'] = TransaksiPembayaran::where('status', 'berhasil')->sum('jumlah_bayar');
 
             // Kehadiran hari ini
             $today = Carbon::today()->toDateString();
@@ -125,7 +125,12 @@ class DashboardController extends Controller
         } elseif ($role === 'siswa') {
             $siswaId = $user->id;
             
-            $tagihanBelumLunas = PembayaranTagihan::where('siswa_id', $siswaId)->where('status', '!=', 'lunas')->sum('sisa_tagihan');
+            $tagihanBelumLunas = TagihanSiswa::where('siswa_id', $siswaId)
+                ->where('status', '!=', 'lunas')
+                ->get()
+                ->sum(function ($tagihan) {
+                    return $tagihan->nominal_tagihan - $tagihan->nominal_terbayar;
+                });
             $stats['tagihan_belum_lunas'] = $tagihanBelumLunas;
             
             $totalHari = Absensi::where('user_id', $siswaId)->count();
@@ -150,14 +155,19 @@ class DashboardController extends Controller
             ];
 
         } elseif ($role === 'bendahara') {
-            $startOfMonth = Carbon::now()->startOfMonth();
-            $endOfMonth = Carbon::now()->endOfMonth();
+            $bulanIni = Carbon::now()->month;
+            $tahunIni = Carbon::now()->year;
             
-            $kasBulanIni = PembayaranTransaksi::where('status', 'sukses')
-                            ->whereBetween('tanggal_bayar', [$startOfMonth, $endOfMonth])
-                            ->sum('jumlah');
+            $kasBulanIni = TransaksiPembayaran::where('status', 'berhasil')
+                ->whereMonth('tanggal_bayar', $bulanIni)
+                ->whereYear('tanggal_bayar', $tahunIni)
+                ->sum('jumlah_bayar');
                             
-            $totalTunggakan = PembayaranTagihan::where('status', '!=', 'lunas')->sum('sisa_tagihan');
+            $totalTunggakan = TagihanSiswa::where('status', '!=', 'lunas')
+                ->get()
+                ->sum(function ($tagihan) {
+                    return $tagihan->nominal_tagihan - $tagihan->nominal_terbayar;
+                });
             
             $stats['kas_bulan_ini'] = $kasBulanIni;
             $stats['total_tunggakan'] = $totalTunggakan;

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 import type { PaketSoal, SoalItem, SesiUjian, UjianSiswaSesi, UjianJawabanSiswa } from '../types/cbt';
 
 // --- Guru & Admin Hooks ---
@@ -61,15 +62,41 @@ export function useUpdateBankSoal() {
 export function useSaveSoal() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Partial<SoalItem>) => {
-      const res = await api.post<{ data: SoalItem }>(`/cbt/soal`, data);
-      return res.data.data;
+    mutationFn: async ({ bank_soal_id, soal_id, data }: { bank_soal_id: number; soal_id?: number | null; data: Partial<SoalItem> }) => {
+      if (soal_id) {
+        const res = await api.put<{ message: string; data: SoalItem }>(`/cbt/bank-soal/${bank_soal_id}/soals/${soal_id}`, data);
+        return res.data.data;
+      } else {
+        const res = await api.post<{ message: string; data: SoalItem }>(`/cbt/bank-soal/${bank_soal_id}/soals`, data);
+        return res.data.data;
+      }
     },
     onSuccess: (_, variables) => {
       if (variables.bank_soal_id) {
         queryClient.invalidateQueries({ queryKey: ['bank-soal', variables.bank_soal_id] });
       }
+      toast.success('Soal berhasil disimpan');
     },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Gagal menyimpan soal');
+    }
+  });
+}
+
+export function useDeleteSoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ bank_soal_id, soal_id }: { bank_soal_id: number; soal_id: number }) => {
+      const res = await api.delete(`/cbt/bank-soal/${bank_soal_id}/soals/${soal_id}`);
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['bank-soal', variables.bank_soal_id] });
+      toast.success('Soal berhasil dihapus');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Gagal menghapus soal');
+    }
   });
 }
 

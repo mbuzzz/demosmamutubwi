@@ -186,10 +186,10 @@ export default function SiswaCbt() {
            const questions: Question[] = data.soal.map((s, index) => ({
               id: s.id as number,
               nomor: index + 1,
-              tipe: s.tipe_soal,
+              tipe: s.jenis,
               pertanyaan: s.pertanyaan,
-              options: s.pilihan_jawaban ? (typeof s.pilihan_jawaban === 'string' ? JSON.parse(s.pilihan_jawaban) : s.pilihan_jawaban) : undefined,
-              kunci: s.kunci_jawaban,
+              options: s.opsiJawabans ? s.opsiJawabans.map(o => o.teks_opsi) : undefined,
+              kunci: s.opsiJawabans ? s.opsiJawabans.filter(o => o.is_benar).map(o => o.teks_opsi).join(', ') : '',
            }));
            
            const examWithQuestions = {
@@ -225,10 +225,10 @@ export default function SiswaCbt() {
            const questions: Question[] = data.soal.map((s, index) => ({
               id: s.id as number,
               nomor: index + 1,
-              tipe: s.tipe_soal,
+              tipe: s.jenis,
               pertanyaan: s.pertanyaan,
-              options: s.pilihan_jawaban ? (typeof s.pilihan_jawaban === 'string' ? JSON.parse(s.pilihan_jawaban) : s.pilihan_jawaban) : undefined,
-              kunci: s.kunci_jawaban,
+              options: s.opsiJawabans ? s.opsiJawabans.map(o => o.teks_opsi) : undefined,
+              kunci: s.opsiJawabans ? s.opsiJawabans.filter(o => o.is_benar).map(o => o.teks_opsi).join(', ') : '',
            }));
            
            const examWithQuestions = {

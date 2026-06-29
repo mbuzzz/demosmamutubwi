@@ -15,7 +15,7 @@ export default function AdminBankSoalList() {
   const [filterMapel, setFilterMapel] = useState('');
   const [filterKelas, setFilterKelas] = useState('');
 
-  const [soalForm, setSoalForm] = useState({ tipe: 'pg' as SoalItem['tipe_soal'], pertanyaan: '', kunciJawaban: '', jawabanPG: '', jawabanPGK: [] as string[] });
+  const [soalForm, setSoalForm] = useState({ tipe: 'pg' as SoalItem['jenis'], pertanyaan: '', kunciJawaban: '', jawabanPG: '', jawabanPGK: [] as string[] });
   const [editingSoalId, setEditingSoalId] = useState<number | null>(null);
 
   const [showPurposeModal, setShowPurposeModal] = useState(false);
@@ -69,7 +69,7 @@ export default function AdminBankSoalList() {
   }
 
   function openEditQuestion(soal: SoalItem) {
-    setSoalForm({ tipe: soal.tipe_soal, pertanyaan: soal.pertanyaan, kunciJawaban: soal.kunci_jawaban, jawabanPG: soal.kunci_jawaban, jawabanPGK: soal.kunci_jawaban?.split(', ') || [] });
+    setSoalForm({ tipe: soal.jenis, pertanyaan: soal.pertanyaan, kunciJawaban: '', jawabanPG: '', jawabanPGK: [] });
     setEditingSoalId(soal.id as number);
     setView('addQuestion');
   }
@@ -91,7 +91,7 @@ export default function AdminBankSoalList() {
     // setPakets(prev => prev.filter(p => p.id !== id));
   }
 
-  const tipeBadge = (tipe: SoalItem['tipe_soal']) => {
+  const tipeBadge = (tipe: SoalItem['jenis']) => {
     const map = { pg: 'PG', pgk: 'PGK', pg_kompleks: 'PGK', bs: 'BS', essay: 'Essay' } as const;
     const colors: Record<string, string> = { pg: 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400', pgk: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400', pg_kompleks: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400', bs: 'bg-purple-50 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400', essay: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' };
     return <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap ${colors[tipe] || colors.pg}`}>{map[tipe] || 'PG'}</span>;
@@ -149,11 +149,11 @@ export default function AdminBankSoalList() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1.5">
-                          {tipeBadge(soal.tipe_soal)}
+                          {tipeBadge(soal.jenis)}
                         </div>
                         <p className="text-sm font-bold text-slate-800 dark:text-white leading-relaxed">{soal.pertanyaan}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                          <span className="font-semibold">Kunci:</span> <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{soal.kunci_jawaban}</span>
+                          <span className="font-semibold">Kunci:</span> <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{soal.opsiJawabans?.filter(o => o.is_benar).map(o => o.teks_opsi).join(', ')}</span>
                         </p>
                       </div>
                     </div>

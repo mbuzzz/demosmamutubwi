@@ -2,14 +2,20 @@ export type TipeUjian = 'ujian' | 'ulangan_harian' | 'kuis';
 
 export type TipeSoal = 'pg' | 'pgk' | 'pg_kompleks' | 'bs' | 'essay';
 
+export interface OpsiJawaban {
+  id?: number;
+  soal_id?: number;
+  teks_opsi: string;
+  is_benar: boolean;
+}
+
 export interface SoalItem {
   id: number;
   bank_soal_id: number;
-  tipe_soal: TipeSoal;
+  jenis: TipeSoal;
   pertanyaan: string;
-  pilihan_jawaban: any; // json or stringified json depending on backend
-  kunci_jawaban: string;
-  bobot: number;
+  opsiJawabans?: OpsiJawaban[];
+  bobot_nilai: number;
   created_at?: string;
   updated_at?: string;
 }
