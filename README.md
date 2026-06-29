@@ -17,7 +17,7 @@ Berikut adalah langkah-langkah spesifik untuk men-deploy aplikasi ini ke lingkun
 
 ### 1. Persyaratan Sistem (Prerequisites)
 Pastikan server Anda sudah terinstal:
-- PHP >= 8.2 (dengan ekstensi pgsql/mysql, bcmath, ctype, fileinfo, mbstring, openssl, pdo, tokenizer, xml)
+- PHP >= 8.5 (dengan ekstensi pgsql/mysql, bcmath, ctype, fileinfo, mbstring, openssl, pdo, tokenizer, xml)
 - Composer 2.x
 - Node.js >= 18.x dan npm
 - PostgreSQL (disarankan) atau MySQL/MariaDB
@@ -151,7 +151,7 @@ server {
     location ~ \.php$ {
         root /path/ke/sit-app/backend/public;
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock; # Sesuaikan versi PHP
+        fastcgi_pass unix:/var/run/php/php8.5-fpm.sock; # Sesuaikan versi PHP
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
