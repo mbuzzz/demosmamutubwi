@@ -16,8 +16,13 @@ export default function GuruNilaiTp() {
   const { data: kelasList = [] } = useGuruClasses();
   const { data: mapelList = [] } = useMapelList();
   
+  // Filter mapelList based on what the teacher teaches in the selected class
+  const selectedKelasObj = kelasList.find(k => k.id === selectedKelasId);
+  const taughtMapelIds = new Set(selectedKelasObj ? selectedKelasObj.mapels.map(m => m.id) : []);
+  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(m.id));
+
   // Find selected mapel to get its tingkat (X, XI, XII)
-  const selectedMapel = mapelList.find(m => m.id === selectedMapelId);
+  const selectedMapel = guruMapelList.find(m => m.id === selectedMapelId);
   const tingkat = selectedMapel ? selectedMapel.tingkat : 'X';
 
   const { data: tpList = [] } = useTujuanPembelajaranList(selectedMapelId, tingkat);
@@ -32,9 +37,17 @@ export default function GuruNilaiTp() {
   if (!selectedKelasId && kelasList.length > 0) {
     setSelectedKelasId(kelasList[0].id);
   }
-  if (!selectedMapelId && mapelList.length > 0) {
-    setSelectedMapelId(mapelList[0].id);
-  }
+
+  // Adjust selected mapel when class changes or on load
+  useEffect(() => {
+    if (guruMapelList.length > 0) {
+      if (!guruMapelList.find(m => m.id === selectedMapelId)) {
+        setSelectedMapelId(guruMapelList[0].id);
+      }
+    } else {
+      setSelectedMapelId('');
+    }
+  }, [guruMapelList, selectedMapelId]);
   
   // Set first TP as default when loaded
   useEffect(() => {
@@ -117,7 +130,7 @@ export default function GuruNilaiTp() {
               onChange={e => setSelectedMapelId(e.target.value)} 
               className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white"
             >
-              {mapelList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
+              {guruMapelList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
             </select>
           </div>
 

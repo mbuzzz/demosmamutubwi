@@ -3,6 +3,7 @@ import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Plus, Pencil, Trash2, X, BookOpen, Award } from 'lucide-react';
 import { useTujuanPembelajaranList, useCreateTujuanPembelajaran, useUpdateTujuanPembelajaran, useDeleteTujuanPembelajaran } from '../../../../hooks/useTujuanPembelajaran';
 import { useMapelList } from '../../../../hooks/useMapel';
+import { useGuruClasses } from '../../../../hooks/usePenugasan';
 import { toast } from 'sonner';
 
 export default function GuruTujuanPembelajaran() {
@@ -15,8 +16,14 @@ export default function GuruTujuanPembelajaran() {
   const [kode, setKode] = useState('');
   const [deskripsi, setDeskripsi] = useState('');
 
+  const { data: guruClasses = [] } = useGuruClasses();
   // Queries
   const { data: mapelList = [] } = useMapelList();
+
+  // Filter mapelList based on what the teacher teaches
+  const taughtMapelIds = new Set(guruClasses.flatMap(k => k.mapels.map(m => m.id)));
+  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(m.id));
+
   const { data: tpList = [], isLoading } = useTujuanPembelajaranList(selectedMapelId, selectedTingkat);
 
   const createMutation = useCreateTujuanPembelajaran();
@@ -24,8 +31,8 @@ export default function GuruTujuanPembelajaran() {
   const deleteMutation = useDeleteTujuanPembelajaran();
 
   // Set first mapel as default when loaded
-  if (!selectedMapelId && mapelList.length > 0) {
-    setSelectedMapelId(mapelList[0].id);
+  if (!selectedMapelId && guruMapelList.length > 0) {
+    setSelectedMapelId(guruMapelList[0].id);
   }
 
   const openNew = () => {
@@ -91,7 +98,7 @@ export default function GuruTujuanPembelajaran() {
               onChange={e => setSelectedMapelId(e.target.value)} 
               className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white"
             >
-              {mapelList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
+              {guruMapelList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
             </select>
           </div>
 

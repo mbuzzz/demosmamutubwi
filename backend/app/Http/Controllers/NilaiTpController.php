@@ -9,7 +9,9 @@ use App\Models\Nilai;
 use App\Models\Kelas;
 use App\Models\Kurikulum;
 use App\Models\SistemKonfigurasi;
+use App\Models\Penugasan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class NilaiTpController extends Controller
 {
@@ -31,6 +33,21 @@ class NilaiTpController extends Controller
             ->where('kelas', $kelas->nama)
             ->orderBy('name')
             ->get();
+
+        $user = Auth::user();
+        if ($user->role === 'guru') {
+            $config = SistemKonfigurasi::first();
+            $tahunAjaranAktif = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+            $hasPenugasan = Penugasan::where('guru_id', $user->id)
+                ->where('mapel_id', $request->mapel_id)
+                ->where('kelas_id', $kelas->id)
+                ->where('tahun_ajaran', $tahunAjaranAktif)
+                ->exists();
+
+            if (!$hasPenugasan) {
+                abort(403, 'Anda tidak ditugaskan mengajar mapel tersebut di kelas ini pada tahun ajaran aktif.');
+            }
+        }
 
         $tpId = $request->tujuan_pembelajaran_id;
 
@@ -74,6 +91,19 @@ class NilaiTpController extends Controller
             'tahun_ajaran_aktif' => '2025/2026',
             'semester_aktif' => 'ganjil',
         ]);
+
+        $user = Auth::user();
+        if ($user->role === 'guru') {
+            // Because store receives array of scores, we need to check if the guru teaches this mapel
+            $hasPenugasan = Penugasan::where('guru_id', $user->id)
+                ->where('mapel_id', $mapelId)
+                ->where('tahun_ajaran', $config->tahun_ajaran_aktif)
+                ->exists();
+
+            if (!$hasPenugasan) {
+                abort(403, 'Anda tidak ditugaskan mengajar mapel tersebut pada tahun ajaran ini.');
+            }
+        }
 
         \DB::beginTransaction();
         try {

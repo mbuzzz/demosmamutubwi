@@ -48,19 +48,17 @@ export default function AdminKelasList() {
       return;
     }
 
-    const data = {
-      nama,
-      tingkat,
-      wali_kelas_id: waliKelasId ? waliKelasId : null,
-    };
-
     try {
+      // Determine defaults based on tingkat (these might need to be state variables if users can change them, but using standard defaults for creation)
+      const jurusan = 'Umum';
+      const tahun_ajaran = '2023/2024';
+
       if (editId) {
-        await updateKelasMutation.mutateAsync({ id: editId, data });
+        await updateKelasMutation.mutateAsync({ id: editId, data: { nama, tingkat, wali_kelas_id: waliKelasId || null, jurusan, tahun_ajaran } });
         toast.success('Kelas berhasil diperbarui');
       } else {
-        await createKelasMutation.mutateAsync(data);
-        toast.success('Kelas baru berhasil ditambahkan');
+        await createKelasMutation.mutateAsync({ nama, tingkat, wali_kelas_id: waliKelasId || null, jurusan, tahun_ajaran });
+        toast.success('Kelas berhasil ditambahkan');
       }
       setShowForm(false);
     } catch (err: any) {

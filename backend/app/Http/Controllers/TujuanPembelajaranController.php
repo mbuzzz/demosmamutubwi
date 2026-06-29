@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\TujuanPembelajaran;
+use App\Models\Penugasan;
+use App\Models\SistemKonfigurasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TujuanPembelajaranController extends Controller
 {
@@ -22,6 +25,24 @@ class TujuanPembelajaranController extends Controller
         return response()->json($query->orderBy('kode')->get());
     }
 
+    private function checkGuruPenugasan($mapelId)
+    {
+        $user = Auth::user();
+        if ($user->role === 'guru') {
+            $config = SistemKonfigurasi::first();
+            $tahunAjaranAktif = $config ? $config->tahun_ajaran_aktif : '2025/2026'; // fallback
+
+            $hasPenugasan = Penugasan::where('guru_id', $user->id)
+                ->where('mapel_id', $mapelId)
+                ->where('tahun_ajaran', $tahunAjaranAktif)
+                ->exists();
+
+            if (!$hasPenugasan) {
+                abort(403, 'Anda tidak ditugaskan mengajar mapel tersebut pada tahun ajaran ini.');
+            }
+        }
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -30,6 +51,8 @@ class TujuanPembelajaranController extends Controller
             'kode' => 'required|string|max:50',
             'deskripsi' => 'required|string',
         ]);
+
+        $this->checkGuruPenugasan($validated['mapel_id']);
 
         $tp = TujuanPembelajaran::create($validated);
 
@@ -56,6 +79,8 @@ class TujuanPembelajaranController extends Controller
             'deskripsi' => 'required|string',
         ]);
 
+        $this->checkGuruPenugasan($validated['mapel_id']);
+
         $tp->update($validated);
 
         return response()->json([
@@ -67,6 +92,9 @@ class TujuanPembelajaranController extends Controller
     public function destroy($id)
     {
         $tp = TujuanPembelajaran::findOrFail($id);
+        
+        $this->checkGuruPenugasan($tp->mapel_id);
+
         $tp->delete();
 
         return response()->json([

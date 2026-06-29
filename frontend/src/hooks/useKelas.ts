@@ -1,14 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { type UserRecord } from './useUsers';
+import { type MapelRecord } from './useMapel';
 import { toast } from 'sonner';
 
 export interface KelasRecord {
   id: string;
   nama: string;
   tingkat: string;
-  wali_kelas_id?: string | null;
+  jurusan: string;
+  tahun_ajaran: string;
+  wali_kelas_id: string | null;
   wali_kelas?: UserRecord | null;
+  mapels?: MapelRecord[];
 }
 
 export function useKelasList(search?: string) {
