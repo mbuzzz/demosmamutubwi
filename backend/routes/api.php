@@ -25,6 +25,9 @@ use App\Http\Controllers\Api\CbtBankSoalController;
 use App\Http\Controllers\Api\CbtSesiController;
 use App\Http\Controllers\Api\CbtUjianController;
 
+use App\Http\Controllers\Api\LmsMateriController;
+use App\Http\Controllers\Api\LmsTugasController;
+
 use App\Http\Controllers\DashboardController;
 
 // CMS Controllers
@@ -217,12 +220,35 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('cbt/sesi/{sesiUjian}/refresh-token', [CbtSesiController::class, 'refreshToken']);
     });
 
+    // LMS Shared Endpoints
+    Route::middleware('role:superadmin,admin,guru,siswa')->group(function () {
+        Route::get('lms/materi', [LmsMateriController::class, 'index']);
+        Route::get('lms/materi/{id}', [LmsMateriController::class, 'show']);
+        Route::post('lms/materi/{id}/komentar', [LmsMateriController::class, 'addKomentar']);
+        
+        Route::get('lms/tugas', [LmsTugasController::class, 'index']);
+        Route::get('lms/tugas/{id}', [LmsTugasController::class, 'show']);
+        Route::post('lms/tugas/{id}/komentar', [LmsTugasController::class, 'addKomentar']);
+    });
+    
     // Ujian Execution (Siswa)
     Route::middleware('role:siswa')->group(function () {
         Route::get('cbt/ujian/sesi-aktif', [CbtUjianController::class, 'getSesiAktif']);
         Route::post('cbt/ujian/mulai', [CbtUjianController::class, 'mulaiUjian']);
         Route::post('cbt/ujian/simpan-jawaban', [CbtUjianController::class, 'simpanJawaban']);
         Route::post('cbt/ujian/selesai', [CbtUjianController::class, 'selesaiUjian']);
+        
+        // LMS Siswa Submit Tugas
+        Route::post('lms/tugas/{id}/submit', [LmsTugasController::class, 'submitTugas']);
+    });
+    
+    // LMS Admin/Guru Management
+    Route::middleware('role:superadmin,admin,guru')->group(function () {
+        Route::apiResource('lms/materi', LmsMateriController::class)->except(['index', 'show']);
+        Route::apiResource('lms/tugas', LmsTugasController::class)->except(['index', 'show']);
+        
+        Route::get('lms/tugas/{id}/submissions', [LmsTugasController::class, 'getSubmissions']);
+        Route::post('lms/tugas/{id}/grade/{siswa_id}', [LmsTugasController::class, 'gradeSubmission']);
     });
 });
 

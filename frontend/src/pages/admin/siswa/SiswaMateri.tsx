@@ -1,76 +1,44 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { BookOpen, Search, ArrowLeft, Download, FileText, Send, MessageSquare, Clock, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DOMPurify from 'dompurify';
-
-interface Comment {
-  name: string;
-  role: string;
-  time: string;
-  text: string;
-}
-
-interface Materi {
-  id: string;
-  title: string;
-  mapel: string;
-  tanggal: string;
-  read: boolean;
-  content: string;
-  file: { name: string; size: string; type: string } | null;
-  comments: Comment[];
-}
-
-const defaultMateris: Materi[] = [
-  {
-    id: '1', title: 'Bab 1 - Sifat Logaritma', mapel: 'Matematika Wajib', tanggal: '12 Jul 2024', read: true,
-    content: '<p>Assalamualaikum wr wb. Anak-anakku kelas X-1,</p><p>Hari ini kita akan mempelajari materi lanjutan tentang Sifat-sifat Logaritma. Silakan baca rangkuman di bawah ini, lalu pelajari modul PDF yang telah Bapak lampirkan.</p><br/><h3>Sifat Dasar yang Harus Diingat:</h3><ol><li><sup>a</sup>log(b * c) = <sup>a</sup>log b + <sup>a</sup>log c</li><li><sup>a</sup>log(b / c) = <sup>a</sup>log b - <sup>a</sup>log c</li></ol>',
-    file: { name: 'Modul_Logaritma_X.pdf', size: '2.4 MB', type: 'PDF' },
-    comments: [
-      { name: 'Ahmad Hidayat, S.Pd', role: 'Guru', time: '3 jam lalu', text: 'Silakan tanyakan di kolom komentar jika ada sifat logaritma yang belum dipahami.' },
-      { name: 'Agus Setiawan', role: 'Siswa (Anda)', time: '2 jam lalu', text: 'Pak, untuk sifat pembagian logaritma apakah syarat basis a harus positif?' },
-    ],
-  },
-  {
-    id: '2', title: 'Catatan Rumus Cepat Logaritma', mapel: 'Matematika Wajib', tanggal: '15 Jul 2024', read: false,
-    content: '<p>Berikut rumus cepat untuk menyelesaikan soal logaritma kuadrat yang sering keluar di ujian.</p>',
-    file: null,
-    comments: [],
-  },
-];
+import { useMateriList, useAddMateriComment } from '../../../hooks/useLms';
+import type { Materi } from '../../../hooks/useLms';
+import { getFileUrl } from '../../../lib/api';
 
 export default function SiswaMateri() {
-  const [materis, setMateris] = useState<Materi[]>(defaultMateris);
   const [view, setView] = useState<'list' | 'detail'>('list');
   const [selectedMateri, setSelectedMateri] = useState<Materi | null>(null);
   const [search, setSearch] = useState('');
   const [commentInput, setCommentInput] = useState('');
 
-  const filteredMateris = materis.filter(m => m.title.toLowerCase().includes(search.toLowerCase()));
+  const { data: materis = [], isLoading } = useMateriList();
+  const addComment = useAddMateriComment();
+  // We can leave user unused if it isn't needed right now
+  
+  const filteredMateris = materis.filter(m => m.judul.toLowerCase().includes(search.toLowerCase()));
 
   function openMateri(materi: Materi) {
-    // Mark as read when student opens it
-    setMateris(prev => prev.map(m => m.id === materi.id ? { ...m, read: true } : m));
-    setSelectedMateri({ ...materi, read: true });
+    setSelectedMateri(materi);
     setView('detail');
   }
 
-  function addComment() {
+  function handleAddComment() {
     if (!commentInput.trim() || !selectedMateri) return;
-    const newComment: Comment = {
-      name: 'Agus Setiawan',
-      role: 'Siswa (Anda)',
-      time: 'Baru saja',
-      text: commentInput.trim(),
-    };
-    const updatedMateri = {
-      ...selectedMateri,
-      comments: [...selectedMateri.comments, newComment],
-    };
-    setMateris(prev => prev.map(m => m.id === selectedMateri.id ? updatedMateri : m));
-    setSelectedMateri(updatedMateri);
-    setCommentInput('');
+    addComment.mutate({ id: selectedMateri.id, isi_komentar: commentInput.trim() }, {
+      onSuccess: () => {
+        setCommentInput('');
+      }
+    });
   }
+
+  // Update selectedMateri if the list updates (e.g. after adding a comment)
+  useEffect(() => {
+    if (selectedMateri) {
+      const updated = materis.find(m => m.id === selectedMateri.id);
+      if (updated) setSelectedMateri(updated);
+    }
+  }, [materis]);
 
   if (view === 'detail' && selectedMateri) {
     return (
@@ -89,27 +57,26 @@ export default function SiswaMateri() {
                   <BookOpen className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-1">{selectedMateri.title}</h2>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedMateri.mapel} • Dipublikasikan: {selectedMateri.tanggal}</p>
+                  <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-1">{selectedMateri.judul}</h2>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedMateri.mapel?.nama} • Dipublikasikan: {new Date(selectedMateri.created_at).toLocaleDateString('id-ID')}</p>
                 </div>
               </div>
 
-              <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMateri.content) }} />
+              <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMateri.deskripsi || '') }} />
 
-              {selectedMateri.file && (
+              {selectedMateri.file_url && (
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-3 flex items-center gap-2"><FileText className="w-4 h-4 text-indigo-500" /> Lampiran File Pembelajaran</h4>
                   <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center rounded-lg font-black text-[10px]">{selectedMateri.file.type}</div>
+                      <div className="w-10 h-10 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center rounded-lg font-black text-[10px]">FILE</div>
                       <div>
-                        <div className="font-bold text-slate-800 dark:text-white text-sm">{selectedMateri.file.name}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">{selectedMateri.file.size}</div>
+                        <div className="font-bold text-slate-800 dark:text-white text-sm">Lampiran Materi</div>
                       </div>
                     </div>
-                    <button className="p-2 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-lg transition-colors" title="Download">
+                    <a href={getFileUrl(selectedMateri.file_url)} target="_blank" rel="noopener noreferrer" className="p-2 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-lg transition-colors" title="Download">
                       <Download className="w-4 h-4" />
-                    </button>
+                    </a>
                   </div>
                 </div>
               )}
@@ -124,31 +91,31 @@ export default function SiswaMateri() {
               </h3>
 
               <div className="space-y-4 mb-4 overflow-y-auto max-h-[360px] custom-scrollbar pr-1">
-                {selectedMateri.comments.length === 0 ? (
+                {!selectedMateri.comments || selectedMateri.comments.length === 0 ? (
                   <p className="text-xs text-slate-400 text-center py-6">Belum ada diskusi. Tanyakan sesuatu di bawah!</p>
                 ) : (
                   selectedMateri.comments.map((c, i) => (
                     <div key={i} className={`rounded-xl p-3 border transition-colors ${
-                      c.role === 'Guru'
+                      c.user?.role_akses === 'guru'
                         ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20'
                         : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700/50'
                     }`}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-                          {c.name} 
-                          {c.role === 'Guru' && <span className="text-[9px] bg-indigo-600 text-white px-1 rounded font-normal">Guru</span>}
+                          {c.user?.nama} 
+                          {c.user?.role_akses === 'guru' && <span className="text-[9px] bg-indigo-600 text-white px-1 rounded font-normal">Guru</span>}
                         </span>
-                        <span className="text-[10px] text-slate-400"><Clock className="w-2.5 h-2.5 inline mr-1" />{c.time}</span>
+                        <span className="text-[10px] text-slate-400"><Clock className="w-2.5 h-2.5 inline mr-1" />{new Date(c.created_at).toLocaleDateString('id-ID')}</span>
                       </div>
-                      <p className="text-xs text-slate-650 dark:text-slate-350 leading-relaxed">{c.text}</p>
+                      <p className="text-xs text-slate-650 dark:text-slate-350 leading-relaxed">{c.isi_komentar}</p>
                     </div>
                   ))
                 )}
               </div>
 
               <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <input type="text" value={commentInput} onChange={e => setCommentInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addComment()} placeholder="Tulis komentar/pertanyaan..." className="flex-1 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
-                <button onClick={addComment} className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors active:scale-95"><Send className="w-4 h-4" /></button>
+                <input type="text" value={commentInput} onChange={e => setCommentInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddComment()} placeholder="Tulis komentar/pertanyaan..." className="flex-1 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                <button onClick={handleAddComment} className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors active:scale-95"><Send className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
@@ -169,6 +136,11 @@ export default function SiswaMateri() {
         </div>
 
         <div className="p-6">
+          {isLoading ? (
+            <p className="text-center py-8 text-slate-400">Loading...</p>
+          ) : filteredMateris.length === 0 ? (
+            <p className="text-center py-8 text-slate-400">Belum ada materi</p>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredMateris.map(m => (
               <div key={m.id} onClick={() => openMateri(m)} className="flex items-start gap-4 p-5 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer group bg-white dark:bg-slate-900">
@@ -176,17 +148,13 @@ export default function SiswaMateri() {
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{m.title}</h4>
-                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{m.mapel} • {m.tanggal}</div>
+                  <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{m.judul}</h4>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{m.mapel?.nama} • {new Date(m.created_at).toLocaleDateString('id-ID')}</div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg ${
-                      m.read 
-                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                        : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 animate-pulse'
-                    }`}>
-                      {m.read ? 'SELESAI DIBACA' : 'BELUM DIBACA'}
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400`}>
+                      MATERI
                     </span>
-                    {m.file && (
+                    {m.file_url && (
                       <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-lg flex items-center gap-1"><FileText className="w-3 h-3" /> Ada Modul</span>
                     )}
                   </div>
@@ -197,6 +165,7 @@ export default function SiswaMateri() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
     </AdminLayout>

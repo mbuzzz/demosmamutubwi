@@ -1,0 +1,350 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Tugas;
+use App\Models\PengumpulanTugas;
+use App\Models\KomentarLms;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+
+class LmsTugasController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Tugas::with(['guru', 'mapel', 'kelas']);
+
+        if ($request->has('kelas_id')) {
+            $query->where('kelas_id', $request->kelas_id);
+        }
+
+        if ($request->has('guru_id')) {
+            $query->where('guru_id', $request->guru_id);
+        }
+        
+        if ($request->has('mapel_id')) {
+            $query->where('mapel_id', $request->mapel_id);
+        }
+
+        $tugas = $query->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $tugas
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'guru_id' => 'required|exists:users,id',
+            'mapel_id' => 'required|exists:mapels,id',
+            'kelas_id' => 'required|exists:kelas,id',
+            'judul' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'lampiran_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
+            'tenggat_waktu' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $request->except('lampiran_url');
+
+        if ($request->hasFile('lampiran_url')) {
+            $file = $request->file('lampiran_url');
+            $path = $file->store('lms/tugas', 'public');
+            $data['lampiran_url'] = '/storage/' . $path;
+        }
+
+        $tugas = Tugas::create($data);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Tugas berhasil ditambahkan',
+            'data' => $tugas
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $tugas = Tugas::with(['guru', 'mapel', 'kelas', 'komentarLms.user'])->find($id);
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $tugas
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $tugas = Tugas::find($id);
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'guru_id' => 'sometimes|exists:users,id',
+            'mapel_id' => 'sometimes|exists:mapels,id',
+            'kelas_id' => 'sometimes|exists:kelas,id',
+            'judul' => 'sometimes|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'lampiran_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
+            'tenggat_waktu' => 'sometimes|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $request->except('lampiran_url');
+
+        if ($request->hasFile('lampiran_url')) {
+            // Hapus file lama jika ada
+            if ($tugas->lampiran_url) {
+                $oldPath = str_replace('/storage/', '', $tugas->lampiran_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $file = $request->file('lampiran_url');
+            $path = $file->store('lms/tugas', 'public');
+            $data['lampiran_url'] = '/storage/' . $path;
+        }
+
+        $tugas->update($data);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Tugas berhasil diupdate',
+            'data' => $tugas
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $tugas = Tugas::find($id);
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan'
+            ], 404);
+        }
+
+        if ($tugas->lampiran_url) {
+            $path = str_replace('/storage/', '', $tugas->lampiran_url);
+            Storage::disk('public')->delete($path);
+        }
+
+        $tugas->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Tugas berhasil dihapus'
+        ]);
+    }
+
+    public function addKomentar(Request $request, $id)
+    {
+        $tugas = Tugas::find($id);
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'komentar' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $komentar = KomentarLms::create([
+            'user_id' => $request->user()->id,
+            'tugas_id' => $id,
+            'komentar' => $request->komentar,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Komentar berhasil ditambahkan',
+            'data' => $komentar->load('user')
+        ], 201);
+    }
+
+    public function getSubmissions($id)
+    {
+        $tugas = Tugas::find($id);
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan'
+            ], 404);
+        }
+
+        // Ambil semua siswa di kelas tersebut, left join dengan pengumpulan_tugas
+        // Asumsi relasi user dengan kelas menggunakan field kelas_id atau tabel pivot.
+        // Di sini saya berasumsi field kelas_id ada di tabel users untuk role siswa.
+        
+        $submissions = User::where('role', 'siswa')
+            ->whereHas('riwayatKelas', function($q) use ($tugas) {
+                // Asumsi riwayatKelas ada relasi ke kelas yang saat ini aktif
+                $q->where('kelas_id', $tugas->kelas_id);
+            })
+            // Fallback jika hanya ada kelas_id di users, bisa disesuaikan dengan skema yang ada
+            ->orWhere(function($q) use ($tugas) {
+                 $q->where('role', 'siswa')->where('kelas_id', $tugas->kelas_id);
+            })
+            ->with(['pengumpulanTugas' => function($q) use ($id) {
+                $q->where('tugas_id', $id);
+            }])
+            ->get()
+            ->map(function ($siswa) {
+                $pengumpulan = $siswa->pengumpulanTugas->first();
+                return [
+                    'siswa_id' => $siswa->id,
+                    'nama_siswa' => $siswa->name,
+                    'nisn' => $siswa->nisn,
+                    'status_pengumpulan' => $pengumpulan ? true : false,
+                    'data_pengumpulan' => $pengumpulan
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $submissions
+        ]);
+    }
+
+    public function submitTugas(Request $request, $id)
+    {
+        $tugas = Tugas::find($id);
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'file_jawaban_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
+            'catatan_siswa' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $siswa_id = $request->user()->id;
+
+        // Cek apakah sudah pernah submit
+        $pengumpulan = PengumpulanTugas::where('tugas_id', $id)->where('siswa_id', $siswa_id)->first();
+
+        if (!$pengumpulan) {
+            $pengumpulan = new PengumpulanTugas();
+            $pengumpulan->tugas_id = $id;
+            $pengumpulan->siswa_id = $siswa_id;
+        }
+
+        $pengumpulan->waktu_pengumpulan = now();
+        $pengumpulan->catatan_siswa = $request->catatan_siswa;
+
+        if ($request->hasFile('file_jawaban_url')) {
+            // Hapus file lama jika ada
+            if ($pengumpulan->file_jawaban_url) {
+                $oldPath = str_replace('/storage/', '', $pengumpulan->file_jawaban_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $file = $request->file('file_jawaban_url');
+            $path = $file->store('lms/pengumpulan', 'public');
+            $pengumpulan->file_jawaban_url = '/storage/' . $path;
+        }
+
+        $pengumpulan->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Tugas berhasil dikumpulkan',
+            'data' => $pengumpulan
+        ]);
+    }
+
+    public function gradeSubmission(Request $request, $id, $siswa_id)
+    {
+        $tugas = Tugas::find($id);
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'nilai' => 'required|numeric|min:0|max:100',
+            'catatan_guru' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Cek apakah pengumpulan ada
+        $pengumpulan = PengumpulanTugas::where('tugas_id', $id)->where('siswa_id', $siswa_id)->first();
+
+        if (!$pengumpulan) {
+            // Buat record kosong untuk dinilai walau belum kumpul
+            $pengumpulan = new PengumpulanTugas();
+            $pengumpulan->tugas_id = $id;
+            $pengumpulan->siswa_id = $siswa_id;
+        }
+
+        $pengumpulan->nilai = $request->nilai;
+        $pengumpulan->catatan_guru = $request->catatan_guru;
+        $pengumpulan->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Nilai berhasil disimpan',
+            'data' => $pengumpulan
+        ]);
+    }
+}

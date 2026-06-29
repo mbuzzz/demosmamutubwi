@@ -1,44 +1,58 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { ArrowLeft, FileText, Download, CheckCircle, Clock, XCircle, Search, Edit, Save, Eye, MessageSquare, UserCheck, BarChart3, X, Send, AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { ArrowLeft, FileText, Download, CheckCircle, Clock, XCircle, Search, Edit, Save, Eye, MessageSquare, UserCheck, BarChart3, X, AlertTriangle } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
+import { useTugasDetail, useGetSubmissions, useGradeSubmission, useUpdateTugas } from '../../../../hooks/useLms';
+import { getFileUrl } from '../../../../lib/api';
 
 type FilterStatus = 'all' | 'submitted' | 'unsubmitted' | 'graded' | 'ungraded';
 
-interface Submission {
-  id: number;
-  name: string;
-  nisn: string;
-  status: 'tepat' | 'terlambat' | 'belum';
-  time: string;
-  file: string | null;
-  fileType: string | null;
-  grade: number | null;
-}
-
-const allSubmissions: Submission[] = [
-  { id: 1, name: 'Agus Setiawan', nisn: '0081234501', status: 'tepat', time: 'Hari ini, 09:14 WIB', file: 'Tugas_Agus_Logaritma.pdf', fileType: 'PDF', grade: 90 },
-  { id: 2, name: 'Budi Raharjo', nisn: '0081234502', status: 'terlambat', time: 'Hari ini, 20:10 WIB', file: 'Tugas_Budi_Logaritma.jpg', fileType: 'JPG', grade: null },
-  { id: 3, name: 'Citra Kirana', nisn: '0081234503', status: 'belum', time: '', file: null, fileType: null, grade: null },
-  { id: 4, name: 'Dewi Lestari', nisn: '0081234504', status: 'tepat', time: 'Kemarin, 22:05 WIB', file: 'Tugas_Dewi.pdf', fileType: 'PDF', grade: 85 },
-  { id: 5, name: 'Eko Prasetyo', nisn: '0081234505', status: 'tepat', time: 'Hari ini, 07:30 WIB', file: 'Tugas_Eko_Logaritma.pdf', fileType: 'PDF', grade: null },
-  { id: 6, name: 'Fitri Ayu', nisn: '0081234506', status: 'belum', time: '', file: null, fileType: null, grade: null },
-  { id: 7, name: 'Galih Saputra', nisn: '0081234507', status: 'terlambat', time: 'Hari ini, 23:45 WIB', file: 'Tugas_Galih.pdf', fileType: 'PDF', grade: null },
-  { id: 8, name: 'Hana Kirana', nisn: '0081234508', status: 'tepat', time: 'Kemarin, 19:00 WIB', file: 'Tugas_Hana.pdf', fileType: 'PDF', grade: 95 },
-];
-
 export default function GuruTugasDetail() {
+  const { id } = useParams();
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [search, setSearch] = useState('');
   const [editInstruksi, setEditInstruksi] = useState(false);
-  const [previewFile, setPreviewFile] = useState<Submission | null>(null);
-  const [feedbacks, setFeedbacks] = useState<Record<number, string>>({});
-  const [feedbackInput, setFeedbackInput] = useState<Record<number, string>>({});
+  const [previewFile, setPreviewFile] = useState<any>(null);
+  
+  // Local state for grading inputs
+  const [grades, setGrades] = useState<Record<string, string>>({});
+  const [feedbackInput, setFeedbackInput] = useState<Record<string, string>>({});
+
+  const { data: tugas, isLoading: isLoadingTugas } = useTugasDetail(id);
+  const { data: submissionsData = [], isLoading: isLoadingSubmissions } = useGetSubmissions(id);
+  const gradeSubmission = useGradeSubmission();
+  const updateTugas = useUpdateTugas();
+
+  const [editContent, setEditContent] = useState('');
+  useEffect(() => {
+    if (tugas) setEditContent(tugas.deskripsi || '');
+  }, [tugas]);
+
+  // Combine submissions with a static list of students for the class?
+  // Our backend /tugas/:id/submissions should probably return all students in the class with their submission status.
+  // If it only returns actual submissions, we need to fetch students in the class.
+  // Assuming useGetSubmissions returns all students (status 'belum', 'menunggu', 'sudah_dinilai').
+  const allSubmissions = submissionsData.map(s => ({
+    id: s.id,
+    siswa_id: s.siswa_id,
+    name: s.siswa?.nama || 'Unknown',
+    nisn: '0000', // dummy
+    status: s.status,
+    time: s.status !== 'belum' ? new Date(s.updated_at).toLocaleString('id-ID') : '',
+    file: s.file_url ? s.file_url.split('/').pop() : null,
+    file_url: s.file_url,
+    fileType: s.file_url ? s.file_url.split('.').pop()?.toUpperCase() : null,
+    grade: s.nilai ?? null,
+    komentar_guru: s.komentar_guru
+  }));
 
   const submitted = allSubmissions.filter(s => s.status !== 'belum');
   const unsubmitted = allSubmissions.filter(s => s.status === 'belum');
-  const graded = allSubmissions.filter(s => s.grade !== null);
-  const ungraded = allSubmissions.filter(s => s.status !== 'belum' && s.grade === null);
+  const graded = allSubmissions.filter(s => s.status === 'sudah_dinilai' || s.grade !== null);
+  const ungraded = allSubmissions.filter(s => (s.status === 'menunggu') || (s.status !== 'belum' && s.grade === null));
 
   const filteredSubmissions = allSubmissions.filter(s => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.nisn.includes(search);
@@ -64,13 +78,47 @@ export default function GuruTugasDetail() {
     { key: 'ungraded', label: 'Belum Dinilai', count: ungraded.length },
   ];
 
+  const handleGrade = (submissionId: string, gradeVal: string) => {
+    setGrades(prev => ({...prev, [submissionId]: gradeVal}));
+  };
+
+  const submitGrades = () => {
+    if (!id) return;
+    Object.keys(grades).forEach(subId => {
+      const val = parseFloat(grades[subId]);
+      if (!isNaN(val)) {
+        gradeSubmission.mutate({
+          tugasId: id,
+          submissionId: subId,
+          nilai: val,
+          komentar_guru: feedbackInput[subId]
+        });
+      }
+    });
+    setGrades({});
+    setFeedbackInput({});
+  };
+
+  const handleUpdateInstruksi = () => {
+    if (id) {
+      updateTugas.mutate({ id, data: { deskripsi: editContent } }, {
+        onSuccess: () => setEditInstruksi(false)
+      });
+    }
+  };
+
+  if (isLoadingTugas) return <AdminLayout title="Memuat..."><div className="p-8 text-center">Memuat...</div></AdminLayout>;
+  if (!tugas) return <AdminLayout title="Error"><div className="p-8 text-center">Tugas tidak ditemukan</div></AdminLayout>;
+
+  const isPastDeadline = new Date(tugas.tenggat_waktu) < new Date();
+
   return (
     <AdminLayout title="Detail Penugasan">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <Link to="/panel/guru/tugas" className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-bold text-sm">
           <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar Tugas
         </Link>
-        <button onClick={() => setEditInstruksi(!editInstruksi)} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95">
+        <button onClick={() => editInstruksi ? handleUpdateInstruksi() : setEditInstruksi(true)} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95">
           {editInstruksi ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
           {editInstruksi ? 'Simpan Instruksi' : 'Edit Instruksi'}
         </button>
@@ -104,23 +152,25 @@ export default function GuruTugasDetail() {
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-black text-slate-800 dark:text-white leading-tight mb-1">PR LKS Hal 24-25</h3>
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Matematika Wajib • Kelas X-1</p>
+                <h3 className="font-black text-slate-800 dark:text-white leading-tight mb-1">{tugas.judul}</h3>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{tugas.kelas?.nama}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Tenggat Waktu</div>
-                <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-lg w-fit">
-                  <Clock className="w-4 h-4" /> Masih Dibuka (Besok, 23:59)
+                <div className={`flex items-center gap-2 text-sm font-bold px-3 py-1.5 rounded-lg w-fit ${
+                  !isPastDeadline ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10' : 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10'
+                }`}>
+                  <Clock className="w-4 h-4" /> {!isPastDeadline ? `Masih Dibuka (${new Date(tugas.tenggat_waktu).toLocaleString('id-ID')})` : 'Ditutup'}
                 </div>
               </div>
 
               <div>
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Progress Pengumpulan</div>
                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 mt-2 mb-1.5 overflow-hidden">
-                  <div className="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${Math.round((submitted.length / total) * 100)}%` }}></div>
+                  <div className="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${total ? Math.round((submitted.length / total) * 100) : 0}%` }}></div>
                 </div>
                 <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
                   <span>{submitted.length} Mengumpulkan</span>
@@ -131,24 +181,16 @@ export default function GuruTugasDetail() {
               {!editInstruksi ? (
                 <div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Instruksi Tugas</div>
-                  <div className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 prose prose-sm dark:prose-invert">
-                    <p>Kerjakan LKS halaman 24 sampai 25 bagian Uji Kompetensi A dan B.</p>
-                    <p>Foto hasil pengerjaan di buku tulis, pastikan tulisan terbaca jelas, lalu upload ke sini dalam format PDF atau JPG.</p>
-                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 prose prose-sm dark:prose-invert" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tugas.deskripsi || '') }} />
                 </div>
               ) : (
                 <div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Edit Instruksi</div>
-                  <textarea defaultValue="Kerjakan LKS halaman 24 sampai 25 bagian Uji Kompetensi A dan B.\n\nFoto hasil pengerjaan di buku tulis, pastikan tulisan terbaca jelas, lalu upload ke sini dalam format PDF atau JPG." className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white resize-none" rows={6} />
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden quill-custom-dark transition-colors">
+                    <ReactQuill theme="snow" value={editContent} onChange={setEditContent} className="h-48 pb-10" />
+                  </div>
                 </div>
               )}
-
-              <div className="pt-2">
-                <button className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
-                  <Send className="w-4 h-4" /> Kirim Pengingat
-                </button>
-                <p className="text-[10px] text-slate-400 text-center mt-2">Kirim notifikasi ke {unsubmitted.length} siswa yang belum kumpul</p>
-              </div>
             </div>
           </div>
         </div>
@@ -191,7 +233,9 @@ export default function GuruTugasDetail() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                  {filteredSubmissions.length === 0 ? (
+                  {isLoadingSubmissions ? (
+                    <tr><td colSpan={5} className="text-center py-8">Memuat data...</td></tr>
+                  ) : filteredSubmissions.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400 font-bold">
                         Tidak ada data yang cocok dengan filter
@@ -205,17 +249,11 @@ export default function GuruTugasDetail() {
                           <div className="text-[10px] font-mono text-slate-400 mt-0.5">NISN: {s.nisn}</div>
                         </td>
                         <td className="px-5 py-4">
-                          {s.status === 'tepat' && (
+                          {s.status === 'sudah_dinilai' || s.status === 'menunggu' ? (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-md mb-1">
-                              <CheckCircle className="w-3 h-3" /> Tepat Waktu
+                              <CheckCircle className="w-3 h-3" /> Mengumpulkan
                             </span>
-                          )}
-                          {s.status === 'terlambat' && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-md mb-1">
-                              <Clock className="w-3 h-3" /> Terlambat
-                            </span>
-                          )}
-                          {s.status === 'belum' && (
+                          ) : s.status === 'belum' && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-md mb-1">
                               <XCircle className="w-3 h-3" /> Belum
                             </span>
@@ -233,11 +271,16 @@ export default function GuruTugasDetail() {
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex items-center justify-center gap-2">
-                            <input type="number" placeholder="0" defaultValue={s.grade ?? ''} disabled={s.status === 'belum'}
+                            <input 
+                              type="number" 
+                              placeholder="0" 
+                              value={grades[s.id] !== undefined ? grades[s.id] : (s.grade ?? '')} 
+                              onChange={(e) => handleGrade(s.id, e.target.value)}
+                              disabled={s.status === 'belum'}
                               className={`w-16 px-2 py-1.5 rounded-lg text-center text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 transition-colors ${
                                 s.status === 'belum'
                                   ? 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 cursor-not-allowed'
-                                  : s.grade !== null
+                                  : (s.grade !== null || grades[s.id] !== undefined)
                                     ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400'
                                     : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                               }`} />
@@ -247,9 +290,9 @@ export default function GuruTugasDetail() {
                           {s.status !== 'belum' && (
                             <div className="relative inline-block">
                               <button
-                                onClick={() => setFeedbackInput(prev => ({ ...prev, [s.id]: prev[s.id] === undefined ? '' : undefined }))}
+                                onClick={() => setFeedbackInput(prev => ({ ...prev, [s.id]: prev[s.id] === undefined ? (s.komentar_guru || '') : undefined }))}
                                 className={`p-1.5 rounded-lg transition-colors ${
-                                  feedbacks[s.id] ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20' : 'text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20'
+                                  s.komentar_guru || feedbackInput[s.id] !== undefined ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20' : 'text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20'
                                 }`}
                                 title="Beri komentar"
                               >
@@ -264,17 +307,6 @@ export default function GuruTugasDetail() {
                                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white resize-none mb-2"
                                     rows={3}
                                   />
-                                  <button
-                                    onClick={() => {
-                                      if (feedbackInput[s.id]?.trim()) {
-                                        setFeedbacks(prev => ({ ...prev, [s.id]: feedbackInput[s.id] }));
-                                      }
-                                      setFeedbackInput(prev => ({ ...prev, [s.id]: undefined }));
-                                    }}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-1.5 rounded-lg text-xs font-bold transition-colors"
-                                  >
-                                    Kirim Komentar
-                                  </button>
                                 </div>
                               )}
                             </div>
@@ -291,8 +323,8 @@ export default function GuruTugasDetail() {
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                 Menampilkan {filteredSubmissions.length} dari {total} siswa
               </span>
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
-                Simpan Semua Nilai
+              <button onClick={submitGrades} disabled={Object.keys(grades).length === 0} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
+                Simpan Perubahan Nilai
               </button>
             </div>
           </div>
@@ -300,18 +332,18 @@ export default function GuruTugasDetail() {
       </div>
 
       {/* Modal Preview File */}
-      {previewFile && (
+      {previewFile && previewFile.file_url && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setPreviewFile(null)}>
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <h3 className="font-bold text-slate-800 dark:text-white text-sm">Preview Jawaban</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{previewFile.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{previewFile.file}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-xl transition-colors">
+                <a href={getFileUrl(previewFile.file_url)} target="_blank" rel="noopener noreferrer" className="p-2 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-xl transition-colors">
                   <Download className="w-4 h-4" />
-                </button>
+                </a>
                 <button onClick={() => setPreviewFile(null)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                   <X className="w-4 h-4" />
                 </button>
@@ -326,12 +358,9 @@ export default function GuruTugasDetail() {
               <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">{previewFile.file}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Upload oleh {previewFile.name}</p>
               <div className="flex gap-3 w-full max-w-xs">
-                <button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95">
-                  <Download className="w-4 h-4 inline mr-1.5" /> Download
-                </button>
-                <button className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-2.5 rounded-xl text-sm font-bold hover:border-indigo-300 transition-all active:scale-95">
-                  <Eye className="w-4 h-4 inline mr-1.5" /> Lihat
-                </button>
+                <a href={getFileUrl(previewFile.file_url)} target="_blank" rel="noopener noreferrer" className="flex-1 text-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-2.5 rounded-xl text-sm font-bold hover:border-indigo-300 transition-all active:scale-95">
+                  <Eye className="w-4 h-4 inline mr-1.5" /> Lihat/Download
+                </a>
               </div>
             </div>
           </div>

@@ -2,77 +2,60 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { FileText, Search, ArrowLeft, UploadCloud, Download, CheckCircle, MessageSquare, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import DOMPurify from 'dompurify';
-
-interface Tugas {
-  id: string;
-  title: string;
-  mapel: string;
-  deadline: string;
-  instruksi: string;
-  status: 'belum' | 'menunggu' | 'dinilai';
-  nilai: number | null;
-  feedback: string | null;
-  fileJawaban: string | null;
-  lampiranSoal: string | null;
-}
-
-const defaultTugases: Tugas[] = [
-  {
-    id: '1', title: 'PR LKS Hal 24-25', mapel: 'Matematika Wajib', deadline: 'Besok, 23:59 WIB',
-    instruksi: '<p>Kerjakan LKS halaman 24 sampai 25 bagian Uji Kompetensi A dan B.</p><p>Foto hasil pengerjaan di buku tulis, pastikan tulisan terbaca jelas, lalu upload ke sini dalam format PDF atau JPG.</p>',
-    status: 'belum', nilai: null, feedback: null, fileJawaban: null, lampiranSoal: 'Lembar_Kerja_Logaritma.pdf'
-  },
-  {
-    id: '2', title: 'Laporan Praktikum Kinematika', mapel: 'Fisika', deadline: 'Kamis, 23:59 WIB',
-    instruksi: '<p>Buatlah laporan praktikum sesuai format yang telah dibagikan di kelas. Lengkapi tabel pengamatan dan buat kesimpulannya.</p>',
-    status: 'menunggu', nilai: null, feedback: null, fileJawaban: 'Laporan_Kinematika_Agus.pdf', lampiranSoal: null
-  },
-  {
-    id: '3', title: 'Tugas Rumus Eksponen', mapel: 'Matematika Wajib', deadline: 'Lalu (15 Jul 2024)',
-    instruksi: '<p>Kerjakan 5 soal eksponen yang ada di buku paket halaman 12.</p>',
-    status: 'dinilai', nilai: 90, feedback: 'Kerja bagus Agus, langkah pengerjaan teratur dan benar.', fileJawaban: 'Tugas_Eksponen_Agus.pdf', lampiranSoal: null
-  }
-];
+import { useTugasList, useSubmitTugas, useGetSubmissions } from '../../../hooks/useLms';
+import type { Tugas } from '../../../hooks/useLms';
+import { getFileUrl } from '../../../lib/api';
+import { useUsers } from '../../../hooks/useUsers';
 
 export default function SiswaTugas() {
-  const [tugases, setTugases] = useState<Tugas[]>(defaultTugases);
   const [view, setView] = useState<'list' | 'detail'>('list');
   const [selectedTugas, setSelectedTugas] = useState<Tugas | null>(null);
   const [search, setSearch] = useState('');
   const [fileInput, setFileInput] = useState<File | null>(null);
-  const [catatanSiswa, setCatatanSiswa] = useState('');
 
-  const filteredTugases = tugases.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
+  const { data: tugases = [], isLoading } = useTugasList();
+  const submitTugas = useSubmitTugas();
+  const currentUser = useUsers().data?.find(u => u.id === 'current');
+  
+  const { data: detailSubmissions = [] } = useGetSubmissions(selectedTugas?.id);
+  const mySubmission = detailSubmissions.find(s => s.siswa_id === currentUser?.id);
+
+  const filteredTugases = tugases.filter(t => t.judul.toLowerCase().includes(search.toLowerCase()));
 
   function openDetail(t: Tugas) {
     setSelectedTugas(t);
     setFileInput(null);
-    setCatatanSiswa('');
     setView('detail');
   }
 
   function handleUpload() {
-    if (!selectedTugas) return;
-    const updatedTugas: Tugas = {
-      ...selectedTugas,
-      status: 'menunggu',
-      fileJawaban: fileInput ? fileInput.name : 'Jawaban_Agus.pdf'
-    };
-    setTugases(prev => prev.map(t => t.id === selectedTugas.id ? updatedTugas : t));
-    setSelectedTugas(updatedTugas);
+    if (!selectedTugas || !fileInput) return;
+    const formData = new FormData();
+    formData.append('file_url', fileInput);
+    
+    submitTugas.mutate({ tugasId: selectedTugas.id, data: formData }, {
+      onSuccess: () => {
+        setFileInput(null);
+      }
+    });
   }
 
-  function statusBadge(status: Tugas['status']) {
-    const maps = {
+  function statusBadge(status: string) {
+    const maps: Record<string, {label: string, style: string}> = {
       belum: { label: 'Belum Kumpul', style: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' },
       menunggu: { label: 'Menunggu Penilaian', style: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-      dinilai: { label: 'Selesai Dinilai', style: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+      sudah_dinilai: { label: 'Selesai Dinilai', style: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
     };
-    const c = maps[status];
+    const c = maps[status] || { label: 'Status Tidak Diketahui', style: 'bg-slate-50 text-slate-500' };
     return <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap ${c.style}`}>{c.label}</span>;
   }
 
   if (view === 'detail' && selectedTugas) {
+    const status = mySubmission ? mySubmission.status : 'belum';
+    const nilai = mySubmission ? mySubmission.nilai : null;
+    const feedback = mySubmission ? mySubmission.komentar_guru : null;
+    const fileJawaban = mySubmission?.file_url ? mySubmission.file_url.split('/').pop() : null;
+    
     return (
       <AdminLayout title="Detail Penugasan Siswa">
         <div className="mb-6">
@@ -89,54 +72,31 @@ export default function SiswaTugas() {
                   <FileText className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-1">{selectedTugas.title}</h2>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedTugas.mapel} • Deadline: <span className="text-amber-600">{selectedTugas.deadline}</span></p>
+                  <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-1">{selectedTugas.judul}</h2>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedTugas.mapel?.nama} • Deadline: <span className="text-amber-600">{new Date(selectedTugas.tenggat_waktu).toLocaleString('id-ID')}</span></p>
                 </div>
               </div>
 
               <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 mb-8">
                 <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-2">Instruksi Tugas:</h4>
-                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedTugas.instruksi) }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedTugas.deskripsi || '') }} />
               </div>
 
-              {selectedTugas.lampiranSoal && (
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 mb-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center rounded font-black text-[10px]">PDF</div>
-                      <div>
-                        <div className="font-bold text-slate-800 dark:text-white text-xs">{selectedTugas.lampiranSoal}</div>
-                        <p className="text-[10px] text-slate-400">Lampiran Soal</p>
-                      </div>
-                    </div>
-                    <button className="p-1.5 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 rounded-lg transition-colors">
-                      <Download className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* Form Pengumpulan */}
-              {selectedTugas.status === 'belum' ? (
+              {status === 'belum' ? (
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-4">Pengumpulan Jawaban:</h4>
                   <div className="space-y-4">
-                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl p-6 text-center transition-colors cursor-pointer group">
+                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl p-6 text-center transition-colors cursor-pointer group relative">
                       <UploadCloud className="w-10 h-10 text-slate-400 group-hover:scale-110 transition-transform mx-auto mb-3" />
                       <p className="text-sm font-bold text-slate-800 dark:text-white">Pilih atau Seret File Jawaban</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Maks. 5MB (PDF atau JPG)</p>
-                      <input type="file" onChange={e => setFileInput(e.target.files?.[0] || null)} className="hidden" id="tugas-file-input" />
-                      <label htmlFor="tugas-file-input" className="mt-3 inline-block px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow cursor-pointer transition-colors">Pilih File</label>
+                      <input type="file" onChange={e => setFileInput(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                       {fileInput && <div className="mt-3 text-xs font-bold text-emerald-600">{fileInput.name}</div>}
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Catatan untuk Guru (Opsional)</label>
-                      <textarea value={catatanSiswa} onChange={e => setCatatanSiswa(e.target.value)} placeholder="Tulis catatan jika ada..." rows={3} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white resize-none" />
-                    </div>
-
-                    <button onClick={handleUpload} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm shadow-sm active:scale-95 transition-all">
-                      Kumpulkan Tugas
+                    <button onClick={handleUpload} disabled={!fileInput || submitTugas.isPending} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl font-bold text-sm shadow-sm active:scale-95 transition-all">
+                      {submitTugas.isPending ? 'Mengunggah...' : 'Kumpulkan Tugas'}
                     </button>
                   </div>
                 </div>
@@ -147,10 +107,15 @@ export default function SiswaTugas() {
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
                       <div>
-                        <div className="text-xs font-bold text-slate-800 dark:text-white">{selectedTugas.fileJawaban}</div>
-                        <p className="text-[10px] text-slate-400">Tepat Waktu • Diupload kemarin</p>
+                        <div className="text-xs font-bold text-slate-800 dark:text-white">{fileJawaban}</div>
+                        <p className="text-[10px] text-slate-400">Tepat Waktu • Diupload pada {new Date(mySubmission!.updated_at).toLocaleDateString('id-ID')}</p>
                       </div>
                     </div>
+                    {mySubmission?.file_url && (
+                      <a href={getFileUrl(mySubmission.file_url)} target="_blank" rel="noopener noreferrer" className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                        <Download className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
@@ -167,19 +132,19 @@ export default function SiswaTugas() {
               <div className="space-y-4">
                 <div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Pengumpulan</div>
-                  {statusBadge(selectedTugas.status)}
+                  {statusBadge(status)}
                 </div>
 
-                {selectedTugas.status === 'dinilai' && selectedTugas.nilai !== null && (
+                {status === 'sudah_dinilai' && nilai !== null && (
                   <>
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                       <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nilai Tugas</div>
-                      <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{selectedTugas.nilai} <span className="text-xs font-normal text-slate-400">/ 100</span></div>
+                      <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{nilai} <span className="text-xs font-normal text-slate-400">/ 100</span></div>
                     </div>
-                    {selectedTugas.feedback && (
+                    {feedback && (
                       <div className="bg-indigo-50 dark:bg-indigo-500/10 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-500/20">
                         <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1 flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Catatan Guru</div>
-                        <p className="text-xs text-indigo-850 dark:text-indigo-300 leading-relaxed font-medium">{selectedTugas.feedback}</p>
+                        <p className="text-xs text-indigo-850 dark:text-indigo-300 leading-relaxed font-medium">{feedback}</p>
                       </div>
                     )}
                   </>
@@ -204,6 +169,11 @@ export default function SiswaTugas() {
         </div>
 
         <div className="p-6">
+          {isLoading ? (
+            <p className="text-center py-8 text-slate-400">Loading...</p>
+          ) : filteredTugases.length === 0 ? (
+            <p className="text-center py-8 text-slate-400">Belum ada tugas</p>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredTugases.map(t => (
               <div key={t.id} onClick={() => openDetail(t)} className="flex items-start gap-4 p-5 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer group bg-white dark:bg-slate-900">
@@ -211,13 +181,10 @@ export default function SiswaTugas() {
                   <FileText className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{t.title}</h4>
-                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{t.mapel} • Deadline: {t.deadline}</div>
+                  <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{t.judul}</h4>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{t.mapel?.nama} • Deadline: {new Date(t.tenggat_waktu).toLocaleString('id-ID')}</div>
                   <div className="flex items-center gap-2">
-                    {statusBadge(t.status)}
-                    {t.nilai !== null && (
-                      <span className="text-[11px] sm:text-xs font-extrabold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap">Nilai: {t.nilai}</span>
-                    )}
+                    <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap bg-slate-100 text-slate-500`}>Lihat Detail</span>
                   </div>
                 </div>
                 <div className="p-2 text-slate-400 hover:text-indigo-600 dark:bg-slate-800 rounded-lg group-hover:translate-x-1 transition-transform">
@@ -226,6 +193,7 @@ export default function SiswaTugas() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
     </AdminLayout>

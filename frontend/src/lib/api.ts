@@ -1,19 +1,34 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL;
-if (!baseURL) {
-  throw new Error('VITE_API_URL environment variable is required. Set it in .env file (e.g., http://localhost:8000/api)');
-}
+// Get API base URL and configure for development mode
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Use the base URL for files as well, assuming it's the domain + /uploads
+// We strip /api to get the root domain where uploads are hosted
+const API_ROOT = baseURL.replace('/api', '');
 
 export const api = axios.create({
   baseURL,
-  withCredentials: true,
-  withXSRFToken: true,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
+  withCredentials: true, // Important for cookies
 });
+
+// Helper for file URLs
+export function getFileUrl(path: string | undefined): string {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('/')) return `${API_ROOT}${path}`;
+  return `${API_ROOT}/${path}`;
+}
+
+// Add a request interceptor to attach the token if we store it in localStorage
+// (If we use HttpOnly cookies, this isn't strictly necessary, but good practice if using local token)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 
 api.interceptors.response.use(
   response => response,
