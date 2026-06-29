@@ -27,6 +27,25 @@ use App\Http\Controllers\Api\CbtUjianController;
 
 use App\Http\Controllers\DashboardController;
 
+// CMS Controllers
+use App\Http\Controllers\ProfilSekolahController;
+use App\Http\Controllers\BeritaController;
+use App\Http\Controllers\KategoriBeritaController;
+use App\Http\Controllers\GaleriController;
+use App\Http\Controllers\FaqController;
+use App\Http\Controllers\TestimoniController;
+
+// Public CMS Routes
+Route::prefix('public')->group(function () {
+    Route::get('/profil', [ProfilSekolahController::class, 'show']);
+    Route::get('/berita', [BeritaController::class, 'index']);
+    Route::get('/berita/{slug}', [BeritaController::class, 'show']);
+    Route::get('/kategori-berita', [KategoriBeritaController::class, 'index']);
+    Route::get('/galeri', [GaleriController::class, 'index']);
+    Route::get('/faq', [FaqController::class, 'index']);
+    Route::get('/testimoni', [TestimoniController::class, 'index']);
+});
+
 // Public RFID Tap Routes
 Route::post('/absensi/tap', [AbsensiController::class, 'tap']);
 Route::post('/absensi/verify-pin', [KonfigurasiAbsensiController::class, 'verifyPin']);
@@ -103,6 +122,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'show']);
         Route::put('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'update']);
         Route::get('/sistem-konfigurasi/options', [SistemKonfigurasiController::class, 'getAvailableOptions']);
+        
+        // CMS Management
+        Route::put('/profil-sekolah', [ProfilSekolahController::class, 'update']);
+        Route::apiResource('berita', BeritaController::class)->except(['index', 'show']);
+        Route::apiResource('kategori-berita', KategoriBeritaController::class)->except(['index', 'show']);
+        Route::apiResource('galeri', GaleriController::class)->except(['index', 'show']);
+        Route::apiResource('faq', FaqController::class)->except(['index', 'show']);
+        Route::apiResource('testimoni', TestimoniController::class)->except(['index', 'show']);
     });
 
     // 6. KURIKULUM MANAGEMENT (Superadmin, Admin, Kurikulum)

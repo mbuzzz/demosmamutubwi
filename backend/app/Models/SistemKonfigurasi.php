@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
-#[Fillable(['tahun_ajaran_aktif', 'semester_aktif', 'kurikulum_aktif_id', 'nama_sekolah', 'logo_sekolah', 'kop_surat'])]
+#[Fillable(['tahun_ajaran_aktif', 'semester_aktif', 'kurikulum_aktif_id', 'nama_sekolah', 'logo_sekolah', 'kop_surat', 'slogan', 'telepon', 'email', 'alamat', 'google_maps_embed', 'facebook', 'instagram', 'twitter'])]
 class SistemKonfigurasi extends Model
 {
     use HasFactory;

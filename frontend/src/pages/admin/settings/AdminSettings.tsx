@@ -18,6 +18,15 @@ export default function AdminSettings() {
   const [namaSekolah, setNamaSekolah] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [kopSuratFile, setKopSuratFile] = useState<File | null>(null);
+  const [slogan, setSlogan] = useState('');
+  const [telepon, setTelepon] = useState('');
+  const [email, setEmail] = useState('');
+  
+  const [facebook, setFacebook] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [alamat, setAlamat] = useState('');
+  const [googleMapsEmbed, setGoogleMapsEmbed] = useState('');
 
   const initForm = (c: typeof config) => {
     if (c) {
@@ -25,6 +34,14 @@ export default function AdminSettings() {
       setSemester(c.semester_aktif);
       setKurikulumId(c.kurikulum_aktif_id || '');
       setNamaSekolah(c.nama_sekolah || 'SMAS Muhammadiyah 1 Banyuwangi');
+      setSlogan(c.slogan || '');
+      setTelepon(c.telepon || '');
+      setEmail(c.email || '');
+      setFacebook(c.facebook || '');
+      setInstagram(c.instagram || '');
+      setTwitter(c.twitter || '');
+      setAlamat(c.alamat || '');
+      setGoogleMapsEmbed(c.google_maps_embed || '');
     }
   };
 
@@ -35,6 +52,9 @@ export default function AdminSettings() {
       formData.append('nama_sekolah', namaSekolah);
       if (logoFile) formData.append('logo_sekolah', logoFile);
       if (kopSuratFile) formData.append('kop_surat', kopSuratFile);
+      formData.append('slogan', slogan);
+      formData.append('telepon', telepon);
+      formData.append('email', email);
 
       await updateConfig.mutateAsync(formData);
       toast.success('Identitas & Gambar berhasil diperbarui');
@@ -57,19 +77,34 @@ export default function AdminSettings() {
     }
   };
 
+  const handleSaveTampilan = async () => {
+    try {
+      await updateConfig.mutateAsync({
+        facebook,
+        instagram,
+        twitter,
+        alamat,
+        google_maps_embed: googleMapsEmbed,
+      });
+      toast.success('Pengaturan tampilan & sosial media berhasil disimpan');
+    } catch {
+      toast.error('Gagal menyimpan pengaturan tampilan');
+    }
+  };
+
   return (
     <AdminLayout title="Pengaturan Sistem & Tampilan">
       <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-800 mb-6">
         
         {/* Navigation Tabs */}
         <div className="flex border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
-          <button onClick={() => setActiveTab('identitas')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'identitas' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('identitas'); if (config) initForm(config); }} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'identitas' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             Identitas Utama Sekolah
           </button>
           <button onClick={() => { setActiveTab('akademik'); if (config) initForm(config); }} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'akademik' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             Konfigurasi Akademik
           </button>
-          <button onClick={() => setActiveTab('footer')} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'footer' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('footer'); if (config) initForm(config); }} className={`px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'footer' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30 dark:bg-indigo-500/10' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             Tampilan & Sosial Media
           </button>
         </div>
@@ -98,16 +133,16 @@ export default function AdminSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Deskripsi Singkat / Slogan</label>
-                  <textarea rows={3} defaultValue="Membentuk generasi unggul berkarakter Islami, cerdas secara akademis, dan terampil menyongsong masa depan." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
+                  <textarea rows={3} value={slogan} onChange={e => setSlogan(e.target.value)} placeholder="Membentuk generasi unggul berkarakter Islami, cerdas secara akademis, dan terampil menyongsong masa depan." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Nomor Telepon</label>
-                    <input type="text" defaultValue="(0333) 421382" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                    <input type="text" value={telepon} onChange={e => setTelepon(e.target.value)} placeholder="(0333) 421382" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Email Sekolah</label>
-                    <input type="email" defaultValue="info@smasmuh1bwi.sch.id" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="info@smasmuh1bwi.sch.id" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                 </div>
                 <div className="pt-4">
@@ -200,15 +235,15 @@ export default function AdminSettings() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Facebook className="w-4 h-4 text-[#1877F2]" /> Facebook</label>
-                    <input type="url" placeholder="https://facebook.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                    <input type="url" value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="https://facebook.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Instagram className="w-4 h-4 text-[#E4405F]" /> Instagram</label>
-                    <input type="url" placeholder="https://instagram.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                    <input type="url" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="https://instagram.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 flex items-center gap-2"><Twitter className="w-4 h-4 text-[#1DA1F2]" /> Twitter / X</label>
-                    <input type="url" placeholder="https://twitter.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                    <input type="url" value={twitter} onChange={e => setTwitter(e.target.value)} placeholder="https://twitter.com/..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                 </div>
               </div>
@@ -220,17 +255,17 @@ export default function AdminSettings() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Alamat Lengkap</label>
-                    <textarea rows={2} defaultValue="Jl. Letkol Istiqlah No.109, Singonegaran, Kec. Banyuwangi, Kabupaten Banyuwangi, Jawa Timur 68415" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
+                    <textarea rows={2} value={alamat} onChange={e => setAlamat(e.target.value)} placeholder="Jl. Letkol Istiqlah No.109, Singonegaran, Kec. Banyuwangi, Kabupaten Banyuwangi, Jawa Timur 68415" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Embed Google Maps (URL / iFrame)</label>
-                    <textarea rows={4} placeholder="Paste kode <iframe> dari Google Maps disini..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs"></textarea>
+                    <textarea rows={4} value={googleMapsEmbed} onChange={e => setGoogleMapsEmbed(e.target.value)} placeholder="Paste kode <iframe> dari Google Maps disini..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs"></textarea>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Gunakan kode embed src="..." yang didapat dari fitur "Share &gt; Embed a map" Google Maps.</p>
                   </div>
                 </div>
                 <div className="pt-6">
-                  <button type="button" className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm">
-                    <Save className="w-4 h-4" /> Update Tampilan Frontend
+                  <button type="button" onClick={handleSaveTampilan} disabled={updateConfig.isPending} className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm disabled:opacity-50">
+                    {updateConfig.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Update Tampilan Frontend
                   </button>
                 </div>
               </div>

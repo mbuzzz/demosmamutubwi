@@ -10,6 +10,14 @@ export interface SistemKonfigurasiRecord {
   nama_sekolah?: string;
   logo_sekolah?: string;
   kop_surat?: string;
+  slogan?: string;
+  telepon?: string;
+  email?: string;
+  alamat?: string;
+  google_maps_embed?: string;
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
   kurikulum_aktif?: {
     id: string;
     nama: string;
@@ -37,6 +45,14 @@ export function useUpdateSistemKonfigurasi() {
       semester_aktif?: 'ganjil' | 'genap';
       kurikulum_aktif_id?: string | null;
       nama_sekolah?: string;
+      slogan?: string;
+      telepon?: string;
+      email?: string;
+      alamat?: string;
+      google_maps_embed?: string;
+      facebook?: string;
+      instagram?: string;
+      twitter?: string;
     }) => {
       if (data instanceof FormData) {
         data.append('_method', 'PUT');

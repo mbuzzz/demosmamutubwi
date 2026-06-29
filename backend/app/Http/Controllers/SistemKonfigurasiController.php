@@ -28,6 +28,14 @@ class SistemKonfigurasiController extends Controller
             'semester_aktif' => 'sometimes|string|in:ganjil,genap',
             'kurikulum_aktif_id' => 'sometimes|nullable|exists:kurikulums,id',
             'nama_sekolah' => 'sometimes|string',
+            'slogan' => 'sometimes|nullable|string',
+            'telepon' => 'sometimes|nullable|string',
+            'email' => 'sometimes|nullable|email',
+            'alamat' => 'sometimes|nullable|string',
+            'google_maps_embed' => 'sometimes|nullable|string',
+            'facebook' => 'sometimes|nullable|string',
+            'instagram' => 'sometimes|nullable|string',
+            'twitter' => 'sometimes|nullable|string',
         ]);
 
         $config = SistemKonfigurasi::first();
