@@ -27,7 +27,7 @@ class BankSoal extends Model
 
     public function mapel()
     {
-        return $this->belongsTo(Mapel::class);
+        return $this->belongsTo(Mapel::class, 'mapel_id');
     }
 
     public function soals()

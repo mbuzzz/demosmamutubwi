@@ -178,7 +178,7 @@ class LmsTugasController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'komentar' => 'required|string',
+            'isi_komentar' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -189,9 +189,9 @@ class LmsTugasController extends Controller
         }
 
         $komentar = KomentarLms::create([
-            'user_id' => $request->user()->id,
-            'tugas_id' => $id,
-            'komentar' => $request->komentar,
+            'user_id'     => $request->user()->id,
+            'tugas_id'    => $id,
+            'isi_komentar' => $request->isi_komentar,
         ]);
 
         return response()->json([
@@ -212,31 +212,30 @@ class LmsTugasController extends Controller
             ], 404);
         }
 
-        // Ambil semua siswa di kelas tersebut, left join dengan pengumpulan_tugas
-        // Asumsi relasi user dengan kelas menggunakan field kelas_id atau tabel pivot.
-        // Di sini saya berasumsi field kelas_id ada di tabel users untuk role siswa.
-        
-        $submissions = User::where('role', 'siswa')
-            ->whereHas('riwayatKelas', function($q) use ($tugas) {
-                // Asumsi riwayatKelas ada relasi ke kelas yang saat ini aktif
-                $q->where('kelas_id', $tugas->kelas_id);
-            })
-            // Fallback jika hanya ada kelas_id di users, bisa disesuaikan dengan skema yang ada
-            ->orWhere(function($q) use ($tugas) {
-                 $q->where('role', 'siswa')->where('kelas_id', $tugas->kelas_id);
-            })
-            ->with(['pengumpulanTugas' => function($q) use ($id) {
+        // Ambil semua siswa di kelas yang sama dengan kelas tugas
+        // Users menyimpan kelas sebagai string nama kelas (misal "X IPA 1")
+        // Kelas model memiliki field 'nama'
+        $kelasModel = \App\Models\Kelas::find($tugas->kelas_id);
+        $kelasNama  = $kelasModel ? $kelasModel->nama : null;
+
+        $query = User::where('role', 'siswa');
+        if ($kelasNama) {
+            $query->where('kelas', $kelasNama);
+        }
+
+        $submissions = $query
+            ->with(['pengumpulanTugas' => function ($q) use ($id) {
                 $q->where('tugas_id', $id);
             }])
             ->get()
             ->map(function ($siswa) {
                 $pengumpulan = $siswa->pengumpulanTugas->first();
                 return [
-                    'siswa_id' => $siswa->id,
-                    'nama_siswa' => $siswa->name,
-                    'nisn' => $siswa->nisn,
+                    'siswa_id'           => $siswa->id,
+                    'nama_siswa'         => $siswa->name,
+                    'nisn'               => $siswa->nip_nisn,
                     'status_pengumpulan' => $pengumpulan ? true : false,
-                    'data_pengumpulan' => $pengumpulan
+                    'data_pengumpulan'   => $pengumpulan
                 ];
             });
 
@@ -280,7 +279,7 @@ class LmsTugasController extends Controller
             $pengumpulan->siswa_id = $siswa_id;
         }
 
-        $pengumpulan->waktu_pengumpulan = now();
+        $pengumpulan->dikumpulkan_pada = now();
         $pengumpulan->catatan_siswa = $request->catatan_siswa;
 
         if ($request->hasFile('file_jawaban_url')) {
@@ -316,8 +315,8 @@ class LmsTugasController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'nilai' => 'required|numeric|min:0|max:100',
-            'catatan_guru' => 'nullable|string',
+            'nilai'       => 'required|numeric|min:0|max:100',
+            'feedback_guru' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -337,8 +336,9 @@ class LmsTugasController extends Controller
             $pengumpulan->siswa_id = $siswa_id;
         }
 
-        $pengumpulan->nilai = $request->nilai;
-        $pengumpulan->catatan_guru = $request->catatan_guru;
+        $pengumpulan->nilai        = $request->nilai;
+        $pengumpulan->feedback_guru = $request->feedback_guru;
+        $pengumpulan->status       = 'sudah_dinilai';
         $pengumpulan->save();
 
         return response()->json([

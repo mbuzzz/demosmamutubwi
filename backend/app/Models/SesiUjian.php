@@ -19,12 +19,12 @@ class SesiUjian extends Model
 
     public function bankSoal()
     {
-        return $this->belongsTo(BankSoal::class);
+        return $this->belongsTo(BankSoal::class, 'bank_soal_id');
     }
 
     public function kelas()
     {
-        return $this->belongsTo(Kelas::class);
+        return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 
     public function hasilUjians()

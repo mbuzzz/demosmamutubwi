@@ -17,7 +17,7 @@ class HasilUjian extends Model
 
     public function sesiUjian()
     {
-        return $this->belongsTo(SesiUjian::class);
+        return $this->belongsTo(SesiUjian::class, 'sesi_ujian_id');
     }
 
     public function siswa()

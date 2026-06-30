@@ -31,4 +31,30 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // --- Relations ---
+
+    /** Pengumpulan tugas siswa (siswa_id FK) */
+    public function pengumpulanTugas()
+    {
+        return $this->hasMany(PengumpulanTugas::class, 'siswa_id');
+    }
+
+    /** Hasil ujian CBT (siswa_id FK) */
+    public function hasilUjians()
+    {
+        return $this->hasMany(HasilUjian::class, 'siswa_id');
+    }
+
+    /** Absensi siswa (siswa_id FK) */
+    public function absensis()
+    {
+        return $this->hasMany(Absensi::class, 'siswa_id');
+    }
+
+    /** Penugasan guru mengajar (guru_id FK) */
+    public function penugasans()
+    {
+        return $this->hasMany(Penugasan::class, 'guru_id');
+    }
 }

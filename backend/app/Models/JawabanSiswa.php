@@ -13,16 +13,16 @@ class JawabanSiswa extends Model
 
     public function hasilUjian()
     {
-        return $this->belongsTo(HasilUjian::class);
+        return $this->belongsTo(HasilUjian::class, 'hasil_ujian_id');
     }
 
     public function soal()
     {
-        return $this->belongsTo(Soal::class);
+        return $this->belongsTo(Soal::class, 'soal_id');
     }
 
     public function opsiJawaban()
     {
-        return $this->belongsTo(OpsiJawaban::class);
+        return $this->belongsTo(OpsiJawaban::class, 'opsi_jawaban_id');
     }
 }

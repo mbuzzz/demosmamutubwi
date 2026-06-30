@@ -16,9 +16,10 @@ class PengumpulanTugas extends Model
         'siswa_id',
         'file_jawaban_url',
         'catatan_siswa',
-        'waktu_pengumpulan',
+        'dikumpulkan_pada',
         'nilai',
-        'catatan_guru',
+        'feedback_guru',
+        'status',
     ];
 
     public function tugas()

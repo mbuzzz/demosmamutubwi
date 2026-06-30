@@ -16,8 +16,10 @@ class Materi extends Model
         'mapel_id',
         'kelas_id',
         'judul',
-        'deskripsi',
-        'file_url',
+        'tipe_file',
+        'konten',
+        'lampiran_url',
+        'status',
     ];
 
     public function guru()

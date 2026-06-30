@@ -173,7 +173,7 @@ class LmsMateriController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'komentar' => 'required|string',
+            'isi_komentar' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -184,9 +184,9 @@ class LmsMateriController extends Controller
         }
 
         $komentar = KomentarLms::create([
-            'user_id' => $request->user()->id,
+            'user_id'   => $request->user()->id,
             'materi_id' => $id,
-            'komentar' => $request->komentar,
+            'isi_komentar' => $request->isi_komentar,
         ]);
 
         return response()->json([

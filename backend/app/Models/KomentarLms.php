@@ -15,7 +15,7 @@ class KomentarLms extends Model
         'user_id',
         'materi_id',
         'tugas_id',
-        'komentar',
+        'isi_komentar',
     ];
 
     public function user()

@@ -16,9 +16,10 @@ class Tugas extends Model
         'mapel_id',
         'kelas_id',
         'judul',
-        'deskripsi',
+        'instruksi',
         'lampiran_url',
         'tenggat_waktu',
+        'status',
     ];
 
     public function guru()

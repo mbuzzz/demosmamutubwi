@@ -36,9 +36,9 @@ class DashboardController extends Controller
             // Kehadiran hari ini
             $today = Carbon::today()->toDateString();
             $stats['kehadiran_hari_ini'] = [
-                'hadir' => Absensi::whereDate('tanggal', $today)->whereIn('status', ['hadir', 'tap_masuk', 'tap_pulang'])->count(),
-                'alpha' => Absensi::whereDate('tanggal', $today)->where('status', 'alpha')->count(),
-                'terlambat' => Absensi::whereDate('tanggal', $today)->where('terlambat', true)->count(),
+                'hadir'     => Absensi::whereDate('tanggal', $today)->whereIn('status_masuk', ['hadir', 'terlambat'])->count(),
+                'alpha'     => Absensi::whereDate('tanggal', $today)->where('status_masuk', 'alpha')->count(),
+                'terlambat' => Absensi::whereDate('tanggal', $today)->where('status_masuk', 'terlambat')->count(),
             ];
             
             // Generate some cards array format common in dashoards
@@ -102,10 +102,16 @@ class DashboardController extends Controller
             
             if ($walikelasKelas) {
                 // Get attendance for wali kelas's students today
+                // Users store kelas as a string name (e.g. "X IPA 1"), matching kelas.nama
                 $today = Carbon::today()->toDateString();
-                $siswaIds = User::where('role', 'siswa')->where('kelas_id', $walikelasKelas->id)->pluck('id');
-                
-                $hadir = Absensi::whereIn('user_id', $siswaIds)->whereDate('tanggal', $today)->whereIn('status', ['hadir', 'tap_masuk', 'tap_pulang'])->count();
+                $siswaIds = User::where('role', 'siswa')
+                    ->where('kelas', $walikelasKelas->nama)
+                    ->pluck('id');
+
+                $hadir = Absensi::whereIn('siswa_id', $siswaIds)
+                    ->whereDate('tanggal', $today)
+                    ->whereIn('status_masuk', ['hadir', 'terlambat'])
+                    ->count();
                 $totalSiswa = count($siswaIds);
                 
                 $stats['kehadiran_kelas_binaan'] = [
@@ -133,8 +139,8 @@ class DashboardController extends Controller
                 });
             $stats['tagihan_belum_lunas'] = $tagihanBelumLunas;
             
-            $totalHari = Absensi::where('user_id', $siswaId)->count();
-            $totalHadir = Absensi::where('user_id', $siswaId)->whereIn('status', ['hadir', 'tap_masuk', 'tap_pulang'])->count();
+            $totalHari = Absensi::where('siswa_id', $siswaId)->count();
+            $totalHadir = Absensi::where('siswa_id', $siswaId)->whereIn('status_masuk', ['hadir', 'terlambat'])->count();
             
             $persentaseKehadiran = $totalHari > 0 ? round(($totalHadir / $totalHari) * 100) : 100;
             $stats['persentase_kehadiran'] = $persentaseKehadiran;

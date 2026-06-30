@@ -13,7 +13,7 @@ class Soal extends Model
 
     public function bankSoal()
     {
-        return $this->belongsTo(BankSoal::class);
+        return $this->belongsTo(BankSoal::class, 'bank_soal_id');
     }
 
     public function opsiJawabans()
