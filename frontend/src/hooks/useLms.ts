@@ -65,7 +65,7 @@ export function useMateriList(kelasId?: string) {
   return useQuery({
     queryKey: ['materi', kelasId],
     queryFn: async () => {
-      const res = await api.get<Materi[]>('/materi', { params: { kelas_id: kelasId } });
+      const res = await api.get<Materi[]>('/lms/materi', { params: { kelas_id: kelasId } });
       return res.data;
     },
   });
@@ -76,7 +76,7 @@ export function useMateriDetail(id?: string) {
     queryKey: ['materi', id],
     queryFn: async () => {
       if (!id) return null;
-      const res = await api.get<Materi>(`/materi/${id}`);
+      const res = await api.get<Materi>(`/lms/materi/${id}`);
       return res.data;
     },
     enabled: !!id,
@@ -87,7 +87,7 @@ export function useCreateMateri() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: FormData) => {
-      const res = await api.post('/materi', data, {
+      const res = await api.post('/lms/materi', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       return res.data;
@@ -106,7 +106,7 @@ export function useUpdateMateri() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: FormData }) => {
-      const res = await api.put(`/materi/${id}`, data, {
+      const res = await api.put(`/lms/materi/${id}`, data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       return res.data;
@@ -126,7 +126,7 @@ export function useDeleteMateri() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await api.delete(`/materi/${id}`);
+      const res = await api.delete(`/lms/materi/${id}`);
       return res.data;
     },
     onSuccess: () => {
@@ -143,7 +143,7 @@ export function useAddMateriComment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, isi_komentar }: { id: string; isi_komentar: string }) => {
-      const res = await api.post(`/materi/${id}/comments`, { isi_komentar });
+      const res = await api.post(`/lms/materi/${id}/komentar`, { isi_komentar });
       return res.data;
     },
     onSuccess: (_, variables) => {
@@ -163,7 +163,7 @@ export function useTugasList(kelasId?: string) {
   return useQuery({
     queryKey: ['tugas', kelasId],
     queryFn: async () => {
-      const res = await api.get<Tugas[]>('/tugas', { params: { kelas_id: kelasId } });
+      const res = await api.get<Tugas[]>('/lms/tugas', { params: { kelas_id: kelasId } });
       return res.data;
     },
   });
@@ -174,7 +174,7 @@ export function useTugasDetail(id?: string) {
     queryKey: ['tugas', id],
     queryFn: async () => {
       if (!id) return null;
-      const res = await api.get<Tugas>(`/tugas/${id}`);
+      const res = await api.get<Tugas>(`/lms/tugas/${id}`);
       return res.data;
     },
     enabled: !!id,
@@ -185,7 +185,7 @@ export function useCreateTugas() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Omit<Tugas, 'id' | 'created_at' | 'updated_at' | 'guru' | 'kelas' | 'mapel' | 'comments'>) => {
-      const res = await api.post('/tugas', data);
+      const res = await api.post('/lms/tugas', data);
       return res.data;
     },
     onSuccess: () => {
@@ -202,7 +202,7 @@ export function useUpdateTugas() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Tugas> }) => {
-      const res = await api.put(`/tugas/${id}`, data);
+      const res = await api.put(`/lms/tugas/${id}`, data);
       return res.data;
     },
     onSuccess: (_, variables) => {
@@ -220,7 +220,7 @@ export function useDeleteTugas() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await api.delete(`/tugas/${id}`);
+      const res = await api.delete(`/lms/tugas/${id}`);
       return res.data;
     },
     onSuccess: () => {
@@ -237,7 +237,7 @@ export function useAddTugasComment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, isi_komentar }: { id: string; isi_komentar: string }) => {
-      const res = await api.post(`/tugas/${id}/comments`, { isi_komentar });
+      const res = await api.post(`/lms/tugas/${id}/komentar`, { isi_komentar });
       return res.data;
     },
     onSuccess: (_, variables) => {
@@ -258,7 +258,7 @@ export function useGetSubmissions(tugasId?: string) {
     queryKey: ['tugas', tugasId, 'submissions'],
     queryFn: async () => {
       if (!tugasId) return [];
-      const res = await api.get<Submission[]>(`/tugas/${tugasId}/submissions`);
+      const res = await api.get<Submission[]>(`/lms/tugas/${tugasId}/submissions`);
       return res.data;
     },
     enabled: !!tugasId,
@@ -269,7 +269,7 @@ export function useGradeSubmission() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ tugasId, submissionId, nilai, komentar_guru }: { tugasId: string, submissionId: string, nilai: number, komentar_guru?: string }) => {
-      const res = await api.put(`/tugas/${tugasId}/submissions/${submissionId}/grade`, { nilai, komentar_guru });
+      const res = await api.post(`/lms/tugas/${tugasId}/grade/${submissionId}`, { nilai, komentar_guru });
       return res.data;
     },
     onSuccess: (_, variables) => {
@@ -286,7 +286,7 @@ export function useSubmitTugas() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ tugasId, data }: { tugasId: string; data: FormData }) => {
-      const res = await api.post(`/tugas/${tugasId}/submissions`, data, {
+      const res = await api.post(`/lms/tugas/${tugasId}/submit`, data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       return res.data;

@@ -59,7 +59,7 @@ export function useAbsensiRekapSiswa(student_id: string, params?: { tahun_ajaran
     queryKey: ['absensi-rekap-siswa', student_id, params],
     staleTime: 30 * 1000,
     queryFn: async () => {
-      const res = await api.get<AbsensiRekap>(`/absensi/rekap/${student_id}`, { params });
+      const res = await api.get<AbsensiRekap>(`/absensi/siswa/${student_id}`, { params });
       return res.data;
     },
     enabled: !!student_id,
@@ -87,7 +87,7 @@ export function useManualAbsensi() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { user_id: number; tipe: string; tanggal: string; keterangan?: string; waktu_masuk?: string; waktu_pulang?: string }) => {
-      const res = await api.post('/absensi/manual', data);
+      const res = await api.post('/absensi', data);
       return res.data;
     },
     onSuccess: () => {

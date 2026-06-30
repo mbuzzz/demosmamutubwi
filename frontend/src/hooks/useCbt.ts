@@ -123,7 +123,7 @@ export function useSesiUjianList() {
   return useQuery({
     queryKey: ['sesi-ujian'],
     queryFn: async () => {
-      const res = await api.get<{ data: SesiUjian[] }>('/cbt/jadwal-ujian');
+      const res = await api.get<{ data: SesiUjian[] }>('/cbt/sesi');
       return res.data.data;
     },
   });
@@ -134,7 +134,7 @@ export function useCreateSesiUjian() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<SesiUjian>) => {
-      const res = await api.post<{ data: SesiUjian }>('/cbt/jadwal-ujian', data);
+      const res = await api.post<{ data: SesiUjian }>('/cbt/sesi', data);
       return res.data.data;
     },
     onSuccess: () => {
@@ -151,7 +151,7 @@ export function useUjianAktifList() {
     queryKey: ['ujian-aktif'],
     queryFn: async () => {
       // Assuming a specific endpoint for student active exams
-      const res = await api.get<{ data: SesiUjian[] }>('/cbt/siswa/ujian-aktif');
+      const res = await api.get<{ data: SesiUjian[] }>('/cbt/ujian/sesi-aktif');
       return res.data.data;
     },
   });
@@ -166,7 +166,7 @@ export function useMulaiUjian() {
          ujian_siswa: UjianSiswaSesi;
          soal: SoalItem[];
          durasi_tersisa_menit: number;
-       }>('/cbt/siswa/mulai', data);
+       }>('/cbt/ujian/mulai', data);
       return res.data;
     },
     onSuccess: () => {
@@ -179,7 +179,7 @@ export function useMulaiUjian() {
 export function useSimpanJawaban() {
   return useMutation({
     mutationFn: async (data: { ujian_siswa_id: number; soal_id: number; jawaban: string; ragu_ragu: boolean }) => {
-      const res = await api.post<{ data: UjianJawabanSiswa }>('/cbt/siswa/jawaban', data);
+      const res = await api.post<{ data: UjianJawabanSiswa }>('/cbt/ujian/simpan-jawaban', data);
       return res.data.data;
     },
   });
@@ -190,7 +190,7 @@ export function useSelesaiUjian() {
     const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (ujianSiswaId: number) => {
-      const res = await api.post<{ message: string }>(`/cbt/siswa/selesai/${ujianSiswaId}`);
+      const res = await api.post<{ message: string }>('/cbt/ujian/selesai', { ujian_siswa_id: ujianSiswaId });
       return res.data;
     },
     onSuccess: () => {

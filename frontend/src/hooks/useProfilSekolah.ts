@@ -13,7 +13,8 @@ export function useProfilSekolah() {
     queryKey: ['profil-sekolah'],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const res = await api.get<ProfilSekolahRecord>('/profil-sekolah');
+      // Public endpoint — works for both authenticated and unauthenticated users
+      const res = await api.get<ProfilSekolahRecord>('/public/profil');
       return res.data;
     },
   });

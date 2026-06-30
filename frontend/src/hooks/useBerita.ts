@@ -18,13 +18,27 @@ export interface BeritaRecord {
   kategori?: KategoriBeritaRecord;
 }
 
-export function useBeritaList(params?: { status?: string, limit?: number }) {
+export function useBeritaList(params?: { status?: string, limit?: number, public?: boolean }) {
   return useQuery({
     queryKey: ['berita', params],
     queryFn: async () => {
-      const res = await api.get<BeritaRecord[]>('/berita', { params });
+      // Public listing (unauthenticated) uses /public/berita
+      // Admin listing (authenticated, may filter by status) uses /berita
+      const endpoint = params?.public ? '/public/berita' : '/berita';
+      const res = await api.get<BeritaRecord[]>(endpoint, { params: { ...params, public: undefined } });
       return res.data;
     },
+  });
+}
+
+export function useBeritaDetailPublic(slug: string) {
+  return useQuery({
+    queryKey: ['berita-public', slug],
+    queryFn: async () => {
+      const res = await api.get<BeritaRecord>(`/public/berita/${slug}`);
+      return res.data;
+    },
+    enabled: !!slug,
   });
 }
 
@@ -32,6 +46,7 @@ export function useBeritaDetail(id: string) {
   return useQuery({
     queryKey: ['berita', id],
     queryFn: async () => {
+      // Admin detail by ID uses authenticated route
       const res = await api.get<BeritaRecord>(`/berita/${id}`);
       return res.data;
     },

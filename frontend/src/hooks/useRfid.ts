@@ -35,7 +35,7 @@ export function useRfidCards(params?: { status?: string; search?: string }) {
     queryKey: ['rfid-cards', params],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const res = await api.get<RfidCard[]>('/rfid', { params });
+      const res = await api.get<RfidCard[]>('/kartu-rfid', { params });
       return res.data;
     },
   });
@@ -45,7 +45,7 @@ export function useCreateRfid() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { user_id: number; uid_rfid: string; pin?: string; status?: string }) => {
-      const res = await api.post('/rfid', data);
+      const res = await api.post('/kartu-rfid', data);
       return res.data;
     },
     onSuccess: () => {
@@ -61,7 +61,7 @@ export function useUpdateRfid() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<RfidCard> }) => {
-      const res = await api.put(`/rfid/${id}`, data);
+      const res = await api.put(`/kartu-rfid/${id}`, data);
       return res.data;
     },
     onSuccess: () => {
@@ -77,7 +77,7 @@ export function useDeleteRfid() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await api.delete(`/rfid/${id}`);
+      const res = await api.delete(`/kartu-rfid/${id}`);
       return res.data;
     },
     onSuccess: () => {
@@ -94,7 +94,7 @@ export function useRfidConfig() {
     queryKey: ['rfid-config'],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const res = await api.get<RfidConfig>('/rfid/config');
+      const res = await api.get<RfidConfig>('/konfigurasi-absensi');
       return res.data;
     },
   });
@@ -104,7 +104,7 @@ export function useUpdateRfidConfig() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<RfidConfig>) => {
-      const res = await api.post('/rfid/config', data);
+      const res = await api.put('/konfigurasi-absensi', data);
       return res.data;
     },
     onSuccess: () => {
@@ -119,7 +119,7 @@ export function useUpdateRfidConfig() {
 export function useVerifyRfidPin() {
   return useMutation({
     mutationFn: async (data: { uid_rfid: string; pin: string }) => {
-      const res = await api.post<{ success: boolean; message?: string; user?: any }>('/rfid/verify-pin', data);
+      const res = await api.post<{ success: boolean; message?: string; user?: any }>('/absensi/verify-pin', data);
       return res.data;
     },
   });

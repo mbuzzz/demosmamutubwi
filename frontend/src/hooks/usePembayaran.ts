@@ -96,7 +96,7 @@ export function useProsesPembayaran() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { tagihan_id: string | number; nominal: number; metode: string; keterangan?: string }) => {
-      const res = await api.post('/pembayaran/bayar', data);
+      const res = await api.post('/pembayaran/proses', data);
       return res.data;
     },
     onSuccess: () => {

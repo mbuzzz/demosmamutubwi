@@ -79,7 +79,7 @@ export function usePublishRapor() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await api.post(`/rapors/${id}/publish`);
+      const res = await api.put(`/rapors/${id}/publish`);
       return res.data;
     },
     onSuccess: (_, id) => {

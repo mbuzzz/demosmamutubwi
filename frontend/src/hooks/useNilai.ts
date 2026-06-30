@@ -18,7 +18,7 @@ export function useStudentScores(kelasId: string, mapelId: string) {
     staleTime: 30 * 1000,
     queryFn: async () => {
       if (!kelasId || !mapelId) return [];
-      const res = await api.get<StudentScore[]>('/nilai/siswa', {
+      const res = await api.get<StudentScore[]>('/nilais', {
         params: { kelas_id: kelasId, mapel_id: mapelId },
       });
       return res.data;
@@ -34,7 +34,7 @@ export function useSaveScores() {
       mapel_id: string;
       scores: { siswa_id: string; nilai_tugas?: number; nilai_uts?: number; nilai_uas?: number }[];
     }) => {
-      const res = await api.post('/nilai', data);
+      const res = await api.post('/nilais', data);
       return res.data;
     },
     onSuccess: () => {
