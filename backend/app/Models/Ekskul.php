@@ -12,4 +12,9 @@ class Ekskul extends Model
     use HasFactory;
 
     protected $table = 'ekskuls';
+
+    public function jadwals()
+    {
+        return $this->hasMany(JadwalEkskul::class, 'ekskul_id');
+    }
 }

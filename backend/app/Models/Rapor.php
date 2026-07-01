@@ -24,4 +24,9 @@ class Rapor extends Model
     {
         return $this->hasMany(NilaiEkskul::class, 'rapor_id');
     }
+
+    public function sikaps(): HasMany
+    {
+        return $this->hasMany(SikapRapor::class, 'rapor_id');
+    }
 }

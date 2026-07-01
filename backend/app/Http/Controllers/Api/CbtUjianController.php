@@ -31,7 +31,7 @@ class CbtUjianController extends Controller
         
         $kelasId = $user->riwayatKelas()->latest()->first()?->kelas_id; // Using riwayat_kelas assuming that's how it's linked
 
-        $query = SesiUjian::with(['bankSoal.mapel'])
+        $query = SesiUjian::with(['bankSoal.mapel', 'template'])
             ->where('is_aktif', true)
             ->where('waktu_selesai', '>', now());
 

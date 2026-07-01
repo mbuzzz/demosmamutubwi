@@ -95,6 +95,7 @@ class DatabaseSeeder extends Seeder
             'kode' => 'MTK-WJB',
             'kkm' => 75,
             'tingkat' => 'X',
+            'kelompok' => 'A',
         ]);
 
         $mapelFis = Mapel::create([
@@ -102,6 +103,7 @@ class DatabaseSeeder extends Seeder
             'kode' => 'FIS-P',
             'kkm' => 75,
             'tingkat' => 'X',
+            'kelompok' => 'B',
         ]);
 
         $mapelIndo = Mapel::create([
@@ -109,6 +111,15 @@ class DatabaseSeeder extends Seeder
             'kode' => 'IND-WJB',
             'kkm' => 75,
             'tingkat' => 'X',
+            'kelompok' => 'A',
+        ]);
+
+        $mapelEko = Mapel::create([
+            'nama' => 'Ekonomi Lintas Minat',
+            'kode' => 'EKO-LM',
+            'kkm' => 75,
+            'tingkat' => 'X',
+            'kelompok' => 'C',
         ]);
 
         // 6. Seed Ekskul

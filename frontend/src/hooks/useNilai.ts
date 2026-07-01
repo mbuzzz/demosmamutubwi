@@ -47,3 +47,38 @@ export function useSaveScores() {
     },
   });
 }
+
+export interface MonitoringUHItem {
+  siswa_id: number;
+  name: string;
+  nip_nisn: string;
+  tugas_submitted: number;
+  tugas_total: number;
+  tugas_percent: number;
+  uh_completed: number;
+  uh_total: number;
+  uh_percent: number;
+  avg_percent: number;
+  status: 'rajin' | 'biasa' | 'jarang';
+}
+
+export interface MonitoringUHResponse {
+  data: MonitoringUHItem[];
+  thresholds: { hijau: number; kuning: number };
+  totals: { tugas: number; ulangan_harian: number };
+}
+
+export function useMonitoringUH(kelasId: string, mapelId: string) {
+  return useQuery({
+    queryKey: ['monitoring-uh', kelasId, mapelId],
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      if (!kelasId || !mapelId) return null;
+      const res = await api.get<MonitoringUHResponse>('/nilai/monitoring-uh', {
+        params: { kelas_id: kelasId, mapel_id: mapelId },
+      });
+      return res.data;
+    },
+    enabled: !!kelasId && !!mapelId,
+  });
+}

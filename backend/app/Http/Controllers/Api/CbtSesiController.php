@@ -11,7 +11,7 @@ class CbtSesiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = SesiUjian::with(['bankSoal.mapel', 'kelas']);
+        $query = SesiUjian::with(['bankSoal.mapel', 'kelas', 'pengawas', 'template']);
 
         if ($request->has('kelas_id')) {
             $query->where('kelas_id', $request->kelas_id);
@@ -37,11 +37,22 @@ class CbtSesiController extends Controller
             'durasi_menit' => 'required|integer|min:1',
             'is_acak_soal' => 'boolean',
             'is_aktif' => 'boolean',
+            'pengawas_ids' => 'nullable|array',
+            'pengawas_ids.*' => 'exists:users,id',
+            'template_id' => 'nullable|exists:template_cbts,id',
         ]);
+
+        $pengawasIds = $validated['pengawas_ids'] ?? null;
+        unset($validated['pengawas_ids']);
 
         $validated['token'] = $this->generateToken();
 
         $sesiUjian = SesiUjian::create($validated);
+
+        if ($pengawasIds) {
+            $sesiUjian->pengawas()->sync($pengawasIds);
+        }
+        $sesiUjian->load('pengawas');
 
         return response()->json([
             'message' => 'Sesi Ujian berhasil dibuat',
@@ -51,7 +62,7 @@ class CbtSesiController extends Controller
 
     public function show(SesiUjian $sesiUjian)
     {
-        $sesiUjian->load(['bankSoal.mapel', 'kelas', 'hasilUjians.siswa']);
+        $sesiUjian->load(['bankSoal.mapel', 'kelas', 'hasilUjians.siswa', 'pengawas', 'template']);
         return response()->json($sesiUjian);
     }
 
@@ -66,9 +77,20 @@ class CbtSesiController extends Controller
             'durasi_menit' => 'sometimes|integer|min:1',
             'is_acak_soal' => 'boolean',
             'is_aktif' => 'boolean',
+            'pengawas_ids' => 'nullable|array',
+            'pengawas_ids.*' => 'exists:users,id',
+            'template_id' => 'nullable|exists:template_cbts,id',
         ]);
 
+        $pengawasIds = $validated['pengawas_ids'] ?? null;
+        unset($validated['pengawas_ids']);
+
         $sesiUjian->update($validated);
+
+        if ($request->has('pengawas_ids')) {
+            $sesiUjian->pengawas()->sync($pengawasIds ?? []);
+        }
+        $sesiUjian->load('pengawas');
 
         return response()->json([
             'message' => 'Sesi Ujian berhasil diupdate',

@@ -1,4 +1,4 @@
-export type TipeUjian = 'ujian' | 'ulangan_harian' | 'kuis';
+export type TipeUjian = 'ujian' | 'ulangan_harian' | 'kuis' | 'matrikulasi';
 
 export type TipeSoal = 'pg' | 'pgk' | 'pg_kompleks' | 'bs' | 'essay';
 
@@ -55,6 +55,9 @@ export interface SesiUjian {
   
   // Relations
   bank_soal?: PaketSoal;
+  pengawas?: { id: number; name: string }[];
+  template_id?: number;
+  template?: any;
 }
 
 // Interfaces for siswa responses
@@ -103,12 +106,18 @@ export const CBT_CONFIG: Record<TipeUjian, CbtConfig> = {
     fullscreen: false,
     antiCheat: 'none',
   },
+  matrikulasi: {
+    needToken: true,
+    fullscreen: true,
+    antiCheat: 'warning',
+  },
 };
 
 export const TIPE_BADGE: Record<TipeUjian, { label: string; color: string }> = {
   ujian: { label: 'UJIAN', color: 'text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400' },
   ulangan_harian: { label: 'ULANGAN', color: 'text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400' },
   kuis: { label: 'KUIS', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400' },
+  matrikulasi: { label: 'MATRIKULASI', color: 'text-purple-600 bg-purple-50 dark:bg-purple-500/10 dark:text-purple-400' },
 };
 
 export function generateToken(): string {

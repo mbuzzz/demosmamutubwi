@@ -1,7 +1,7 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { FileQuestion, Clock, Search, Play, X, Key, HelpCircle, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { type SesiUjian, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
+import { type SesiUjian, type TipeUjian, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
 import { useUjianAktifList, useMulaiUjian, useSimpanJawaban, useSelesaiUjian } from '../../../hooks/useCbt';
 
 interface Question {
@@ -15,7 +15,7 @@ interface Question {
 
 interface Exam {
   id: number;
-  tipe: 'ujian' | 'ulangan_harian' | 'kuis';
+  tipe: TipeUjian;
   title: string;
   mapel: string;
   kelas: string;
@@ -27,6 +27,7 @@ interface Exam {
   score?: number;
   questions: Question[];
   ujian_siswa_id?: number;
+  template?: any;
 }
 
 function buildExamFromSession(sesi: SesiUjian): Exam {
@@ -44,6 +45,7 @@ function buildExamFromSession(sesi: SesiUjian): Exam {
     status: sesi.status === 'completed' ? 'selesai' : 'tersedia',
     score: undefined,
     questions: [], // loaded when exam starts
+    template: sesi.template,
   };
 }
 
@@ -353,79 +355,132 @@ export default function SiswaCbt() {
   if (view === 'exam' && selectedExam) {
     const activeQ = selectedExam.questions[activeQuestionIdx];
     const config = CBT_CONFIG[selectedExam.tipe];
+    const t = selectedExam.template;
+    const hasTemplate = !!t;
+
+    const customStyles = hasTemplate ? {
+      '--primary-color': t.primary_color,
+      '--accent-color': t.accent_color,
+      '--bg-color': t.bg_color,
+      '--text-color': t.text_color,
+      '--card-bg-color': t.card_bg,
+      fontFamily: t.font_family,
+      fontSize: `${t.font_size}px`,
+    } as React.CSSProperties : {};
+
+    const showTimerOption = t ? t.show_timer : true;
+    const showProgressOption = t ? t.show_progress : true;
+    const showNavOption = t ? t.show_question_nav : true;
 
     return (
       <AdminLayout title="Sistem Ujian Online (CBT)">
-        {/* Anti-cheat Warning Overlay */}
-        {showWarning && (
-          <div className="fixed inset-0 z-[100] bg-red-600/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center border border-red-200 dark:border-red-500/30">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
-              </div>
-              <h2 className="text-xl font-black text-slate-800 dark:text-white mb-2">Anda Meninggalkan Halaman Ujian!</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Ujian akan dikumpulkan secara otomatis jika tidak kembali.</p>
-              <div className="text-6xl font-black text-red-600 dark:text-red-400 mb-6 font-mono">{warningCountdown}</div>
-              <button onClick={dismissWarning}
-                disabled={warningCountdown === 0}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95">
-                Kembali ke Ujian
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-xl font-black text-slate-800 dark:text-white leading-none">{selectedExam.title}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{selectedExam.mapel} • {selectedExam.kelas}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {config.fullscreen && (
-              <span className="text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">
-                Mode Fullscreen
-              </span>
-            )}
-            <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20 px-4 py-2.5 rounded-xl font-bold font-mono">
-              <Clock className="w-4 h-4 animate-spin" /> {formatTime(timeLeft)}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-          {/* Navigator Soal */}
-          <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4 text-indigo-500" /> Daftar Soal</h3>
-            <div className="grid grid-cols-5 gap-2">
-              {selectedExam.questions.map((q, i) => (
-                <button
-                  key={q.id}
-                  onClick={() => setActiveQuestionIdx(i)}
-                  className={`w-10 h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-colors border
-                    ${i === activeQuestionIdx ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30' :
-                      answers[q.id] ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/25' :
-                      'bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}>
-                  {q.nomor}
+        <div className={`w-full ${t?.layout === 'wide' ? 'max-w-none' : 'max-w-5xl'} mx-auto p-4 rounded-3xl transition-all duration-300`} style={hasTemplate ? { backgroundColor: 'var(--bg-color)', color: 'var(--text-color)', ...customStyles } : undefined}>
+          
+          {/* Anti-cheat Warning Overlay */}
+          {showWarning && (
+            <div className="fixed inset-0 z-[100] bg-red-600/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center border border-red-200 dark:border-red-500/30">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+                <h2 className="text-xl font-black text-slate-800 dark:text-white mb-2">Anda Meninggalkan Halaman Ujian!</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Ujian akan dikumpulkan secara otomatis jika tidak kembali.</p>
+                <div className="text-6xl font-black text-red-600 dark:text-red-400 mb-6 font-mono">{warningCountdown}</div>
+                <button onClick={dismissWarning}
+                  disabled={warningCountdown === 0}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95">
+                  Kembali ke Ujian
                 </button>
-              ))}
+              </div>
             </div>
-            <button onClick={finishExam} className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
-              Selesai & Kumpul
-            </button>
+          )}
+
+          {/* Header Template */}
+          {hasTemplate && (t.header_logo || t.header_text) && (
+            <div className="mb-6 p-4 rounded-2xl flex items-center gap-4 border" style={{ borderColor: 'var(--primary-color)', backgroundColor: 'var(--card-bg-color)' }}>
+              {t.header_logo && <img src={t.header_logo} alt="Header Logo" className="h-10 w-auto object-contain rounded" />}
+              {t.header_text && <div className="text-xs font-bold whitespace-pre-wrap">{t.header_text}</div>}
+            </div>
+          )}
+
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-black leading-none" style={hasTemplate ? { color: 'var(--text-color)' } : undefined}>{selectedExam.title}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{selectedExam.mapel} • {selectedExam.kelas}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {config.fullscreen && (
+                <span className="text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">
+                  Mode Fullscreen
+                </span>
+              )}
+              {showTimerOption && (
+                <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20 px-4 py-2.5 rounded-xl font-bold font-mono">
+                  <Clock className="w-4 h-4 animate-spin" /> {formatTime(timeLeft)}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Editor/Tampilan Soal Aktif */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-indigo-50/50 dark:bg-slate-800/50 flex justify-between items-center transition-colors">
-                <h3 className="font-extrabold text-indigo-900 dark:text-indigo-400 text-sm">
-                  SOAL NOMOR {activeQ.nomor}
-                </h3>
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-150 dark:border-slate-750 uppercase">
-                  {activeQ.tipe === 'pg' ? 'Pilihan Ganda' : activeQ.tipe === 'pgk' || activeQ.tipe === 'pg_kompleks' ? 'PG Kompleks' : activeQ.tipe === 'bs' ? 'Benar/Salah' : 'Uraian / Essay'}
-                </span>
+          {/* Progress Bar Option */}
+          {showProgressOption && (
+            <div className="mb-6 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden flex" style={hasTemplate ? { backgroundColor: 'var(--card-bg-color)' } : undefined}>
+              <div className="h-full rounded-full transition-all duration-300" style={{ 
+                width: `${(Object.keys(answers).length / selectedExam.questions.length) * 100}%`,
+                backgroundColor: hasTemplate ? 'var(--primary-color)' : '#4f46e5'
+              }} />
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            {/* Navigator Soal */}
+            {showNavOption && (
+              <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors" style={hasTemplate ? { backgroundColor: 'var(--card-bg-color)', borderColor: 'var(--primary-color)' + '20' } : undefined}>
+                <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2" style={hasTemplate ? { color: 'var(--text-color)', borderColor: 'var(--primary-color)' + '20' } : undefined}><HelpCircle className="w-4 h-4 text-indigo-500" style={hasTemplate ? { color: 'var(--primary-color)' } : undefined} /> Daftar Soal</h3>
+                <div className="grid grid-cols-5 gap-2">
+                  {selectedExam.questions.map((q, i) => (
+                    <button
+                      key={q.id}
+                      onClick={() => setActiveQuestionIdx(i)}
+                      style={(() => {
+                        const active = i === activeQuestionIdx;
+                        const answered = !!answers[q.id];
+                        if (hasTemplate) {
+                          return {
+                            backgroundColor: active ? 'var(--primary-color)' : answered ? 'var(--primary-color)' + '20' : 'transparent',
+                            color: active ? '#ffffff' : answered ? 'var(--primary-color)' : 'var(--text-color)',
+                            borderColor: active ? 'var(--primary-color)' : answered ? 'var(--primary-color)' : 'var(--text-color)' + '40',
+                          };
+                        }
+                        return undefined;
+                      })()}
+                      className={hasTemplate ? 'w-10 h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-colors border' : `w-10 h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-colors border
+                        ${i === activeQuestionIdx ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30' :
+                          answers[q.id] ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/25' :
+                          'bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                      {q.nomor}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={finishExam} className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
+                  Selesai & Kumpul
+                </button>
               </div>
+            )}
+
+            {/* Editor/Tampilan Soal Aktif */}
+            <div className={`${showNavOption ? 'lg:col-span-3' : 'lg:col-span-4'} space-y-6`}>
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors" style={hasTemplate ? { backgroundColor: 'var(--card-bg-color)', borderColor: 'var(--primary-color)' + '20' } : undefined}>
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-indigo-50/50 dark:bg-slate-800/50 flex justify-between items-center transition-colors" style={hasTemplate ? { backgroundColor: 'var(--primary-color)' + '10', borderColor: 'var(--primary-color)' + '20' } : undefined}>
+                  <h3 className="font-extrabold text-indigo-900 dark:text-indigo-400 text-sm" style={hasTemplate ? { color: 'var(--primary-color)' } : undefined}>
+                    SOAL NOMOR {activeQ.nomor}
+                  </h3>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-150 dark:border-slate-750 uppercase" style={hasTemplate ? { backgroundColor: 'var(--bg-color)', color: 'var(--text-color)', borderColor: 'var(--primary-color)' + '20' } : undefined}>
+                    {activeQ.tipe === 'pg' ? 'Pilihan Ganda' : activeQ.tipe === 'pgk' || activeQ.tipe === 'pg_kompleks' ? 'PG Kompleks' : activeQ.tipe === 'bs' ? 'Benar/Salah' : 'Uraian / Essay'}
+                  </span>
+                </div>
 
               <div className="p-6 lg:p-8 space-y-6">
                 <div className="text-sm font-bold text-slate-800 dark:text-white leading-relaxed">{activeQ.pertanyaan}</div>
@@ -552,6 +607,14 @@ export default function SiswaCbt() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Footer Template */}
+        {hasTemplate && t.footer_text && (
+            <div className="mt-6 p-4 rounded-2xl text-center text-xs font-semibold border" style={{ borderColor: 'var(--primary-color)', backgroundColor: 'var(--card-bg-color)', color: 'var(--text-color)' + 'cc' }}>
+              {t.footer_text}
+            </div>
+          )}
         </div>
       </AdminLayout>
     );

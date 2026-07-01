@@ -52,6 +52,7 @@ import AdminSettings from './pages/admin/settings/AdminSettings';
 import AdminUjianList from './pages/admin/cbt/AdminUjianList';
 import AdminUjianMonitor from './pages/admin/cbt/AdminUjianMonitor';
 import AdminBankSoalList from './pages/admin/cbt/AdminBankSoalList';
+import AdminCbtTemplateList from './pages/admin/cbt/AdminCbtTemplateList';
 import AdminProfile from './pages/admin/profile/AdminProfile';
 import AdminSPMBDetail from './pages/admin/spmb/detail/AdminSPMBDetail';
 
@@ -175,6 +176,7 @@ export default function App() {
         <Route path="/panel/cbt/bank-soal" element={<ProtectedRoute requiredRole="superadmin"><AdminBankSoalList /></ProtectedRoute>} />
         <Route path="/panel/cbt/jadwal" element={<ProtectedRoute requiredRole="superadmin"><AdminUjianList /></ProtectedRoute>} />
         <Route path="/panel/cbt/monitor" element={<ProtectedRoute requiredRole="superadmin"><AdminUjianMonitor /></ProtectedRoute>} />
+        <Route path="/panel/cbt/templates" element={<ProtectedRoute requiredRole="superadmin"><AdminCbtTemplateList /></ProtectedRoute>} />
 
         {/* ========== GURU / WALIKELAS / KEPSEK / KURIKULUM ========== */}
         <Route path="/panel/guru" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kepala_sekolah', 'kurikulum']}><GuruDashboard /></ProtectedRoute>} />

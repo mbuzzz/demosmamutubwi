@@ -3,7 +3,7 @@ import AdminLayout from '../../../../components/admin/AdminLayout';
 import { FileText, Save, Keyboard } from 'lucide-react';
 import { useGuruClasses } from '../../../../hooks/usePenugasan';
 import { useMapelList } from '../../../../hooks/useMapel';
-import { useStudentScores, useSaveScores } from '../../../../hooks/useNilai';
+import { useStudentScores, useSaveScores, useMonitoringUH } from '../../../../hooks/useNilai';
 import { toast } from 'sonner';
 
 export default function GuruBukuNilai() {
@@ -40,6 +40,13 @@ export default function GuruBukuNilai() {
 
   const { data: studentScores = [], isLoading: isScoresLoading } = useStudentScores(selectedKelasId, selectedMapelId);
   const saveScoresMutation = useSaveScores();
+  const { data: monitoringData } = useMonitoringUH(selectedKelasId, selectedMapelId);
+
+  function getStatusBadge(status: string) {
+    if (status === 'rajin') return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">Rajin</span>;
+    if (status === 'biasa') return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">Biasa</span>;
+    return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">Jarang</span>;
+  }
 
   // Sync local scores state when studentScores loads
   useEffect(() => {
@@ -167,6 +174,7 @@ export default function GuruBukuNilai() {
                   <th className="p-3 border border-slate-200 dark:border-slate-700 min-w-[120px] text-center bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300">Nilai UTS</th>
                   <th className="p-3 border border-slate-200 dark:border-slate-700 min-w-[120px] text-center bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300">Nilai UAS</th>
                   <th className="p-3 border border-slate-200 dark:border-slate-700 min-w-[120px] text-center bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">Rata-Rata</th>
+                  <th className="p-3 border border-slate-200 dark:border-slate-700 min-w-[120px] text-center bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300">Status UH</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-900">
@@ -203,11 +211,23 @@ export default function GuruBukuNilai() {
                       <td className="p-2 border border-slate-200 dark:border-slate-700 text-center font-black text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800/50">
                         {avg}
                       </td>
+                      <td className="p-2 border border-slate-200 dark:border-slate-700 text-center">
+                        {(() => {
+                          const mon = monitoringData?.data?.find((m: any) => String(m.siswa_id) === String(siswa.siswa_id));
+                          if (!mon) return <span className="text-xs text-slate-400">-</span>;
+                          return (
+                            <div className="flex flex-col items-center gap-1">
+                              {getStatusBadge(mon.status)}
+                              <span className="text-[10px] text-slate-400">{mon.avg_percent}%</span>
+                            </div>
+                          );
+                        })()}
+                      </td>
                     </tr>
                   )
                 }) : (
                   <tr>
-                     <td colSpan={6} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 font-medium">
+                     <td colSpan={7} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 font-medium">
                        Tidak ada siswa terdaftar di kelas ini.
                      </td>
                   </tr>

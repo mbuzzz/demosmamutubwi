@@ -140,4 +140,96 @@ class NilaiController extends Controller
             'nilai' => $nilai,
         ]);
     }
+
+    public function monitoringUH(Request $request)
+    {
+        $kelasId = $request->query('kelas_id');
+        $mapelId = $request->query('mapel_id');
+
+        if (!$kelasId || !$mapelId) {
+            return response()->json(['message' => 'kelas_id dan mapel_id wajib'], 422);
+        }
+
+        // Get kelas name for matching users
+        $kelas = \App\Models\Kelas::find($kelasId);
+        if (!$kelas) {
+            return response()->json(['message' => 'Kelas tidak ditemukan'], 404);
+        }
+
+        // Get all siswa in this kelas
+        $siswaList = \App\Models\User::where('role', 'siswa')
+            ->where('kelas', $kelas->nama)
+            ->get();
+
+        // Count total tugas for this mapel+kelas
+        $totalTugas = \App\Models\Tugas::where('mapel_id', $mapelId)
+            ->where('kelas_id', $kelasId)
+            ->count();
+
+        // Count total UH sessions (sesi_ujians with bank_soal.tipe='ulangan_harian' for this kelas)
+        $uhSesiIds = \App\Models\SesiUjian::where('kelas_id', $kelasId)
+            ->whereHas('bankSoal', function($q) use ($mapelId) {
+                $q->where('tipe', 'ulangan_harian')->where('mapel_id', $mapelId);
+            })
+            ->pluck('id');
+        $totalUH = count($uhSesiIds);
+
+        // Get thresholds
+        $config = \App\Models\SistemKonfigurasi::first();
+        $thresholdHijau = $config->monitoring_uh_hijau ?? 80;
+        $thresholdKuning = $config->monitoring_uh_kuning ?? 50;
+
+        $result = $siswaList->map(function ($siswa) use ($mapelId, $kelasId, $totalTugas, $uhSesiIds, $totalUH, $thresholdHijau, $thresholdKuning) {
+            // Count tugas submitted
+            $tugasSubmitted = \App\Models\PengumpulanTugas::where('siswa_id', $siswa->id)
+                ->whereHas('tugas', function($q) use ($mapelId, $kelasId) {
+                    $q->where('mapel_id', $mapelId)->where('kelas_id', $kelasId);
+                })
+                ->count();
+
+            // Count UH completed (has hasil_ujian for the UH sessions)
+            $uhCompleted = \App\Models\HasilUjian::where('siswa_id', $siswa->id)
+                ->whereIn('sesi_ujian_id', $uhSesiIds)
+                ->count();
+
+            // Calculate percentages
+            $tugasPercent = $totalTugas > 0 ? round(($tugasSubmitted / $totalTugas) * 100) : 100;
+            $uhPercent = $totalUH > 0 ? round(($uhCompleted / $totalUH) * 100) : 100;
+            $avgPercent = round(($tugasPercent + $uhPercent) / 2);
+
+            // Determine status
+            $status = 'jarang'; // merah
+            if ($avgPercent >= $thresholdHijau) {
+                $status = 'rajin'; // hijau
+            } elseif ($avgPercent >= $thresholdKuning) {
+                $status = 'biasa'; // kuning
+            }
+
+            return [
+                'siswa_id' => $siswa->id,
+                'name' => $siswa->name,
+                'nip_nisn' => $siswa->nip_nisn,
+                'tugas_submitted' => $tugasSubmitted,
+                'tugas_total' => $totalTugas,
+                'tugas_percent' => $tugasPercent,
+                'uh_completed' => $uhCompleted,
+                'uh_total' => $totalUH,
+                'uh_percent' => $uhPercent,
+                'avg_percent' => $avgPercent,
+                'status' => $status,
+            ];
+        });
+
+        return response()->json([
+            'data' => $result,
+            'thresholds' => [
+                'hijau' => $thresholdHijau,
+                'kuning' => $thresholdKuning,
+            ],
+            'totals' => [
+                'tugas' => $totalTugas,
+                'ulangan_harian' => $totalUH,
+            ],
+        ]);
+    }
 }

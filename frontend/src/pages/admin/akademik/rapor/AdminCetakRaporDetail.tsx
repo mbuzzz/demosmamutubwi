@@ -41,6 +41,13 @@ export default function AdminCetakRaporDetail() {
   const siswa = rapor.siswa || {};
   const initials = siswa.name ? siswa.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : 'AS';
 
+  const nilaiKelompokA = nilais.filter((n: any) => n.mapel?.kelompok === 'A');
+  const nilaiKelompokB = nilais.filter((n: any) => n.mapel?.kelompok === 'B');
+  const nilaiKelompokC = nilais.filter((n: any) => n.mapel?.kelompok === 'C');
+
+  const spiritualSikap = rapor.sikaps?.find((s: any) => s.sikap === 'spiritual')?.deskripsi || 'Baik, sangat rajin melaksanakan sholat dhuha dan dhuhur berjamaah.';
+  const sosialSikap = rapor.sikaps?.find((s: any) => s.sikap === 'sosial')?.deskripsi || 'Sangat Baik, menunjukkan sikap santun kepada guru dan kepedulian tinggi terhadap teman.';
+
   return (
     <AdminLayout title="Preview Cetak Rapor">
       <div className="mb-6 flex items-center justify-between">
@@ -104,24 +111,28 @@ export default function AdminCetakRaporDetail() {
             {/* Tabel Nilai */}
             <h3 className="font-bold text-sm mb-2 uppercase">A. Sikap</h3>
             <div className="border border-slate-800 p-3 text-xs text-justify mb-6">
-              <strong>Sikap Spiritual:</strong> Baik, sangat rajin melaksanakan sholat dhuha dan dhuhur berjamaah.<br/><br/>
-              <strong>Sikap Sosial:</strong> Sangat Baik, menunjukkan sikap santun kepada guru dan kepedulian tinggi terhadap teman.
+              <strong>Sikap Spiritual:</strong> {spiritualSikap}<br/><br/>
+              <strong>Sikap Sosial:</strong> {sosialSikap}
             </div>
 
             <h3 className="font-bold text-sm mb-2 uppercase">B. Pengetahuan & Keterampilan</h3>
             <table className="w-full border-collapse border border-slate-800 text-xs text-center mb-8">
               <thead>
                 <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
-                  <td className="border border-slate-800 p-2 w-10">No</td>
-                  <td className="border border-slate-800 p-2 text-left">Mata Pelajaran</td>
-                  <td className="border border-slate-800 p-2 w-16">KKM</td>
-                  <td className="border border-slate-800 p-2 w-16">Nilai Akhir</td>
-                  <td className="border border-slate-800 p-2 w-16">Predikat</td>
+                  <td className="border border-slate-800 p-2 w-10 font-bold">No</td>
+                  <td className="border border-slate-800 p-2 text-left font-bold">Mata Pelajaran</td>
+                  <td className="border border-slate-800 p-2 w-16 font-bold">KKM</td>
+                  <td className="border border-slate-800 p-2 w-16 font-bold">Nilai Akhir</td>
+                  <td className="border border-slate-800 p-2 w-16 font-bold">Predikat</td>
                 </tr>
               </thead>
               <tbody>
-                {nilais.length > 0 ? (
-                  nilais.map((n: any, idx: number) => (
+                {/* Kelompok A */}
+                <tr className="bg-slate-50 font-bold text-left">
+                  <td colSpan={5} className="border border-slate-800 p-2 font-bold">Kelompok A (Wajib)</td>
+                </tr>
+                {nilaiKelompokA.length > 0 ? (
+                  nilaiKelompokA.map((n: any, idx: number) => (
                     <tr key={n.id}>
                       <td className="border border-slate-800 p-2">{idx + 1}</td>
                       <td className="border border-slate-800 p-2 text-left">{n.mapel?.nama}</td>
@@ -132,9 +143,47 @@ export default function AdminCetakRaporDetail() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="border border-slate-800 p-4 text-slate-400">
-                      Belum ada nilai akademik
-                    </td>
+                    <td colSpan={5} className="border border-slate-800 p-3 text-slate-400 text-center">Tidak ada mata pelajaran di kelompok ini.</td>
+                  </tr>
+                )}
+
+                {/* Kelompok B */}
+                <tr className="bg-slate-50 font-bold text-left">
+                  <td colSpan={5} className="border border-slate-800 p-2 font-bold">Kelompok B (Peminatan)</td>
+                </tr>
+                {nilaiKelompokB.length > 0 ? (
+                  nilaiKelompokB.map((n: any, idx: number) => (
+                    <tr key={n.id}>
+                      <td className="border border-slate-800 p-2">{idx + 1}</td>
+                      <td className="border border-slate-800 p-2 text-left">{n.mapel?.nama}</td>
+                      <td className="border border-slate-800 p-2">{n.mapel?.kkm || 75}</td>
+                      <td className="border border-slate-800 p-2 font-bold">{n.nilai_akhir}</td>
+                      <td className="border border-slate-800 p-2 uppercase">{n.predikat}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="border border-slate-800 p-3 text-slate-400 text-center">Tidak ada mata pelajaran di kelompok ini.</td>
+                  </tr>
+                )}
+
+                {/* Kelompok C */}
+                <tr className="bg-slate-50 font-bold text-left">
+                  <td colSpan={5} className="border border-slate-800 p-2 font-bold">Kelompok C (Lintas Minat)</td>
+                </tr>
+                {nilaiKelompokC.length > 0 ? (
+                  nilaiKelompokC.map((n: any, idx: number) => (
+                    <tr key={n.id}>
+                      <td className="border border-slate-800 p-2">{idx + 1}</td>
+                      <td className="border border-slate-800 p-2 text-left">{n.mapel?.nama}</td>
+                      <td className="border border-slate-800 p-2">{n.mapel?.kkm || 75}</td>
+                      <td className="border border-slate-800 p-2 font-bold">{n.nilai_akhir}</td>
+                      <td className="border border-slate-800 p-2 uppercase">{n.predikat}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="border border-slate-800 p-3 text-slate-400 text-center">Tidak ada mata pelajaran di kelompok ini.</td>
                   </tr>
                 )}
               </tbody>

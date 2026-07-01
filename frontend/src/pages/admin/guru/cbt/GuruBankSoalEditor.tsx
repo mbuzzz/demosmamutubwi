@@ -1,5 +1,5 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { Save, Plus, HelpCircle, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, X } from 'lucide-react';
+import { Save, Plus, HelpCircle, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, BookMarked, X } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useState, useEffect } from 'react';
@@ -531,7 +531,7 @@ export default function GuruBankSoalEditor() {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Tipe Penggunaan</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   <button onClick={() => setCreatePaketForm(prev => ({ ...prev, tipe: 'ujian' }))}
                     className={`flex flex-col items-center gap-1.5 py-3 rounded-xl text-sm font-bold border transition-all ${
                       createPaketForm.tipe === 'ujian'
@@ -558,6 +558,15 @@ export default function GuruBankSoalEditor() {
                     }`}>
                     <FileText className={`w-5 h-5 ${createPaketForm.tipe === 'kuis' ? 'text-emerald-500' : ''}`} />
                     Kuis
+                  </button>
+                  <button onClick={() => setCreatePaketForm(prev => ({ ...prev, tipe: 'matrikulasi' }))}
+                    className={`flex flex-col items-center gap-1.5 py-3 rounded-xl text-sm font-bold border transition-all ${
+                      createPaketForm.tipe === 'matrikulasi'
+                        ? 'bg-purple-50 dark:bg-purple-500/20 border-purple-400 dark:border-purple-500 text-purple-700 dark:text-purple-300'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-200'
+                    }`}>
+                    <BookMarked className={`w-5 h-5 ${createPaketForm.tipe === 'matrikulasi' ? 'text-purple-500' : ''}`} />
+                    Matrikulasi
                   </button>
                 </div>
               </div>

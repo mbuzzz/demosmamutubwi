@@ -82,3 +82,83 @@ export function useDeleteEkskul() {
     },
   });
 }
+
+// --- Jadwal Ekskul Hooks ---
+
+export interface JadwalEkskulRecord {
+  id: string;
+  ekskul_id: string;
+  hari: string;
+  jam_mulai: string;
+  jam_selesai: string;
+  pola: string;
+  ruang?: string;
+  pembina_id?: string;
+  pembina?: { id: number; name: string; nip_nisn?: string };
+}
+
+export function useJadwalEkskul(ekskulId?: string) {
+  return useQuery({
+    queryKey: ['jadwal-ekskul', ekskulId],
+    queryFn: async () => {
+      if (!ekskulId) return [];
+      const res = await api.get<JadwalEkskulRecord[]>(`/ekskuls/${ekskulId}/jadwal`);
+      return res.data;
+    },
+    enabled: !!ekskulId,
+  });
+}
+
+export function useCreateJadwalEkskul() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ekskulId, data }: { ekskulId: string; data: Partial<JadwalEkskulRecord> }) => {
+      const res = await api.post(`/ekskuls/${ekskulId}/jadwal`, data);
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['jadwal-ekskul', variables.ekskulId] });
+      queryClient.invalidateQueries({ queryKey: ['ekskuls'] });
+      toast.success('Jadwal ekskul berhasil ditambahkan');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menambahkan jadwal');
+    },
+  });
+}
+
+export function useUpdateJadwalEkskul() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ekskulId, jadwalId, data }: { ekskulId: string; jadwalId: string; data: Partial<JadwalEkskulRecord> }) => {
+      const res = await api.put(`/ekskuls/${ekskulId}/jadwal/${jadwalId}`, data);
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['jadwal-ekskul', variables.ekskulId] });
+      queryClient.invalidateQueries({ queryKey: ['ekskuls'] });
+      toast.success('Jadwal ekskul berhasil diupdate');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal mengupdate jadwal');
+    },
+  });
+}
+
+export function useDeleteJadwalEkskul() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ekskulId, jadwalId }: { ekskulId: string; jadwalId: string }) => {
+      const res = await api.delete(`/ekskuls/${ekskulId}/jadwal/${jadwalId}`);
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['jadwal-ekskul', variables.ekskulId] });
+      queryClient.invalidateQueries({ queryKey: ['ekskuls'] });
+      toast.success('Jadwal ekskul berhasil dihapus');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menghapus jadwal');
+    },
+  });
+}

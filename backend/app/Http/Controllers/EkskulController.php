@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ekskul;
+use App\Models\JadwalEkskul;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -14,7 +15,7 @@ class EkskulController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ekskul::query();
+        $query = Ekskul::with('jadwals.pembina:id,name,nip_nisn');
 
         if ($request->has('search') && $request->search) {
             $search = $request->search;
@@ -172,5 +173,53 @@ class EkskulController extends Controller
             'message' => "Berhasil mengimpor {$importedCount} ekstrakurikuler baru.",
             'imported_count' => $importedCount,
         ]);
+    }
+
+    // Jadwal Ekskul CRUD
+    public function getJadwal($ekskulId)
+    {
+        $jadwals = JadwalEkskul::where('ekskul_id', $ekskulId)
+            ->with('pembina:id,name,nip_nisn')
+            ->orderBy('hari')
+            ->orderBy('jam_mulai')
+            ->get();
+        return response()->json($jadwals);
+    }
+
+    public function storeJadwal(Request $request, $ekskulId)
+    {
+        $validated = $request->validate([
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'pola' => 'required|in:setiap_minggu,minggu_ganjil,minggu_genap,minggu_ke_1,minggu_ke_2,minggu_ke_3,minggu_ke_4',
+            'ruang' => 'nullable|string',
+            'pembina_id' => 'nullable|exists:users,id',
+        ]);
+        $validated['ekskul_id'] = $ekskulId;
+        $jadwal = JadwalEkskul::create($validated);
+        return response()->json(['message' => 'Jadwal berhasil ditambahkan', 'data' => $jadwal->load('pembina:id,name,nip_nisn')], 201);
+    }
+
+    public function updateJadwal(Request $request, $ekskulId, $jadwalId)
+    {
+        $jadwal = JadwalEkskul::where('ekskul_id', $ekskulId)->findOrFail($jadwalId);
+        $validated = $request->validate([
+            'hari' => 'sometimes|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_mulai' => 'sometimes|date_format:H:i',
+            'jam_selesai' => 'sometimes|date_format:H:i',
+            'pola' => 'sometimes|in:setiap_minggu,minggu_ganjil,minggu_genap,minggu_ke_1,minggu_ke_2,minggu_ke_3,minggu_ke_4',
+            'ruang' => 'nullable|string',
+            'pembina_id' => 'nullable|exists:users,id',
+        ]);
+        $jadwal->update($validated);
+        return response()->json(['message' => 'Jadwal berhasil diupdate', 'data' => $jadwal->load('pembina:id,name,nip_nisn')]);
+    }
+
+    public function destroyJadwal($ekskulId, $jadwalId)
+    {
+        $jadwal = JadwalEkskul::where('ekskul_id', $ekskulId)->findOrFail($jadwalId);
+        $jadwal->delete();
+        return response()->json(['message' => 'Jadwal berhasil dihapus']);
     }
 }

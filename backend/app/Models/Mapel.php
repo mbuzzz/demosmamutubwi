@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
-#[Fillable(['nama', 'kode', 'kkm', 'tingkat'])]
+#[Fillable(['nama', 'kode', 'kkm', 'tingkat', 'kelompok'])]
 class Mapel extends Model
 {
     use HasFactory;

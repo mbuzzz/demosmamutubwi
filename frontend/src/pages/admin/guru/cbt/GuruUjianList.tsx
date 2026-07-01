@@ -1,9 +1,11 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { Plus, Edit, Trash2, Calendar, Clock, MonitorPlay, KeyRound, X, Save, FileQuestion, Search, GraduationCap, BookOpen, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Clock, MonitorPlay, KeyRound, X, Save, FileQuestion, Search, GraduationCap, BookOpen, FileText, BookMarked } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { type SesiUjian, type TipeUjian, generateToken, TIPE_BADGE } from '../../../../types/cbt';
 import { useSesiUjianList, useCreateSesiUjian } from '../../../../hooks/useCbt';
+import { useCbtTemplateList } from '../../../../hooks/useCbtTemplate';
+import { useUsers } from '../../../../hooks/useUsers';
 
 // Removed MOCK_PAKET_SOAL reference since we no longer have it locally
 // and we need to fetch bank soal properly
@@ -11,6 +13,9 @@ import { useSesiUjianList, useCreateSesiUjian } from '../../../../hooks/useCbt';
 export default function GuruUjianList() {
   const { data: sesiList, isLoading } = useSesiUjianList();
   const createSesi = useCreateSesiUjian();
+  const { data: templates = [] } = useCbtTemplateList();
+  const { data: allUsers = [] } = useUsers();
+  const guruList = allUsers.filter((u: any) => u.role === 'guru' || u.role === 'walikelas');
   
   const sessions = sesiList || [];
   
@@ -27,6 +32,8 @@ export default function GuruUjianList() {
     jamMulai: '',
     durasi: 90,
     token: '',
+    pengawasIds: [] as number[],
+    templateId: '',
   });
 
   const filteredSessions = sessions.filter(s =>
@@ -45,6 +52,8 @@ export default function GuruUjianList() {
       jamMulai: '',
       durasi: 90,
       token: generateToken(),
+      pengawasIds: [],
+      templateId: '',
     });
     setShowModal(true);
   }
@@ -61,6 +70,8 @@ export default function GuruUjianList() {
       jamMulai: s.waktu_mulai?.split(' ')[1]?.substring(0, 5) || '',
       durasi: s.durasi,
       token: s.token || '',
+      pengawasIds: s.pengawas?.map((p: any) => p.id) || [],
+      templateId: s.template_id?.toString() || '',
     });
     setShowModal(true);
   }
@@ -77,8 +88,10 @@ export default function GuruUjianList() {
         waktu_selesai: `${form.tanggal} ${form.jamMulai}:00`, // Need proper calc
         durasi: form.durasi,
         token: form.token,
-        status: 'published'
-      }, {
+        status: 'published',
+        pengawas_ids: form.pengawasIds,
+        template_id: form.templateId ? parseInt(form.templateId) : null,
+      } as any, {
         onSuccess: () => setShowModal(false)
       })
     }
@@ -125,6 +138,7 @@ export default function GuruUjianList() {
                 <th className="px-6 py-4">Tipe</th>
                 <th className="px-6 py-4">Waktu Pelaksanaan</th>
                 <th className="px-6 py-4">Token Akses</th>
+                <th className="px-6 py-4">Pengawas</th>
                 <th className="px-6 py-4">Status Ujian</th>
                 <th className="px-6 py-4 text-right">Aksi & Monitor</th>
               </tr>
@@ -132,11 +146,11 @@ export default function GuruUjianList() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {isLoading ? (
                   <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400">Loading jadwal...</td>
+                      <td colSpan={7} className="px-6 py-12 text-center text-slate-400">Loading jadwal...</td>
                   </tr>
               ) : filteredSessions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">Belum ada sesi ujian. Klik "Jadwalkan Ujian Baru" untuk memulai.</td>
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">Belum ada sesi ujian. Klik "Jadwalkan Ujian Baru" untuk memulai.</td>
                 </tr>
               ) : (
                 filteredSessions.map(s => (
@@ -169,6 +183,19 @@ export default function GuruUjianList() {
                           </button>
                         )}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {s.pengawas && s.pengawas.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {s.pengawas.map((p: any) => (
+                            <span key={p.id} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
+                              {p.name}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       {statusBadge(s.status)}
@@ -207,11 +234,12 @@ export default function GuruUjianList() {
             <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
               <div className="grid grid-cols-3 gap-3">
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Tipe Ujian</label>
-                <div className="col-span-3 grid grid-cols-3 gap-3">
+                <div className="col-span-3 grid grid-cols-4 gap-3">
                   {([
                     { value: 'ujian' as const, label: 'Ujian', icon: GraduationCap },
                     { value: 'ulangan_harian' as const, label: 'Ulangan Harian', icon: BookOpen },
                     { value: 'kuis' as const, label: 'Kuis', icon: FileText },
+                    { value: 'matrikulasi' as const, label: 'Matrikulasi', icon: BookMarked },
                   ]).map(opt => (
                     <button key={opt.value} onClick={() => setForm(prev => ({ ...prev, tipe: opt.value }))}
                       className={`flex flex-col items-center gap-1.5 py-3 rounded-xl text-sm font-bold border transition-all ${
@@ -286,6 +314,45 @@ export default function GuruUjianList() {
                 </div>
                 {form.tipe !== 'ujian' && (
                   <p className="text-[11px] text-amber-500 mt-1.5 font-medium">Token tidak wajib untuk {form.tipe === 'ulangan_harian' ? 'Ulangan Harian' : 'Kuis'}.</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Template Tampilan</label>
+                <select value={form.templateId} onChange={e => setForm(prev => ({ ...prev, templateId: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white">
+                  <option value="">Default (Tanpa Template)</option>
+                  {templates.map((t: any) => (
+                    <option key={t.id} value={t.id}>{t.nama} ({t.layout})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Pengawas Ujian</label>
+                <div className="max-h-40 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2 bg-slate-50 dark:bg-slate-800">
+                  {guruList.length === 0 ? (
+                    <p className="text-xs text-slate-400">Tidak ada guru tersedia</p>
+                  ) : guruList.map((guru: any) => (
+                    <label key={guru.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-white dark:hover:bg-slate-700 p-1.5 rounded-lg transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={form.pengawasIds.includes(guru.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setForm(prev => ({ ...prev, pengawasIds: [...prev.pengawasIds, guru.id] }));
+                          } else {
+                            setForm(prev => ({ ...prev, pengawasIds: prev.pengawasIds.filter((id: number) => id !== guru.id) }));
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{guru.name}</span>
+                      <span className="text-xs text-slate-400 ml-auto">{guru.nip_nisn || ''}</span>
+                    </label>
+                  ))}
+                </div>
+                {form.pengawasIds.length > 0 && (
+                  <p className="text-xs text-indigo-500 mt-1.5 font-medium">{form.pengawasIds.length} pengawas dipilih</p>
                 )}
               </div>
             </div>

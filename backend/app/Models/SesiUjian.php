@@ -17,6 +17,11 @@ class SesiUjian extends Model
         'is_aktif' => 'boolean',
     ];
 
+    public function template()
+    {
+        return $this->belongsTo(TemplateCbt::class, 'template_id');
+    }
+
     public function bankSoal()
     {
         return $this->belongsTo(BankSoal::class, 'bank_soal_id');
@@ -30,5 +35,10 @@ class SesiUjian extends Model
     public function hasilUjians()
     {
         return $this->hasMany(HasilUjian::class);
+    }
+
+    public function pengawas()
+    {
+        return $this->belongsToMany(User::class, 'pengawas_ujians', 'sesi_ujian_id', 'user_id')->withTimestamps();
     }
 }

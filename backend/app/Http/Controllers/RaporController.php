@@ -30,7 +30,7 @@ class RaporController extends Controller
 
     public function show($id)
     {
-        $rapor = Rapor::with(['siswa', 'nilaiEkskuls.ekskul'])->findOrFail($id);
+        $rapor = Rapor::with(['siswa', 'nilaiEkskuls.ekskul', 'sikaps'])->findOrFail($id);
         $siswa = $rapor->siswa;
 
         // Get class info
@@ -52,6 +52,19 @@ class RaporController extends Controller
             ->where('tahun_ajaran', $rapor->tahun_ajaran)
             ->where('semester', $rapor->semester)
             ->get();
+
+        // Create default sikaps if none exist
+        if ($rapor->sikaps->isEmpty()) {
+            $rapor->sikaps()->create([
+                'sikap' => 'spiritual',
+                'deskripsi' => 'Baik, sangat rajin melaksanakan sholat dhuha dan dhuhur berjamaah.'
+            ]);
+            $rapor->sikaps()->create([
+                'sikap' => 'sosial',
+                'deskripsi' => 'Sangat Baik, menunjukkan sikap santun kepada guru dan kepedulian tinggi terhadap teman.'
+            ]);
+            $rapor->load('sikaps');
+        }
 
         return response()->json([
             'rapor' => $rapor,

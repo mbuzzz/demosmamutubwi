@@ -24,6 +24,7 @@ use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\Api\CbtBankSoalController;
 use App\Http\Controllers\Api\CbtSesiController;
 use App\Http\Controllers\Api\CbtUjianController;
+use App\Http\Controllers\Api\CbtTemplateController;
 
 use App\Http\Controllers\Api\LmsMateriController;
 use App\Http\Controllers\Api\LmsTugasController;
@@ -103,6 +104,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/ekskuls/export/pdf', [EkskulController::class, 'exportPdf']);
         Route::get('/ekskuls/export/xlsx', [EkskulController::class, 'exportXlsx']);
         Route::post('/ekskuls/import/xlsx', [EkskulController::class, 'importXlsx']);
+        Route::get('/ekskuls/{ekskulId}/jadwal', [EkskulController::class, 'getJadwal']);
+        Route::post('/ekskuls/{ekskulId}/jadwal', [EkskulController::class, 'storeJadwal']);
+        Route::put('/ekskuls/{ekskulId}/jadwal/{jadwalId}', [EkskulController::class, 'updateJadwal']);
+        Route::delete('/ekskuls/{ekskulId}/jadwal/{jadwalId}', [EkskulController::class, 'destroyJadwal']);
         Route::apiResource('ekskuls', EkskulController::class);
     });
 
@@ -157,6 +162,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 9. NILAI & RAPOR (Superadmin, Admin, Guru, Kurikulum)
     Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+        Route::get('/nilai/monitoring-uh', [NilaiController::class, 'monitoringUH']);
         Route::get('/nilais', [NilaiController::class, 'index']);
         Route::post('/nilais', [NilaiController::class, 'store']);
 
@@ -218,6 +224,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::apiResource('cbt/sesi', CbtSesiController::class);
         Route::post('cbt/sesi/{sesiUjian}/refresh-token', [CbtSesiController::class, 'refreshToken']);
+        Route::apiResource('cbt/templates', CbtTemplateController::class);
     });
 
     // LMS Shared Endpoints
