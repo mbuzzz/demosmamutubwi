@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-export type Role = 'superadmin' | 'guru' | 'walikelas' | 'kepala_sekolah' | 'kurikulum' | 'bendahara' | 'siswa';
+export type Role = 'superadmin' | 'admin' | 'guru' | 'walikelas' | 'kepala_sekolah' | 'kurikulum' | 'bendahara' | 'siswa' | 'orang_tua';
 
 interface RoleContextType {
   simulatedRole: Role;

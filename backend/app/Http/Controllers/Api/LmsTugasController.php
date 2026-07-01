@@ -17,9 +17,33 @@ class LmsTugasController extends Controller
     public function index(Request $request)
     {
         $query = Tugas::with(['guru', 'mapel', 'kelas']);
+        $user = $request->user();
 
-        if ($request->has('kelas_id')) {
-            $query->where('kelas_id', $request->kelas_id);
+        if ($user) {
+            if ($user->role === 'siswa') {
+                $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
+                if ($kelasObj) {
+                    $query->where('kelas_id', $kelasObj->id);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            } elseif ($user->role === 'orang_tua') {
+                $siswa = $user->siswa;
+                if ($siswa) {
+                    $kelasObj = \App\Models\Kelas::where('nama', $siswa->kelas)->first();
+                    if ($kelasObj) {
+                        $query->where('kelas_id', $kelasObj->id);
+                    } else {
+                        $query->whereRaw('1 = 0');
+                    }
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            } else {
+                if ($request->has('kelas_id')) {
+                    $query->where('kelas_id', $request->kelas_id);
+                }
+            }
         }
 
         if ($request->has('guru_id')) {
@@ -344,6 +368,27 @@ class LmsTugasController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Nilai berhasil disimpan',
+            'data' => $pengumpulan
+        ]);
+    }
+
+    public function mySubmission(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $siswaId = $user->role === 'orang_tua' ? $user->siswa_id : $user->id;
+
+        if (!$siswaId) {
+            return response()->json(['status' => 'error', 'message' => 'Siswa tidak ditemukan.'], 404);
+        }
+
+        $pengumpulan = PengumpulanTugas::where('tugas_id', $id)->where('siswa_id', $siswaId)->first();
+
+        return response()->json([
+            'status' => 'success',
             'data' => $pengumpulan
         ]);
     }

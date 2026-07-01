@@ -47,7 +47,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
-            'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,siswa,admin',
+            'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,siswa,admin,orang_tua',
             'nip_nisn' => 'nullable|string|unique:users',
             'uid_rfid' => 'nullable|string|unique:users',
             'kelas' => 'nullable|string',
@@ -111,7 +111,7 @@ class UserController extends Controller
                 Rule::unique('users')->ignore($user->id),
             ],
             'password' => 'nullable|string|min:6',
-            'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,siswa,admin',
+            'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,siswa,admin,orang_tua',
             'nip_nisn' => [
                 'nullable',
                 'string',

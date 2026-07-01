@@ -2,9 +2,15 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { CalendarDays, Clock, FileText, Bell, ArrowRight, AlertCircle, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDashboardStats } from '../../../hooks/useDashboard';
+import { useAuth } from '../../../components/auth/AuthContext';
 
 export default function SiswaDashboard() {
   const { stats, loading } = useDashboardStats();
+  const { user } = useAuth();
+  
+  const greetingName = user?.role === 'orang_tua' ? `Wali dari ${user?.siswa?.name || 'Siswa'}` : user?.name || 'Siswa';
+  const dashboardTitle = user?.role === 'orang_tua' ? "Portal Orang Tua / Wali Murid" : "Ruang Belajar Siswa";
+  const portalSub = user?.role === 'orang_tua' ? "Laporan Perkembangan Belajar Anak" : "Portal Akademik Siswa";
 
   const fallbackStats = [
     { label: 'Rata-rata Nilai', value: '88.4', sub: 'Semester Ganjil', icon: Award, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
@@ -46,14 +52,14 @@ export default function SiswaDashboard() {
   ];
 
   return (
-    <AdminLayout title="Ruang Belajar Siswa">
+    <AdminLayout title={dashboardTitle}>
       
       {/* Sapaan & Smart Alert */}
       <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white mb-8 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
         <div className="relative z-10">
-          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Pagi, Siswa!</h2>
-          <p className="text-violet-100 font-medium mb-6">Portal Akademik Siswa</p>
+          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Pagi, {greetingName}!</h2>
+          <p className="text-violet-100 font-medium mb-6">{portalSub}</p>
           
           <div className="bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">

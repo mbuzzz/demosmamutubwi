@@ -28,8 +28,8 @@ export default function Login() {
           </p>
         </div>
 
-        {/* 2 Portal Cards (Admin & Bendahara Hidden) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        {/* 3 Portal Cards (Admin & Bendahara Hidden) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           
           {/* Card 1: Siswa */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-800 transition-all flex flex-col justify-between group">
@@ -50,7 +50,26 @@ export default function Login() {
             </Link>
           </div>
 
-          {/* Card 2: Guru & Staf */}
+          {/* Card 2: Orang Tua */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-800 transition-all flex flex-col justify-between group">
+            <div>
+              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-5">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Orang Tua</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                Akses untuk memantau absensi kehadiran harian anak, tagihan keuangan & SPP sekolah, daftar tugas LMS, serta rapor nilai akhir anak.
+              </p>
+            </div>
+            <Link 
+              to="/login/orang-tua" 
+              className="mt-auto w-full flex items-center justify-center gap-2 bg-indigo-650 hover:bg-indigo-750 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
+            >
+              Masuk Portal Wali <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {/* Card 3: Guru & Staf */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-800 transition-all flex flex-col justify-between group">
             <div>
               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-5">

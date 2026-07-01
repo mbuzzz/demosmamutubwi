@@ -3,6 +3,7 @@ import { FileQuestion, Clock, Search, Play, X, Key, HelpCircle, CheckCircle, Ale
 import { useState, useEffect, useRef } from 'react';
 import { type SesiUjian, type TipeUjian, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
 import { useUjianAktifList, useMulaiUjian, useSimpanJawaban, useSelesaiUjian } from '../../../hooks/useCbt';
+import { useAuth } from '../../../components/auth/AuthContext';
 
 interface Question {
   id: number;
@@ -52,6 +53,7 @@ function buildExamFromSession(sesi: SesiUjian): Exam {
 export default function SiswaCbt() {
   const { data: sesiList, isLoading } = useUjianAktifList();
   const mulaiUjian = useMulaiUjian();
+  const { user } = useAuth();
   const simpanJawaban = useSimpanJawaban();
   const selesaiUjian = useSelesaiUjian();
 
@@ -694,6 +696,8 @@ export default function SiswaCbt() {
                       <div className="text-[10px] font-bold text-slate-400 uppercase">Nilai CBT</div>
                       <div className="font-black text-emerald-600 text-lg">{exam.score !== undefined ? exam.score : '-'}</div>
                     </div>
+                  ) : user?.role === 'orang_tua' ? (
+                    <span className="text-[10px] font-bold text-slate-400">Mode Wali (Belum Diikuti)</span>
                   ) : (
                     <button onClick={() => startExamRequest(exam)}
                       className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow flex items-center gap-1.5 active:scale-95 transition-all">

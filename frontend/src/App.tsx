@@ -12,6 +12,7 @@ import LoginSiswa from './pages/LoginSiswa';
 import LoginGuru from './pages/LoginGuru';
 import LoginAdmin from './pages/LoginAdmin';
 import LoginBendahara from './pages/LoginBendahara';
+import LoginOrangTua from './pages/LoginOrangTua';
 import SPMB from './pages/SPMB';
 import FormSPMB from './pages/FormSPMB';
 
@@ -128,6 +129,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/login/siswa" element={<LoginSiswa />} />
         <Route path="/login/guru" element={<LoginGuru />} />
+        <Route path="/login/orang-tua" element={<LoginOrangTua />} />
         <Route path="/adminlogin" element={<LoginAdmin />} />
         <Route path="/bendahara" element={<LoginBendahara />} />
         <Route path="/tap/absensi" element={<TapAbsensi />} />
@@ -210,17 +212,17 @@ export default function App() {
         <Route path="/panel/bendahara/pembayaran/siswa" element={<ProtectedRoute requiredRole="bendahara"><AdminPembayaranSiswa /></ProtectedRoute>} />
         <Route path="/panel/bendahara/settings" element={<ProtectedRoute requiredRole="bendahara"><AdminSettingsBank /></ProtectedRoute>} />
 
-        {/* ========== SISWA ========== */}
-        <Route path="/panel/siswa" element={<ProtectedRoute requiredRole="siswa"><SiswaDashboard /></ProtectedRoute>} />
-        <Route path="/panel/siswa/jadwal" element={<ProtectedRoute requiredRole="siswa"><SiswaJadwal /></ProtectedRoute>} />
-        <Route path="/panel/siswa/materi" element={<ProtectedRoute requiredRole="siswa"><SiswaMateri /></ProtectedRoute>} />
-        <Route path="/panel/siswa/materi/detail/:id" element={<ProtectedRoute requiredRole="siswa"><SiswaMateri /></ProtectedRoute>} />
-        <Route path="/panel/siswa/tugas" element={<ProtectedRoute requiredRole="siswa"><SiswaTugas /></ProtectedRoute>} />
-        <Route path="/panel/siswa/tugas/detail/:id" element={<ProtectedRoute requiredRole="siswa"><SiswaTugas /></ProtectedRoute>} />
-        <Route path="/panel/siswa/cbt" element={<ProtectedRoute requiredRole="siswa"><SiswaCbt /></ProtectedRoute>} />
-        <Route path="/panel/siswa/rapor" element={<ProtectedRoute requiredRole="siswa"><SiswaRapor /></ProtectedRoute>} />
-        <Route path="/panel/siswa/absensi" element={<ProtectedRoute requiredRole="siswa"><SiswaAbsensi /></ProtectedRoute>} />
-        <Route path="/panel/siswa/pembayaran" element={<ProtectedRoute requiredRole="siswa"><SiswaPembayaran /></ProtectedRoute>} />
+        {/* ========== SISWA / ORANG TUA ========== */}
+        <Route path="/panel/siswa" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaDashboard /></ProtectedRoute>} />
+        <Route path="/panel/siswa/jadwal" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaJadwal /></ProtectedRoute>} />
+        <Route path="/panel/siswa/materi" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaMateri /></ProtectedRoute>} />
+        <Route path="/panel/siswa/materi/detail/:id" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaMateri /></ProtectedRoute>} />
+        <Route path="/panel/siswa/tugas" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaTugas /></ProtectedRoute>} />
+        <Route path="/panel/siswa/tugas/detail/:id" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaTugas /></ProtectedRoute>} />
+        <Route path="/panel/siswa/cbt" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaCbt /></ProtectedRoute>} />
+        <Route path="/panel/siswa/rapor" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaRapor /></ProtectedRoute>} />
+        <Route path="/panel/siswa/absensi" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/siswa/pembayaran" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaPembayaran /></ProtectedRoute>} />
       </Routes>
       <Toaster position="top-right" richColors closeButton />
     </Router>

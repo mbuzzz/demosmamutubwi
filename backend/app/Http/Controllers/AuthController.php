@@ -18,9 +18,13 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            $user = Auth::user();
+            if ($user->role === 'orang_tua') {
+                $user->load('siswa');
+            }
             return response()->json([
                 'message' => 'Login successful',
-                'user' => Auth::user(),
+                'user' => $user,
             ]);
         }
 
@@ -42,7 +46,11 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        if ($user && $user->role === 'orang_tua') {
+            $user->load('siswa');
+        }
+        return response()->json($user);
     }
 
     public function updateProfile(Request $request)
@@ -88,9 +96,14 @@ class AuthController extends Controller
 
         $user->update($validated);
 
+        $freshUser = $user->fresh();
+        if ($freshUser && $freshUser->role === 'orang_tua') {
+            $freshUser->load('siswa');
+        }
+
         return response()->json([
             'message' => 'Profil berhasil diperbarui',
-            'user' => $user->fresh(),
+            'user' => $freshUser,
         ]);
     }
 

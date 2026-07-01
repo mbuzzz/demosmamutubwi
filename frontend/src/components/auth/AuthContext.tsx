@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { api, getCsrfCookie } from '../../lib/api';
+import { useRoleSimulator, type Role } from '../simulator/RoleContext';
 
 export interface AuthUser {
   id: number;
@@ -14,6 +15,8 @@ export interface AuthUser {
   phone?: string | null;
   foto?: string | null;
   is_active?: boolean;
+  siswa_id?: number | null;
+  siswa?: any | null;
 }
 
 interface AuthContextType {
@@ -31,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { setSimulatedRole } = useRoleSimulator();
 
   const checkSession = async () => {
     try {
@@ -39,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.data) {
         setUser(res.data);
         setIsAuthenticated(true);
+        setSimulatedRole(res.data.role as Role);
       }
     } catch (err) {
       setUser(null);
@@ -64,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(authenticatedUser);
       setIsAuthenticated(true);
+      setSimulatedRole(authenticatedUser.role as Role);
       return authenticatedUser;
     } catch (err: any) {
       setUser(null);

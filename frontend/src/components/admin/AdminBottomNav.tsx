@@ -73,6 +73,13 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
         { name: "Wali", path: "/panel/guru/wali-siswa", icon: Users },
         { name: "Rapor", path: "/panel/guru/rapor", icon: FileText },
       ]
+    : simulatedRole === 'orang_tua'
+    ? [
+        { name: "Beranda", path: "/panel/siswa", icon: LayoutDashboard },
+        { name: "Absensi", path: "/panel/siswa/absensi", icon: UserCheck },
+        { name: "Tugas", path: "/panel/siswa/tugas", icon: ClipboardList },
+        { name: "Rapor", path: "/panel/siswa/rapor", icon: FileText },
+      ]
     : [
         { name: "Beranda", path: "/panel", icon: LayoutDashboard },
         { name: "Absensi", path: "/panel/absensi", icon: UserCheck },
@@ -80,7 +87,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
         { name: "Rapor", path: "/panel/rapor", icon: FileText },
       ];
 
-  const moreMenuGroups: { title: string; items: NavItem[] }[] = simulatedRole === 'siswa'
+  const moreMenuGroups: { title: string; items: NavItem[] }[] = (simulatedRole === 'siswa' || simulatedRole === 'orang_tua')
     ? [
         {
           title: "KBM",

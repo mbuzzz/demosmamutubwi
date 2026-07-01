@@ -83,7 +83,7 @@ class UserSeeder extends Seeder
         ]);
 
         // Siswa 1
-        User::create([
+        $agus = User::create([
             'name' => 'Agus Setiawan',
             'username' => 'agus',
             'email' => 'agus.siswa@sit.sch.id',
@@ -96,7 +96,7 @@ class UserSeeder extends Seeder
         ]);
 
         // Siswa 2
-        User::create([
+        $budi = User::create([
             'name' => 'Budi Santoso',
             'username' => 'budi',
             'email' => 'budi.siswa@sit.sch.id',
@@ -106,6 +106,30 @@ class UserSeeder extends Seeder
             'kelas' => 'X-1',
             'uid_rfid' => 'RF:EF:56:GH:78',
             'is_active' => true,
+        ]);
+
+        // Orang Tua 1 (Agus's parent)
+        User::create([
+            'name' => 'Bapak Joko Setiawan',
+            'username' => 'joko',
+            'email' => 'joko.ortu@sit.sch.id',
+            'password' => Hash::make('1234'),
+            'role' => 'orang_tua',
+            'nip_nisn' => 'ORTU-0081234501',
+            'is_active' => true,
+            'siswa_id' => $agus->id,
+        ]);
+
+        // Orang Tua 2 (Budi's parent)
+        User::create([
+            'name' => 'Bapak Slamet Santoso',
+            'username' => 'slamet',
+            'email' => 'slamet.ortu@sit.sch.id',
+            'password' => Hash::make('1234'),
+            'role' => 'orang_tua',
+            'nip_nisn' => 'ORTU-0081234502',
+            'is_active' => true,
+            'siswa_id' => $budi->id,
         ]);
     }
 }

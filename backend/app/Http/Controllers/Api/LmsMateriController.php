@@ -14,9 +14,33 @@ class LmsMateriController extends Controller
     public function index(Request $request)
     {
         $query = Materi::with(['guru', 'mapel', 'kelas']);
+        $user = $request->user();
 
-        if ($request->has('kelas_id')) {
-            $query->where('kelas_id', $request->kelas_id);
+        if ($user) {
+            if ($user->role === 'siswa') {
+                $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
+                if ($kelasObj) {
+                    $query->where('kelas_id', $kelasObj->id);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            } elseif ($user->role === 'orang_tua') {
+                $siswa = $user->siswa;
+                if ($siswa) {
+                    $kelasObj = \App\Models\Kelas::where('nama', $siswa->kelas)->first();
+                    if ($kelasObj) {
+                        $query->where('kelas_id', $kelasObj->id);
+                    } else {
+                        $query->whereRaw('1 = 0');
+                    }
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            } else {
+                if ($request->has('kelas_id')) {
+                    $query->where('kelas_id', $request->kelas_id);
+                }
+            }
         }
 
         if ($request->has('guru_id')) {

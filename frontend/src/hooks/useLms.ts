@@ -258,8 +258,20 @@ export function useGetSubmissions(tugasId?: string) {
     queryKey: ['tugas', tugasId, 'submissions'],
     queryFn: async () => {
       if (!tugasId) return [];
-      const res = await api.get<Submission[]>(`/lms/tugas/${tugasId}/submissions`);
-      return res.data;
+      const res = await api.get<any>(`/lms/tugas/${tugasId}/submissions`);
+      return res.data.data || res.data;
+    },
+    enabled: !!tugasId,
+  });
+}
+
+export function useMySubmission(tugasId?: string) {
+  return useQuery({
+    queryKey: ['tugas', tugasId, 'my-submission'],
+    queryFn: async () => {
+      if (!tugasId) return null;
+      const res = await api.get<{ data: any }>(`/lms/tugas/${tugasId}/my-submission`);
+      return res.data.data;
     },
     enabled: !!tugasId,
   });

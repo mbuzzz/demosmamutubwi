@@ -27,6 +27,17 @@ export function useStudentScores(kelasId: string, mapelId: string) {
   });
 }
 
+export function useNilaiList(params?: { siswa_id?: string; tahun_ajaran?: string; semester?: string }) {
+  return useQuery({
+    queryKey: ['nilais', params],
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      const res = await api.get<any>('/nilais', { params });
+      return res.data;
+    },
+  });
+}
+
 export function useSaveScores() {
   const queryClient = useQueryClient();
   return useMutation({

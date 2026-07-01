@@ -1,8 +1,9 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { FileText, Printer, Award, BarChart3, UserCheck } from 'lucide-react';
 import { useState } from 'react';
-import { getRekapAbsensiData } from '../../../stores/absensiStore';
-import { getNilaiEkskulSiswa } from '../../../stores/ekskulStore';
+import { useAuth } from '../../../components/auth/AuthContext';
+import { useNilaiList } from '../../../hooks/useNilai';
+import { useRaporList, useRapor } from '../../../hooks/useRapor';
 
 interface GradeItem {
   name: string;
@@ -38,12 +39,67 @@ const finalRapor = [
 
 export default function SiswaRapor() {
   const [activeTab, setActiveTab] = useState<'tugas' | 'kuis' | 'ujian' | 'rapor'>('tugas');
+  const { user } = useAuth();
 
-  const averageGrade = Math.round(finalRapor.reduce((a, s) => a + s.akhir, 0) / finalRapor.length);
+  const targetStudentId = user?.role === 'orang_tua' ? String(user.siswa_id) : String(user?.id || '');
 
-  // Load dynamic data for student ID: 's1' (Agus Setiawan)
-  const rekap = getRekapAbsensiData().find(r => r.siswaId === 's1');
-  const ekskuls = getNilaiEkskulSiswa('s1');
+  // Get raw grades list
+  const { data: nilaiResponse } = useNilaiList({ siswa_id: targetStudentId });
+  const grades = Array.isArray(nilaiResponse) ? nilaiResponse : (nilaiResponse as any)?.data || [];
+
+  // Get Rapor list & detail
+  const { data: raporResponse } = useRaporList();
+  const raporList = Array.isArray(raporResponse) ? raporResponse : (raporResponse as any)?.data || [];
+  const activeRaporObj = raporList.find((r: any) => r.status === 'published' || r.status === 'draft');
+  const { data: raporDetail } = useRapor(activeRaporObj?.id);
+
+  // Dynamic maps
+  const dynamicTugasGrades = grades.length > 0 ? grades.map((g: any) => ({
+    name: 'Tugas Harian',
+    mapel: g.mapel?.nama || 'Mata Pelajaran',
+    grade: g.nilai_tugas ?? 0,
+    date: g.updated_at ? new Date(g.updated_at).toLocaleDateString('id-ID') : '—',
+    feedback: g.catatan || '—'
+  })).filter((g: any) => g.grade > 0) : tugasGrades;
+
+  const dynamicKuisGrades = grades.length > 0 ? grades.map((g: any) => ({
+    name: 'Ujian Tengah Semester',
+    mapel: g.mapel?.nama || 'Mata Pelajaran',
+    grade: g.nilai_uts ?? 0,
+    date: g.updated_at ? new Date(g.updated_at).toLocaleDateString('id-ID') : '—'
+  })).filter((g: any) => g.grade > 0) : kuisGrades;
+
+  const dynamicUjianGrades = grades.length > 0 ? grades.map((g: any) => ({
+    name: 'Ujian Akhir Semester',
+    mapel: g.mapel?.nama || 'Mata Pelajaran',
+    grade: g.nilai_uas ?? 0,
+    date: g.updated_at ? new Date(g.updated_at).toLocaleDateString('id-ID') : '—'
+  })).filter((g: any) => g.grade > 0) : ujianGrades;
+
+  const dynamicFinalRapor = grades.length > 0 ? grades.map((g: any) => ({
+    mapel: g.mapel?.nama || 'Mata Pelajaran',
+    kkm: g.mapel?.kkm || 75,
+    tugas: g.nilai_tugas ?? '-',
+    kuis: g.nilai_uts ?? '-',
+    ujian: g.nilai_uas ?? '-',
+    akhir: g.nilai_akhir ?? '-',
+    predikat: g.predikat || '—',
+    catatan: g.catatan || '—'
+  })) : finalRapor;
+
+  const averageGrade = Math.round(dynamicFinalRapor.reduce((a, s) => a + (typeof s.akhir === 'number' ? s.akhir : 0), 0) / (dynamicFinalRapor.length || 1)) || 0;
+
+  // Absensi & ekskul from RaporDetail
+  const details = raporDetail as any;
+  const rekap = details?.rapor ? {
+    hadir: details.rapor.hadir || 0,
+    sakit: details.rapor.sakit || 0,
+    izin: details.rapor.izin || 0,
+    alpha: details.rapor.alpha || 0,
+    terlambat: details.rapor.terlambat || 0,
+  } : { hadir: 0, sakit: 0, izin: 0, alpha: 0, terlambat: 0 };
+
+  const ekskuls = details?.rapor?.nilai_ekskuls || [];
 
   return (
     <AdminLayout title="Rapor & Nilai Saya">
@@ -102,7 +158,7 @@ export default function SiswaRapor() {
           {/* Nilai Tugas */}
           {activeTab === 'tugas' && (
             <div className="space-y-4">
-              {tugasGrades.map((g, i) => (
+              {dynamicTugasGrades.map((g, i) => (
                 <div key={i} className="p-5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
                     <div>
@@ -135,7 +191,7 @@ export default function SiswaRapor() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                  {kuisGrades.map((g, i) => (
+                  {dynamicKuisGrades.map((g, i) => (
                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{g.name}</td>
                       <td className="px-5 py-4 font-medium text-slate-600 dark:text-slate-300">{g.mapel}</td>
@@ -161,7 +217,7 @@ export default function SiswaRapor() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                  {ujianGrades.map((g, i) => (
+                  {dynamicUjianGrades.map((g, i) => (
                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{g.name}</td>
                       <td className="px-5 py-4 font-medium text-slate-600 dark:text-slate-300">{g.mapel}</td>
@@ -255,7 +311,7 @@ export default function SiswaRapor() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900">
-                    {finalRapor.map((r, i) => (
+                    {dynamicFinalRapor.map((r, i) => (
                       <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="px-5 py-4 font-bold text-slate-850 dark:text-white">{r.mapel}</td>
                         <td className="px-5 py-4 text-center font-bold text-slate-500">{r.kkm}</td>

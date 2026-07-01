@@ -19,6 +19,8 @@ class NilaiController extends Controller
 
         if ($user->role === 'siswa') {
             $query->where('siswa_id', $user->id);
+        } elseif ($user->role === 'orang_tua') {
+            $query->where('siswa_id', $user->siswa_id);
         } else {
             if ($request->has('siswa_id')) {
                 $query->where('siswa_id', $request->siswa_id);

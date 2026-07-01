@@ -1,5 +1,6 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { Calendar, Coffee } from 'lucide-react';
+import { useJadwal } from '../../../hooks/useJadwal';
 
 interface TimeSlot {
   id: string;
@@ -25,14 +26,6 @@ const defaultSlots: TimeSlot[] = [
 
 const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
-const schedule: Record<string, ScheduleCell> = {
-  '0-0': { mapel: 'Matematika Wajib', guru: 'Ahmad Hidayat, S.Pd' },
-  '1-1': { mapel: 'Bahasa Inggris', guru: 'Siti Aminah, M.Pd' },
-  '3-0': { mapel: 'Fisika', guru: 'Bambang Wijaya, S.Pd' },
-  '4-2': { mapel: 'Kimia', guru: 'Dewi Sartika, S.Pd' },
-  '5-3': { mapel: 'Biologi', guru: 'Eko Prasetyo, S.Pd' },
-};
-
 const slotStyles = [
   { bg: 'bg-indigo-55 dark:bg-indigo-500/10', border: 'border-indigo-100 dark:border-indigo-500/20', text: 'text-indigo-900 dark:text-indigo-300', textSub: 'text-indigo-700 dark:text-indigo-400' },
   { bg: 'bg-emerald-55 dark:bg-emerald-500/10', border: 'border-emerald-100 dark:border-emerald-500/20', text: 'text-emerald-900 dark:text-emerald-300', textSub: 'text-emerald-700 dark:text-emerald-400' },
@@ -43,8 +36,18 @@ const slotStyles = [
 ];
 
 export default function SiswaJadwal() {
+  const { data: schedules = [] } = useJadwal();
+
   function getCell(dayIdx: number, slotIdx: number): ScheduleCell | undefined {
-    return schedule[`${slotIdx}-${dayIdx}`];
+    const day = days[dayIdx];
+    const match = schedules.find(
+      (s: any) => s.hari.toLowerCase() === day.toLowerCase() && s.urutan_jam === slotIdx + 1
+    );
+    if (!match) return undefined;
+    return {
+      mapel: match.mapel?.nama || match.label || 'Mata Pelajaran',
+      guru: match.guru?.name || '—',
+    };
   }
 
   function getStyle(idx: number) {

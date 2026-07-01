@@ -11,15 +11,33 @@ class JadwalController extends Controller
     // GET /api/jadwal
     public function index(Request $request)
     {
-        $request->validate([
-            'kelas_id' => 'required|exists:kelas,id'
-        ]);
+        $user = $request->user();
+        $kelasId = $request->kelas_id;
+
+        if (!$kelasId && $user) {
+            if ($user->role === 'siswa') {
+                $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
+                $kelasId = $kelasObj ? $kelasObj->id : null;
+            } elseif ($user->role === 'orang_tua') {
+                $siswa = $user->siswa;
+                if ($siswa) {
+                    $kelasObj = \App\Models\Kelas::where('nama', $siswa->kelas)->first();
+                    $kelasId = $kelasObj ? $kelasObj->id : null;
+                }
+            }
+        }
+
+        if (!$kelasId) {
+            return response()->json([
+                'message' => 'Kelas ID diperlukan.'
+            ], 422);
+        }
 
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
         $jadwals = Jadwal::with(['mapel', 'guru'])
-            ->where('kelas_id', $request->kelas_id)
+            ->where('kelas_id', $kelasId)
             ->where('tahun_ajaran', $tahunAjaran)
             ->orderBy('urutan_jam')
             ->get();

@@ -172,5 +172,96 @@ class DatabaseSeeder extends Seeder
                 'tahun_ajaran' => '2025/2026',
             ]);
         }
+
+        // 8. Seed Jadwal Pelajaran (Schedules) for X-1
+        if ($kelasX1 && $mapelMtk && $ahmad) {
+            \App\Models\Jadwal::create([
+                'kelas_id' => $kelasX1->id,
+                'hari' => 'Senin',
+                'urutan_jam' => 1,
+                'jam_mulai' => '07:00',
+                'jam_selesai' => '08:30',
+                'is_break' => false,
+                'mapel_id' => $mapelMtk->id,
+                'guru_id' => $ahmad->id,
+                'tahun_ajaran' => '2025/2026',
+            ]);
+        }
+
+        if ($kelasX1 && $mapelFis && $rina) {
+            \App\Models\Jadwal::create([
+                'kelas_id' => $kelasX1->id,
+                'hari' => 'Senin',
+                'urutan_jam' => 2,
+                'jam_mulai' => '08:30',
+                'jam_selesai' => '10:00',
+                'is_break' => false,
+                'mapel_id' => $mapelFis->id,
+                'guru_id' => $rina->id,
+                'tahun_ajaran' => '2025/2026',
+            ]);
+        }
+
+        if ($kelasX1) {
+            \App\Models\Jadwal::create([
+                'kelas_id' => $kelasX1->id,
+                'hari' => 'Senin',
+                'urutan_jam' => 3,
+                'jam_mulai' => '10:00',
+                'jam_selesai' => '10:15',
+                'is_break' => true,
+                'label' => 'Istirahat',
+                'tahun_ajaran' => '2025/2026',
+            ]);
+        }
+
+        // 9. Seed Nilai for Agus Setiawan
+        $agus = User::where('username', 'agus')->first();
+        if ($agus && $ahmad && $mapelMtk) {
+            \App\Models\Nilai::create([
+                'siswa_id' => $agus->id,
+                'guru_id' => $ahmad->id,
+                'mapel_id' => $mapelMtk->id,
+                'nilai_tugas' => 90,
+                'nilai_uts' => 95,
+                'nilai_uas' => 88,
+                'nilai_akhir' => 90.6,
+                'predikat' => 'A-',
+                'semester' => 'ganjil',
+                'tahun_ajaran' => '2025/2026',
+                'catatan' => 'Sangat baik dalam pemecahan masalah logaritma.',
+            ]);
+        }
+
+        if ($agus && $rina && $mapelFis) {
+            \App\Models\Nilai::create([
+                'siswa_id' => $agus->id,
+                'guru_id' => $rina->id,
+                'mapel_id' => $mapelFis->id,
+                'nilai_tugas' => 82,
+                'nilai_uts' => 80,
+                'nilai_uas' => 78,
+                'nilai_akhir' => 79.6,
+                'predikat' => 'B+',
+                'semester' => 'ganjil',
+                'tahun_ajaran' => '2025/2026',
+                'catatan' => 'Baik dalam praktikum gerak lurus.',
+            ]);
+        }
+
+        // 10. Seed Rapor for Agus Setiawan
+        if ($agus) {
+            \App\Models\Rapor::create([
+                'siswa_id' => $agus->id,
+                'tahun_ajaran' => '2025/2026',
+                'semester' => 'ganjil',
+                'catatan_wali_kelas' => 'Agus menunjukkan prestasi belajar yang sangat baik semester ini. Pertahankan!',
+                'sakit' => 1,
+                'izin' => 2,
+                'alpha' => 0,
+                'terlambat' => 0,
+                'status' => 'published',
+            ]);
+        }
     }
 }

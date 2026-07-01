@@ -192,6 +192,41 @@ class DashboardController extends Controller
                     'color' => 'bg-red-500'
                 ],
             ];
+        } elseif ($role === 'orang_tua') {
+            $siswaId = $user->siswa_id;
+            
+            if ($siswaId) {
+                $tagihanBelumLunas = TagihanSiswa::where('siswa_id', $siswaId)
+                    ->where('status', '!=', 'lunas')
+                    ->get()
+                    ->sum(function ($tagihan) {
+                        return $tagihan->nominal_tagihan - $tagihan->nominal_terbayar;
+                    });
+                $stats['tagihan_belum_lunas'] = $tagihanBelumLunas;
+                
+                $totalHari = Absensi::where('siswa_id', $siswaId)->count();
+                $totalHadir = Absensi::where('siswa_id', $siswaId)->whereIn('status_masuk', ['hadir', 'terlambat'])->count();
+                
+                $persentaseKehadiran = $totalHari > 0 ? round(($totalHadir / $totalHari) * 100) : 100;
+                $stats['persentase_kehadiran'] = $persentaseKehadiran;
+                
+                $stats['cards'] = [
+                    [
+                        'name' => 'Kehadiran Anak',
+                        'value' => $persentaseKehadiran . '%',
+                        'icon' => 'UserCheck',
+                        'color' => 'bg-green-500'
+                    ],
+                    [
+                        'name' => 'Tagihan Belum Lunas',
+                        'value' => 'Rp ' . number_format($tagihanBelumLunas, 0, ',', '.'),
+                        'icon' => 'CreditCard',
+                        'color' => 'bg-red-500'
+                    ],
+                ];
+            } else {
+                $stats['cards'] = [];
+            }
         } else {
             // Default empty or basic cards
             $stats['cards'] = [];

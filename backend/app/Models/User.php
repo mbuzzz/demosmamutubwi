@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'username', 'email', 'password', 'role', 'nip_nisn', 'uid_rfid', 'kelas', 'jabatan', 'phone', 'foto', 'is_active'])]
+#[Fillable(['name', 'username', 'email', 'password', 'role', 'nip_nisn', 'uid_rfid', 'kelas', 'jabatan', 'phone', 'foto', 'is_active', 'siswa_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -56,5 +56,17 @@ class User extends Authenticatable
     public function penugasans()
     {
         return $this->hasMany(Penugasan::class, 'guru_id');
+    }
+
+    /** Hubungan orang tua ke siswa */
+    public function siswa()
+    {
+        return $this->belongsTo(User::class, 'siswa_id');
+    }
+
+    /** Riwayat kelas siswa */
+    public function riwayatKelas()
+    {
+        return $this->hasMany(RiwayatKelas::class, 'siswa_id');
     }
 }

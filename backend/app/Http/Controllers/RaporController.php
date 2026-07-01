@@ -16,7 +16,16 @@ class RaporController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = Rapor::with('siswa');
+
+        if ($user) {
+            if ($user->role === 'siswa') {
+                $query->where('siswa_id', $user->id);
+            } elseif ($user->role === 'orang_tua') {
+                $query->where('siswa_id', $user->siswa_id);
+            }
+        }
 
         if ($request->has('search') && $request->search) {
             $search = $request->search;
@@ -31,6 +40,15 @@ class RaporController extends Controller
     public function show($id)
     {
         $rapor = Rapor::with(['siswa', 'nilaiEkskuls.ekskul', 'sikaps'])->findOrFail($id);
+        $user = auth()->user();
+        if ($user) {
+            if ($user->role === 'siswa' && $rapor->siswa_id != $user->id) {
+                abort(403, 'Unauthorized');
+            }
+            if ($user->role === 'orang_tua' && $rapor->siswa_id != $user->siswa_id) {
+                abort(403, 'Unauthorized');
+            }
+        }
         $siswa = $rapor->siswa;
 
         // Get class info
@@ -133,6 +151,15 @@ class RaporController extends Controller
     public function exportPdf($id)
     {
         $rapor = Rapor::with('siswa')->findOrFail($id);
+        $user = auth()->user();
+        if ($user) {
+            if ($user->role === 'siswa' && $rapor->siswa_id != $user->id) {
+                abort(403, 'Unauthorized');
+            }
+            if ($user->role === 'orang_tua' && $rapor->siswa_id != $user->siswa_id) {
+                abort(403, 'Unauthorized');
+            }
+        }
         $siswa = $rapor->siswa;
 
         // Get class info for this student

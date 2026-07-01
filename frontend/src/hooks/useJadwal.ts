@@ -17,18 +17,15 @@ export interface JadwalRecord {
   guru?: { id: string; name: string } | null;
 }
 
-export function useJadwal(kelasId: string | undefined) {
+export function useJadwal(kelasId?: string) {
   return useQuery({
     queryKey: ['jadwal', kelasId],
     staleTime: 30 * 1000,
     queryFn: async () => {
-      if (!kelasId) return [];
-      const res = await api.get<JadwalRecord[]>('/jadwal', {
-        params: { kelas_id: kelasId },
-      });
+      const params = kelasId ? { kelas_id: kelasId } : {};
+      const res = await api.get<JadwalRecord[]>('/jadwal', { params });
       return res.data;
     },
-    enabled: !!kelasId,
   });
 }
 

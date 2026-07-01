@@ -4,17 +4,17 @@ import { CreditCard, CheckCircle2, Banknote, QrCode } from 'lucide-react';
 import { STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa } from '../../../types/pembayaran';
 import { useBankSettings } from '../../../stores/bankSettingsStore';
 import { useTagihanList } from '../../../hooks/usePembayaran';
-import { useUsers } from '../../../hooks/useUsers';
+import { useAuth } from '../../../components/auth/AuthContext';
 
 export default function SiswaPembayaran() {
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
+  const { user } = useAuth();
 
   const bankSettings = useBankSettings();
   const settings = bankSettings[0] || { bankName: '-', noRekening: '-', atasNama: '-', qrisImage: '' };
   
-  const { data: users } = useUsers();
-  const currentUser = users?.find(u => u.role === 'siswa');
-  const { data: tagihanSaya = [] } = useTagihanList(currentUser ? { user_id: currentUser.id } : undefined);
+  const targetStudentId = user?.role === 'orang_tua' ? user.siswa_id : user?.id;
+  const { data: tagihanSaya = [] } = useTagihanList(targetStudentId ? { user_id: targetStudentId } : undefined);
 
   const totalTagihan = tagihanSaya.reduce((a: number, p: any) => a + p.nominal, 0);
   const totalTerkumpul = tagihanSaya.reduce((a: number, p: any) => a + p.terbayar, 0);

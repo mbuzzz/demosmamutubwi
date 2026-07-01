@@ -88,10 +88,20 @@ class PembayaranController extends Controller
     // === Tagihan Siswa ===
     public function getTagihanSiswa(Request $request)
     {
-        $query = TagihanSiswa::with(['siswa', 'jenisPembayaran']);
+        $user = $request->user();
+        $query = TagihanSiswa::with(['siswa', 'jenisPembayaran', 'transaksi']);
 
-        if ($request->has('siswa_id')) {
-            $query->where('siswa_id', $request->siswa_id);
+        if ($user) {
+            if ($user->role === 'siswa') {
+                $query->where('siswa_id', $user->id);
+            } elseif ($user->role === 'orang_tua') {
+                $query->where('siswa_id', $user->siswa_id);
+            } else {
+                $studentId = $request->input('siswa_id') ?: $request->input('user_id');
+                if ($studentId) {
+                    $query->where('siswa_id', $studentId);
+                }
+            }
         }
 
         if ($request->has('status')) {

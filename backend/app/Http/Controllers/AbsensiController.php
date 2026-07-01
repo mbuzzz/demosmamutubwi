@@ -19,10 +19,19 @@ class AbsensiController extends Controller
 
         $query = Absensi::with(['siswa', 'admin'])->where('tanggal', $tanggal);
 
-        if ($kelasId) {
-            $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
-                $q->where('id', $kelasId);
-            });
+        $user = $request->user();
+        if ($user) {
+            if ($user->role === 'siswa') {
+                $query->where('siswa_id', $user->id);
+            } elseif ($user->role === 'orang_tua') {
+                $query->where('siswa_id', $user->siswa_id);
+            } else {
+                if ($kelasId) {
+                    $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
+                        $q->where('id', $kelasId);
+                    });
+                }
+            }
         }
 
         $absensi = $query->get();
@@ -60,8 +69,31 @@ class AbsensiController extends Controller
 
     public function rekapSiswa($id)
     {
-        $absensi = Absensi::where('siswa_id', $id)->orderBy('tanggal', 'desc')->get();
-        return response()->json($absensi);
+        $user = auth()->user();
+        if ($user) {
+            if ($user->role === 'siswa' && $user->id != $id) {
+                abort(403, 'Unauthorized');
+            }
+            if ($user->role === 'orang_tua' && $user->siswa_id != $id) {
+                abort(403, 'Unauthorized');
+            }
+        }
+
+        $absensi = Absensi::where('siswa_id', $id)->get();
+        $totalHadir = $absensi->where('status_masuk', 'hadir')->count();
+        $totalIzin = $absensi->where('status_masuk', 'izin')->count();
+        $totalSakit = $absensi->where('status_masuk', 'sakit')->count();
+        $totalAlpha = $absensi->where('status_masuk', 'alpha')->count();
+        $totalTerlambat = $absensi->where('status_masuk', 'terlambat')->count();
+
+        return response()->json([
+            'siswa_id' => (int)$id,
+            'total_hadir' => $totalHadir,
+            'total_izin' => $totalIzin,
+            'total_sakit' => $totalSakit,
+            'total_alpha' => $totalAlpha,
+            'total_terlambat' => $totalTerlambat,
+        ]);
     }
 
     public function store(Request $request)

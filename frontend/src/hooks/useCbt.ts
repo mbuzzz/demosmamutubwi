@@ -166,7 +166,10 @@ export function useMulaiUjian() {
          ujian_siswa: UjianSiswaSesi;
          soal: SoalItem[];
          durasi_tersisa_menit: number;
-       }>('/cbt/ujian/mulai', data);
+       }>('/cbt/ujian/mulai', {
+         sesi_ujian_id: data.jadwal_ujian_id,
+         token: data.token,
+       });
       return res.data;
     },
     onSuccess: () => {

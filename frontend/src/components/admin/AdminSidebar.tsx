@@ -53,7 +53,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
 
   let navGroups: NavGroup[] = [];
 
-  if (simulatedRole === 'superadmin') {
+  if (simulatedRole === 'superadmin' || simulatedRole === 'admin') {
     navGroups = [
       {
         title: "Menu Utama",
@@ -264,6 +264,31 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Ujian Online (CBT)", path: "/panel/siswa/cbt", icon: FileQuestion },
           { name: "Rapor & Nilai", path: "/panel/siswa/rapor", icon: GraduationCap },
+        ]
+      }
+    ];
+  } else if (simulatedRole === 'orang_tua') {
+    navGroups = [
+      {
+        title: "Menu Orang Tua",
+        items: [
+          { name: "Dashboard Wali", path: "/panel/siswa", icon: LayoutDashboard }
+        ]
+      },
+      {
+        title: "Perkembangan Anak",
+        items: [
+          { name: "Jadwal Pelajaran", path: "/panel/siswa/jadwal", icon: CalendarDays },
+          { name: "Materi Belajar", path: "/panel/siswa/materi", icon: BookOpen },
+          { name: "Tugas & PR", path: "/panel/siswa/tugas", icon: ClipboardList },
+          { name: "Absensi Anak", path: "/panel/siswa/absensi", icon: UserCheck },
+          { name: "Rapor & Nilai Anak", path: "/panel/siswa/rapor", icon: GraduationCap },
+        ]
+      },
+      {
+        title: "Keuangan & Administrasi",
+        items: [
+          { name: "Pembayaran & SPP", path: "/panel/siswa/pembayaran", icon: CreditCard },
         ]
       }
     ];

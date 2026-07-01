@@ -87,8 +87,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/kelas/import/xlsx', [KelasController::class, 'importXlsx']);
         Route::apiResource('kelas', KelasController::class);
 
-        Route::get('/jadwal', [JadwalController::class, 'index']);
         Route::post('/jadwal/bulk', [JadwalController::class, 'storeBulk']);
+    });
+
+    Route::middleware('role:superadmin,admin,kurikulum,guru,siswa,orang_tua')->group(function () {
+        Route::get('/jadwal', [JadwalController::class, 'index']);
     });
 
     // 3. MAPEL MANAGEMENT (Superadmin, Admin, Kurikulum)
@@ -112,10 +115,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // 5. ABSENSI & RFID MANAGEMENT
-    Route::middleware('role:superadmin,admin,guru')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,siswa,orang_tua')->group(function () {
         Route::get('/absensi', [AbsensiController::class, 'index']);
         Route::get('/absensi/rekap', [AbsensiController::class, 'rekap']);
         Route::get('/absensi/siswa/{id}', [AbsensiController::class, 'rekapSiswa']);
+    });
+
+    Route::middleware('role:superadmin,admin,guru')->group(function () {
         Route::post('/absensi', [AbsensiController::class, 'store']);
         Route::put('/absensi/{id}', [AbsensiController::class, 'update']);
     });
@@ -160,22 +166,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/nilai-tp', [NilaiTpController::class, 'store']);
     });
 
-    // 9. NILAI & RAPOR (Superadmin, Admin, Guru, Kurikulum)
-    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
-        Route::get('/nilai/monitoring-uh', [NilaiController::class, 'monitoringUH']);
+    // 9. NILAI & RAPOR (Superadmin, Admin, Guru, Kurikulum, Siswa, Orang Tua)
+    Route::middleware('role:superadmin,admin,guru,kurikulum,siswa,orang_tua')->group(function () {
         Route::get('/nilais', [NilaiController::class, 'index']);
-        Route::post('/nilais', [NilaiController::class, 'store']);
-
         Route::get('/rapors', [RaporController::class, 'index']);
         Route::get('/rapors/{id}', [RaporController::class, 'show']);
-        Route::post('/rapors', [RaporController::class, 'store']);
-        Route::put('/rapors/{id}', [RaporController::class, 'update']);
-        Route::put('/rapors/{id}/publish', [RaporController::class, 'publish']);
         Route::get('/rapors/{id}/pdf', [RaporController::class, 'exportPdf']);
     });
 
-    // 10. SPMB (Superadmin)
-    Route::middleware('role:superadmin')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+        Route::get('/nilai/monitoring-uh', [NilaiController::class, 'monitoringUH']);
+        Route::post('/nilais', [NilaiController::class, 'store']);
+        Route::post('/rapors', [RaporController::class, 'store']);
+        Route::put('/rapors/{id}', [RaporController::class, 'update']);
+        Route::put('/rapors/{id}/publish', [RaporController::class, 'publish']);
+    });
+
+    // 10. SPMB (Superadmin, Admin)
+    Route::middleware('role:superadmin,admin')->group(function () {
         // Gelombang
         Route::get('/spmb/gelombang', [SPMBController::class, 'indexGelombang']);
         Route::post('/spmb/gelombang', [SPMBController::class, 'storeGelombang']);
@@ -196,8 +204,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/spmb/form-fields/{id}', [SPMBController::class, 'destroyFormField']);
     });
 
-    // 11. PEMBAYARAN (Superadmin, Admin)
-    Route::middleware('role:superadmin,admin')->group(function () {
+    // 11. PEMBAYARAN (Superadmin, Admin, Bendahara, Siswa, Orang Tua)
+    Route::middleware('role:superadmin,admin,bendahara,siswa,orang_tua')->group(function () {
+        Route::get('/pembayaran/tagihan', [PembayaranController::class, 'getTagihanSiswa']);
+    });
+
+    Route::middleware('role:superadmin,admin,bendahara')->group(function () {
         // Jenis Pembayaran
         Route::get('/pembayaran/jenis', [PembayaranController::class, 'getJenisPembayaran']);
         Route::post('/pembayaran/jenis', [PembayaranController::class, 'storeJenisPembayaran']);
@@ -205,7 +217,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/pembayaran/jenis/{id}', [PembayaranController::class, 'deleteJenisPembayaran']);
 
         // Tagihan
-        Route::get('/pembayaran/tagihan', [PembayaranController::class, 'getTagihanSiswa']);
         Route::post('/pembayaran/tagihan', [PembayaranController::class, 'createTagihanSiswa']);
 
         // Transaksi & Proses Bayar
@@ -228,7 +239,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // LMS Shared Endpoints
-    Route::middleware('role:superadmin,admin,guru,siswa')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,siswa,orang_tua')->group(function () {
         Route::get('lms/materi', [LmsMateriController::class, 'index']);
         Route::get('lms/materi/{id}', [LmsMateriController::class, 'show']);
         Route::post('lms/materi/{id}/komentar', [LmsMateriController::class, 'addKomentar']);
@@ -236,6 +247,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('lms/tugas', [LmsTugasController::class, 'index']);
         Route::get('lms/tugas/{id}', [LmsTugasController::class, 'show']);
         Route::post('lms/tugas/{id}/komentar', [LmsTugasController::class, 'addKomentar']);
+        Route::get('lms/tugas/{id}/my-submission', [LmsTugasController::class, 'mySubmission']);
     });
     
     // Ujian Execution (Siswa)

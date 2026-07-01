@@ -3,16 +3,17 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { CalendarDays, CheckCircle2, Clock, BarChart3 } from 'lucide-react';
 import { useAbsensiList, useAbsensiRekapSiswa } from '../../../hooks/useAbsensi';
 import { STATUS_ABSENSI_BADGE, type StatusAbsensi } from '../../../types/absensi';
+import { useAuth } from '../../../components/auth/AuthContext';
 
 export default function SiswaAbsensi() {
   const [activeTab, setActiveTab] = useState<'harian' | 'rekap'>('harian');
+  const { user } = useAuth();
 
-  // Hardcode student ID for demo as user context is not provided
-  const studentId = '1'; 
+  const targetStudentId = user?.role === 'orang_tua' ? String(user.siswa_id) : String(user?.id || ''); 
   const today = new Date().toISOString().split('T')[0];
 
-  const { data: absenSaya = [], isLoading: loadingList } = useAbsensiList({ start_date: '2025-01-01', end_date: today, user_id: studentId });
-  const { data: rekapSaya, isLoading: loadingRekap } = useAbsensiRekapSiswa(studentId);
+  const { data: absenSaya = [], isLoading: loadingList } = useAbsensiList({ start_date: '2025-01-01', end_date: today, user_id: targetStudentId });
+  const { data: rekapSaya, isLoading: loadingRekap } = useAbsensiRekapSiswa(targetStudentId);
 
   const totalHari = rekapSaya ? rekapSaya.total_hadir + rekapSaya.total_izin + rekapSaya.total_sakit + rekapSaya.total_alpha + rekapSaya.total_terlambat : 0;
   const persenKehadiran = totalHari > 0 ? Math.round((rekapSaya?.total_hadir || 0) / totalHari * 100) : 0;

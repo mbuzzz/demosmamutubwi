@@ -2,10 +2,10 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { FileText, Search, ArrowLeft, UploadCloud, Download, CheckCircle, MessageSquare, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import DOMPurify from 'dompurify';
-import { useTugasList, useSubmitTugas, useGetSubmissions } from '../../../hooks/useLms';
+import { useTugasList, useSubmitTugas, useMySubmission } from '../../../hooks/useLms';
 import type { Tugas } from '../../../hooks/useLms';
 import { getFileUrl } from '../../../lib/api';
-import { useUsers } from '../../../hooks/useUsers';
+import { useAuth } from '../../../components/auth/AuthContext';
 
 export default function SiswaTugas() {
   const [view, setView] = useState<'list' | 'detail'>('list');
@@ -15,10 +15,9 @@ export default function SiswaTugas() {
 
   const { data: tugases = [], isLoading } = useTugasList();
   const submitTugas = useSubmitTugas();
-  const currentUser = useUsers().data?.find(u => u.id === 'current');
+  const { user } = useAuth();
   
-  const { data: detailSubmissions = [] } = useGetSubmissions(selectedTugas?.id);
-  const mySubmission = detailSubmissions.find(s => s.siswa_id === currentUser?.id);
+  const { data: mySubmission } = useMySubmission(selectedTugas?.id);
 
   const filteredTugases = tugases.filter(t => t.judul.toLowerCase().includes(search.toLowerCase()));
 
@@ -53,8 +52,8 @@ export default function SiswaTugas() {
   if (view === 'detail' && selectedTugas) {
     const status = mySubmission ? mySubmission.status : 'belum';
     const nilai = mySubmission ? mySubmission.nilai : null;
-    const feedback = mySubmission ? mySubmission.komentar_guru : null;
-    const fileJawaban = mySubmission?.file_url ? mySubmission.file_url.split('/').pop() : null;
+    const feedback = mySubmission ? (mySubmission.feedback_guru || mySubmission.komentar_guru) : null;
+    const fileJawaban = (mySubmission?.file_jawaban_url || mySubmission?.file_url) ? (mySubmission.file_jawaban_url || mySubmission.file_url).split('/').pop() : null;
     
     return (
       <AdminLayout title="Detail Penugasan Siswa">
@@ -86,19 +85,25 @@ export default function SiswaTugas() {
               {status === 'belum' ? (
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-4">Pengumpulan Jawaban:</h4>
-                  <div className="space-y-4">
-                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl p-6 text-center transition-colors cursor-pointer group relative">
-                      <UploadCloud className="w-10 h-10 text-slate-400 group-hover:scale-110 transition-transform mx-auto mb-3" />
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">Pilih atau Seret File Jawaban</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Maks. 5MB (PDF atau JPG)</p>
-                      <input type="file" onChange={e => setFileInput(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                      {fileInput && <div className="mt-3 text-xs font-bold text-emerald-600">{fileInput.name}</div>}
+                  {user?.role === 'orang_tua' ? (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500 font-semibold">
+                      Mode Wali Murid: Pengumpulan tugas hanya dapat dilakukan dari akun siswa.
                     </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl p-6 text-center transition-colors cursor-pointer group relative">
+                        <UploadCloud className="w-10 h-10 text-slate-400 group-hover:scale-110 transition-transform mx-auto mb-3" />
+                        <p className="text-sm font-bold text-slate-800 dark:text-white">Pilih atau Seret File Jawaban</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Maks. 5MB (PDF atau JPG)</p>
+                        <input type="file" onChange={e => setFileInput(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                        {fileInput && <div className="mt-3 text-xs font-bold text-emerald-600">{fileInput.name}</div>}
+                      </div>
 
-                    <button onClick={handleUpload} disabled={!fileInput || submitTugas.isPending} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl font-bold text-sm shadow-sm active:scale-95 transition-all">
-                      {submitTugas.isPending ? 'Mengunggah...' : 'Kumpulkan Tugas'}
-                    </button>
-                  </div>
+                      <button onClick={handleUpload} disabled={!fileInput || submitTugas.isPending} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl font-bold text-sm shadow-sm active:scale-95 transition-all">
+                        {submitTugas.isPending ? 'Mengunggah...' : 'Kumpulkan Tugas'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
