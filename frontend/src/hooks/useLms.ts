@@ -65,8 +65,8 @@ export function useMateriList(kelasId?: string) {
   return useQuery({
     queryKey: ['materi', kelasId],
     queryFn: async () => {
-      const res = await api.get<Materi[]>('/lms/materi', { params: { kelas_id: kelasId } });
-      return res.data;
+      const res = await api.get<any>('/lms/materi', { params: { kelas_id: kelasId } });
+      return res.data.data || res.data;
     },
   });
 }
@@ -163,8 +163,8 @@ export function useTugasList(kelasId?: string) {
   return useQuery({
     queryKey: ['tugas', kelasId],
     queryFn: async () => {
-      const res = await api.get<Tugas[]>('/lms/tugas', { params: { kelas_id: kelasId } });
-      return res.data;
+      const res = await api.get<any>('/lms/tugas', { params: { kelas_id: kelasId } });
+      return res.data.data || res.data;
     },
   });
 }

@@ -30,7 +30,7 @@ export default function SiswaTugas() {
   function handleUpload() {
     if (!selectedTugas || !fileInput) return;
     const formData = new FormData();
-    formData.append('file_url', fileInput);
+    formData.append('file_jawaban_url', fileInput);
     
     submitTugas.mutate({ tugasId: selectedTugas.id, data: formData }, {
       onSuccess: () => {
