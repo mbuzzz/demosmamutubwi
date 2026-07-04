@@ -18,8 +18,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Seed Users
+        // Jalankan seeder master user, mapel, kelas, ekskul
         $this->call(UserSeeder::class);
+        $this->call(DemoDataSeeder::class);
 
         // Retrieve seeded users
         $admin = User::where('username', 'admin')->first();

@@ -6,9 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfilSekolah extends Model
 {
-    use \Illuminate\Database\Eloquent\Attributes\Fillable;
-
-    #[Fillable(['sejarah_teks', 'sejarah_foto', 'visi_teks', 'misi_list', 'kepsek_nama', 'kepsek_nip', 'kepsek_foto', 'kepsek_sambutan'])]
+    protected $table = 'profil_sekolahs';
+    protected $guarded = ['id'];
     protected $casts = [
         'misi_list' => 'array',
     ];

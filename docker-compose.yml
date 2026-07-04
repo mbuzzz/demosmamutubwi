@@ -11,6 +11,11 @@ services:
       - "2024:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sit_user -d sit_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -20,7 +25,53 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: sit_backend
+    restart: always
+    ports:
+      - "1999:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_URL: http://localhost:1999
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: sit_db
+      DB_USERNAME: sit_user
+      DB_PASSWORD: sit_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: database
+      FRONTEND_URL: http://localhost:1945
+      SANCTUM_STATEFUL_DOMAINS: localhost:1945
+    volumes:
+      - backend_storage:/var/www/html/storage/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: sit_frontend
+    restart: always
+    ports:
+      - "1945:80"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
   redis_data:
+  backend_storage:

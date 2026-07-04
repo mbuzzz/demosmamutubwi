@@ -307,8 +307,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain shrink-0" />
           {!isCollapsed && (
             <div className="flex flex-col whitespace-nowrap animate-in fade-in duration-300">
-              <span className="font-extrabold text-slate-800 dark:text-slate-100 text-sm tracking-tight leading-tight">SIT ADMIN</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">SMAM1 BANYUWANGI</span>
+              <span className="font-extrabold text-slate-800 dark:text-slate-100 text-sm tracking-tight leading-tight">SIT SMAM1 BWI</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">SMAS MUH 1 BANYUWANGI</span>
             </div>
           )}
         </Link>

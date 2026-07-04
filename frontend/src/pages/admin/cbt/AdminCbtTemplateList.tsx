@@ -362,7 +362,7 @@ export default function AdminCbtTemplateList() {
 
                 {/* Footer Preview */}
                 <div className="p-2.5 text-center text-[9px] border-t" style={{ borderColor: primaryColor + '10', color: textColor + '80' }}>
-                  {footerText || 'SMAM1 BANYUWANGI • CBT'}
+                  {footerText || 'SMAS MUH 1 BANYUWANGI • CBT'}
                 </div>
               </div>
             </div>

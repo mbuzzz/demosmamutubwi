@@ -2,15 +2,12 @@ import { Link } from 'react-router-dom';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { FileText, Users, ArrowRight, Award } from 'lucide-react';
 import { useDashboardStats } from '../../../../hooks/useDashboard';
-import { MOCK_REKAP_ABSENSI } from '../../../../types/absensi';
 
 export default function KepsekDashboard() {
   const { stats, loading } = useDashboardStats();
 
-  const totalSiswa = stats?.total_siswa || MOCK_REKAP_ABSENSI.length;
-  // Use mock for attendance percent if backend doesn't provide it yet, 
-  // or calculate from stats.kehadiran_hari_ini
-  let rataKehadiran = Math.round(MOCK_REKAP_ABSENSI.reduce((a, r) => a + r.hadir, 0) / (MOCK_REKAP_ABSENSI.reduce((a, r) => a + r.hadir + r.alpha + r.terlambat, 0) || 1) * 100);
+  const totalSiswa = stats?.total_siswa || 0;
+  let rataKehadiran = 0;
   
   if (stats?.kehadiran_hari_ini) {
     const { hadir, alpha, terlambat } = stats.kehadiran_hari_ini;

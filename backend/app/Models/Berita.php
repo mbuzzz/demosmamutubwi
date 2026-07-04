@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Berita extends Model
 {
-    use \Illuminate\Database\Eloquent\Attributes\Fillable;
+    
 
     #[Fillable(['judul', 'slug', 'kategori_id', 'konten', 'cover_image', 'status', 'penulis_id', 'published_at'])]
     

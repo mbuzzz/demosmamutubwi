@@ -1,32 +1,17 @@
 
 import { Link, useNavigate } from 'react-router-dom';
 import { Award, BookOpen, GraduationCap, ArrowRight, Quote } from 'lucide-react';
+import { usePublicBeritaList, usePublicProfil } from '../hooks/useCms';
+import DOMPurify from 'dompurify';
+import { getFileUrl } from '../lib/api';
 
 export default function Home() {
   const navigate = useNavigate();
-  const latestNews = [
-    {
-      id: 1,
-      title: 'SMAS Muhammadiyah 1 Banyuwangi Raih Juara 1 Lomba Karya Tulis Ilmiah Nasional',
-      excerpt: 'Siswa SMAS Muhammadiyah 1 Banyuwangi berhasil menorehkan prestasi gemilang dengan meraih juara pertama...',
-      date: '20 Juni 2026',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=60'
-    },
-    {
-      id: 2,
-      title: 'Pelaksanaan Ujian Akhir Semester Menggunakan Sistem CBT Anti-Cheat Baru',
-      excerpt: 'Sekolah meluncurkan platform Computer Based Test (CBT) terintegrasi yang dilengkapi dengan fitur pengawasan anti-tab-switching...',
-      date: '15 Juni 2026',
-      image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60'
-    },
-    {
-      id: 3,
-      title: 'Kunjungan Studi Banding dari Dinas Pendidikan Provinsi Jawa Timur',
-      excerpt: 'Dinas Pendidikan Jawa Timur melakukan kunjungan kerja dalam rangka meninjau pemanfaatan digitalisasi tata kelola sekolah...',
-      date: '10 Juni 2026',
-      image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=60'
-    }
-  ];
+  
+  const { data: beritaList = [] } = usePublicBeritaList();
+  const { data: profil } = usePublicProfil();
+
+  const latestNews = beritaList.slice(0, 3);
 
   return (
     <div className="space-y-0">
@@ -120,12 +105,12 @@ export default function Home() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-brand-blueDark to-brand-teal rounded-[15px] blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
                 <div className="relative bg-white dark:bg-slate-900 p-2 rounded-[15px] border shadow-card dark:shadow-none hover:shadow-card dark:shadow-none-hover transition-shadow">
                   <img 
-                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80" 
-                    alt="Kepala Sekolah Drs. H. Suwito, M.Pd." 
+                    src={profil?.kepsek_foto ? getFileUrl(profil.kepsek_foto) : "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80"} 
+                    alt={`Kepala Sekolah ${profil?.kepsek_nama || 'Drs. H. Suwito, M.Pd.'}`} 
                     className="w-72 h-80 object-cover rounded-[15px]"
                   />
                   <div className="mt-4 text-center pb-2">
-                    <h4 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">Drs. H. Suwito, M.Pd.</h4>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">{profil?.kepsek_nama || 'Drs. H. Suwito, M.Pd.'}</h4>
                     <p className="text-brand-teal dark:text-emerald-400 text-sm font-semibold mt-1">Kepala Sekolah</p>
                   </div>
                 </div>
@@ -137,15 +122,14 @@ export default function Home() {
                 <Quote className="h-6 w-6" />
               </div>
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white leading-tight">
-                Sambutan Kepala SMAS Muhammadiyah 1 Banyuwangi
+                Sambutan Kepala {profil?.nama_sekolah || 'SMAS Muhammadiyah 1 Banyuwangi'}
               </h2>
-              <div className="space-y-4 text-slate-600 dark:text-slate-400 leading-relaxed text-lg">
-                <p className="font-medium text-slate-800 dark:text-slate-200">Assalamu’alaikum Warahmatullahi Wabarakatuh,</p>
+              <div className="space-y-4 text-slate-600 dark:text-slate-400 leading-relaxed text-lg" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(profil?.kepsek_sambutan || `
+                <p class="font-medium text-slate-800 dark:text-slate-200">Assalamu’alaikum Warahmatullahi Wabarakatuh,</p>
                 <p>
                   Selamat datang di portal resmi SMAS Muhammadiyah 1 Banyuwangi. Kami terus berkomitmen memberikan layanan pendidikan unggulan dengan mengintegrasikan sistem akademik modern (SIT). Melalui platform digital ini, kami berharap dapat mewujudkan transparansi dan kemudahan tata kelola sekolah bagi pendidik, siswa, dan wali murid demi membentuk generasi yang cerdas dan berakhlak mulia.
                 </p>
-                <p className="font-semibold text-slate-900 dark:text-white">Wassalamu’alaikum Warahmatullahi Wabarakatuh.</p>
-              </div>
+                <p class="font-semibold text-slate-900 dark:text-white">Wassalamu’alaikum Warahmatullahi Wabarakatuh.</p>`)}} />
             </div>
           </div>
         </div>
@@ -270,16 +254,16 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {latestNews.map((news) => (
-              <div key={news.id} className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-card dark:shadow-none hover:shadow-card dark:shadow-none-hover transition-all duration-300 border flex flex-col justify-between cursor-pointer" onClick={() => navigate(`/berita/${news.id}`)}>
+              <div key={news.id} className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-card dark:shadow-none hover:shadow-card dark:shadow-none-hover transition-all duration-300 border flex flex-col justify-between cursor-pointer" onClick={() => navigate(`/berita/${news.slug}`)}>
                 <div className="h-48 overflow-hidden bg-slate-200 dark:bg-slate-700">
-                  <img src={news.image} alt={news.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={news.cover_image ? getFileUrl(news.cover_image) : "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=60"} alt={news.judul} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                  <span className="text-xs text-brand-blueSlate dark:text-brand-yellow font-medium block mb-3">{news.date}</span>
+                  <span className="text-xs text-brand-blueSlate dark:text-brand-yellow font-medium block mb-3">{new Date(news.published_at).toLocaleDateString('id-ID')}</span>
                   <h3 className="font-bold text-slate-900 dark:text-white leading-tight text-lg mb-3 line-clamp-2 group-hover:text-brand-teal dark:text-emerald-400 transition-colors">
-                    {news.title}
+                    {news.judul}
                   </h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3 leading-relaxed flex-1">{news.excerpt}</p>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3 leading-relaxed flex-1">{news.ringkasan}</p>
                   <div className="text-brand-teal dark:text-emerald-400 font-semibold text-sm inline-flex items-center gap-1 mt-auto">
                     Baca Selengkapnya <ArrowRight className="h-4 w-4" />
                   </div>

@@ -6,7 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Faq extends Model
 {
-    use \Illuminate\Database\Eloquent\Attributes\Fillable;
-
-    #[Fillable(['pertanyaan', 'jawaban', 'urutan'])]
+    protected $guarded = ['id'];
 }
