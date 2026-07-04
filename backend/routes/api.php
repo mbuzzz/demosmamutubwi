@@ -183,6 +183,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/rapors', [RaporController::class, 'store']);
         Route::put('/rapors/{id}', [RaporController::class, 'update']);
         Route::put('/rapors/{id}/publish', [RaporController::class, 'publish']);
+        Route::post('/rapors/ekskul', [RaporController::class, 'storeEkskulNilai']);
+        Route::delete('/rapors/ekskul/{id}', [RaporController::class, 'deleteEkskulNilai']);
     });
 
     // 10. SPMB (Superadmin, Admin)

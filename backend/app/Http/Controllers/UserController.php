@@ -27,6 +27,10 @@ class UserController extends Controller
             }
         }
 
+        if ($request->has('kelas') && $request->kelas) {
+            $query->where('kelas', $request->kelas);
+        }
+
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {

@@ -91,3 +91,37 @@ export function usePublishRapor() {
     },
   });
 }
+
+export function useSaveNilaiEkskul() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { siswa_id: string | number; ekskul_id: string | number; nilai: string; keterangan?: string }) => {
+      const res = await api.post('/rapors/ekskul', data);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Nilai ekskul berhasil disimpan');
+      queryClient.invalidateQueries({ queryKey: ['rapors'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menyimpan nilai ekskul');
+    },
+  });
+}
+
+export function useDeleteNilaiEkskul() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string | number) => {
+      const res = await api.delete(`/rapors/ekskul/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Nilai ekskul berhasil dihapus');
+      queryClient.invalidateQueries({ queryKey: ['rapors'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Gagal menghapus nilai ekskul');
+    },
+  });
+}

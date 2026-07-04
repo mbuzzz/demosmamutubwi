@@ -17,7 +17,7 @@ class RaporController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Rapor::with('siswa');
+        $query = Rapor::with(['siswa', 'nilaiEkskuls.ekskul']);
 
         if ($user) {
             if ($user->role === 'siswa') {
@@ -231,5 +231,57 @@ class RaporController extends Controller
         ));
 
         return $pdf->download("rapor_{$siswa->name}_{$rapor->semester}.pdf");
+    }
+
+    public function storeEkskulNilai(Request $request)
+    {
+        $request->validate([
+            'siswa_id' => 'required|exists:users,id',
+            'ekskul_id' => 'required|exists:ekskuls,id',
+            'nilai' => 'required|string|size:1',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $config = SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+        $semester = $config ? $config->semester_aktif : 'ganjil';
+
+        // Find or create draft Rapor for the student
+        $rapor = Rapor::firstOrCreate([
+            'siswa_id' => $request->siswa_id,
+            'tahun_ajaran' => $tahunAjaran,
+            'semester' => $semester,
+        ], [
+            'status' => 'draft',
+            'sakit' => 0,
+            'izin' => 0,
+            'alpha' => 0,
+            'terlambat' => 0,
+        ]);
+
+        $nilaiEkskul = \App\Models\NilaiEkskul::updateOrCreate([
+            'rapor_id' => $rapor->id,
+            'ekskul_id' => $request->ekskul_id,
+        ], [
+            'nilai' => $request->nilai,
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Nilai ekskul berhasil disimpan',
+            'data' => $nilaiEkskul->load('ekskul')
+        ]);
+    }
+
+    public function deleteEkskulNilai($id)
+    {
+        $nilaiEkskul = \App\Models\NilaiEkskul::findOrFail($id);
+        $nilaiEkskul->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Nilai ekskul berhasil dihapus'
+        ]);
     }
 }

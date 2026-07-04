@@ -16,13 +16,13 @@ export interface UserRecord {
   is_active?: boolean;
 }
 
-export function useUsers(role?: string, search?: string) {
+export function useUsers(role?: string, search?: string, kelas?: string) {
   return useQuery({
-    queryKey: ['users', role, search],
+    queryKey: ['users', role, search, kelas],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const res = await api.get<UserRecord[]>('/users', {
-        params: { role, search },
+        params: { role, search, kelas },
       });
       return res.data;
     },

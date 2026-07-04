@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { Plus, Search, Pencil, Trash2, Globe } from 'lucide-react';
 import { rupiah, type JenisPembayaran, type JenisPembayaranTipe } from '../../../types/pembayaran';
-import { MOCK_SISWA } from '../../../types/absensi';
-import { useJenisPembayaranList, useCreateJenisPembayaran, useUpdateJenisPembayaran, useDeleteJenisPembayaran } from '../../../hooks/usePembayaran';
+import { useJenisPembayaranList, useCreateJenisPembayaran, useUpdateJenisPembayaran, useDeleteJenisPembayaran, useCreateTagihan } from '../../../hooks/usePembayaran';
+import { useUsers } from '../../../hooks/useUsers';
 import { toast } from 'sonner';
 
 const PERIODE_BERULANG = ['Bulanan', 'Mingguan', 'Tahunan'];
@@ -17,6 +17,8 @@ export default function AdminJenisPembayaran() {
   const createMutation = useCreateJenisPembayaran();
   const updateMutation = useUpdateJenisPembayaran();
   const deleteMutation = useDeleteJenisPembayaran();
+  const createTagihanMutation = useCreateTagihan();
+  const { data: studentUsers = [] } = useUsers('siswa');
 
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | number | null>(null);
@@ -29,7 +31,7 @@ export default function AdminJenisPembayaran() {
   const [search, setSearch] = useState('');
 
   const filtered = list.filter((j: JenisPembayaran) => !search || j.nama.toLowerCase().includes(search.toLowerCase()));
-  const kelasList = [...new Set(MOCK_SISWA.map(s => s.kelas))];
+  const kelasList = [...new Set(studentUsers.map((s: any) => s.kelas).filter(Boolean))];
   const totalWajib = list.filter((j: JenisPembayaran) => j.tipe === 'wajib').reduce((a: number, j: JenisPembayaran) => a + j.nominal, 0);
   const totalSukarela = list.filter((j: JenisPembayaran) => j.tipe === 'sukarela').reduce((a: number, j: JenisPembayaran) => a + j.nominal, 0);
 
@@ -70,10 +72,27 @@ export default function AdminJenisPembayaran() {
     }
 
     createMutation.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (newJenis: any) => {
         setShowForm(false);
-        // Note: Assigning to students should ideally be handled by the backend during creation
-        // or through a separate API call. Mock logic removed for real API.
+        
+        if (assignMode === 'semua' && studentUsers.length > 0) {
+          createTagihanMutation.mutate({
+            jenis_pembayaran_id: newJenis.id,
+            siswa_ids: studentUsers.map((s: any) => s.id),
+            nama_tagihan: newJenis.nama,
+            nominal_tagihan: newJenis.nominal,
+          });
+        } else if (assignMode === 'kelas' && assignKelas && studentUsers.length > 0) {
+          const classStudents = studentUsers.filter((s: any) => s.kelas === assignKelas);
+          if (classStudents.length > 0) {
+            createTagihanMutation.mutate({
+              jenis_pembayaran_id: newJenis.id,
+              siswa_ids: classStudents.map((s: any) => s.id),
+              nama_tagihan: newJenis.nama,
+              nominal_tagihan: newJenis.nominal,
+            });
+          }
+        }
       }
     });
   };
@@ -173,7 +192,7 @@ export default function AdminJenisPembayaran() {
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${assignMode === 'semua' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'}`}>
                         {assignMode === 'semua' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                       </div>
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Semua ({MOCK_SISWA.length})</span>
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Semua ({studentUsers.length})</span>
                     </label>
                     <label onClick={() => setAssignMode('kelas')} className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${assignMode === 'kelas' ? 'border-indigo-500 bg-white dark:bg-slate-900' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-200'}`}>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${assignMode === 'kelas' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'}`}>
@@ -185,7 +204,7 @@ export default function AdminJenisPembayaran() {
                   {assignMode === 'kelas' && (
                     <select value={assignKelas} onChange={e => setAssignKelas(e.target.value)} className="w-full mt-2 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-600 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
                       <option value="">Pilih kelas...</option>
-                      {kelasList.map(k => <option key={k} value={k}>{k} ({MOCK_SISWA.filter(s => s.kelas === k).length} siswa)</option>)}
+                      {kelasList.map((k: any) => <option key={k} value={k}>{k} ({studentUsers.filter((s: any) => s.kelas === k).length} siswa)</option>)}
                     </select>
                   )}
                 </div>

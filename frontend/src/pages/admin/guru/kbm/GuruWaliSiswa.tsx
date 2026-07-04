@@ -1,26 +1,38 @@
 import { useState } from 'react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Search, GraduationCap, UserCheck, X, AlertCircle } from 'lucide-react';
-import { MOCK_SISWA } from '../../../../types/absensi';
-import { useAbsensiData, validatePermit } from '../../../../stores/absensiStore';
-import { useEkskulList, useNilaiEkskul, saveNilaiEkskul, deleteNilaiEkskul } from '../../../../stores/ekskulStore';
 import { STATUS_ABSENSI_BADGE } from '../../../../types/absensi';
+import { useAuth } from '../../../../components/auth/AuthContext';
+import { useUsers } from '../../../../hooks/useUsers';
+import { useAbsensiList, useManualAbsensi } from '../../../../hooks/useAbsensi';
+import { useEkskulList } from '../../../../hooks/useEkskul';
+import { useRaporList, useSaveNilaiEkskul, useDeleteNilaiEkskul } from '../../../../hooks/useRapor';
 import { toast } from 'sonner';
 
 const MOCK_WALI_KELAS = {
   kelas: 'Kelas X-1',
   waliKelas: 'Ahmad Fauzi, S.Pd',
-  periode: '2024/2025',
+  periode: '2025/2026',
 };
 
 export default function GuruWaliSiswa() {
+  const { user } = useAuth();
+  const kelasBinaan = user?.kelas || 'X-1';
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const [activeTab, setActiveTab] = useState<'siswa' | 'perizinan' | 'ekskul'>('siswa');
   const [search, setSearch] = useState('');
   
-  // Stores
-  const absensiList = useAbsensiData();
-  const ekskulList = useEkskulList();
-  const nilaiEkskulList = useNilaiEkskul();
+  // Real Queries & Mutations
+  const { data: students = [] } = useUsers('siswa', search, kelasBinaan);
+  const { data: todayAbsensi = [] } = useAbsensiList({ start_date: todayStr, end_date: todayStr });
+  const { data: ekskulList = [] } = useEkskulList();
+  const { data: raporResponse } = useRaporList();
+  const rapors = Array.isArray(raporResponse) ? raporResponse : (raporResponse as any)?.data || [];
+
+  const manualAbsensiMutation = useManualAbsensi();
+  const saveEkskulMutation = useSaveNilaiEkskul();
+  const deleteEkskulMutation = useDeleteNilaiEkskul();
 
   // Inline forms states
   const [inlinePermitSiswaId, setInlinePermitSiswaId] = useState<string | null>(null);
@@ -32,36 +44,47 @@ export default function GuruWaliSiswa() {
   const [ekskulNilai, setEkskulNilai] = useState<'A' | 'B' | 'C' | 'D'>('B');
   const [ekskulKeterangan, setEkskulKeterangan] = useState('');
 
-  // Class filtering (wali kelas binaan handles X-1 class)
-  const classStudents = MOCK_SISWA.filter(s => s.kelas === 'X-1');
-
-  const filteredStudents = classStudents.filter(s =>
-    s.nama.toLowerCase().includes(search.toLowerCase()) ||
-    s.id.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredStudents = students;
 
   const handleSavePermit = (siswaId: string) => {
     if (!permitReason) {
       toast.error('Keterangan izin/sakit wajib diisi');
       return;
     }
-    // Set for today's date in mock
-    validatePermit(siswaId, '2026-06-24', permitStatus, permitReason);
-    setInlinePermitSiswaId(null);
-    setPermitReason('');
-    toast.success('Izin/Dispensasi berhasil diajukan');
+    
+    manualAbsensiMutation.mutate({
+      user_id: Number(siswaId),
+      tipe: permitStatus,
+      tanggal: todayStr,
+      keterangan: permitReason,
+      waktu_masuk: '07:00:00',
+    }, {
+      onSuccess: () => {
+        setInlinePermitSiswaId(null);
+        setPermitReason('');
+        toast.success('Dispensasi berhasil diajukan');
+      }
+    });
   };
 
-  const handleSaveEkskul = (siswaId: string, namaSiswa: string) => {
+  const handleSaveEkskul = (siswaId: string, _namaSiswa: string) => {
     if (!selectedEkskulId) {
       toast.error('Pilih ekstrakurikuler terlebih dahulu');
       return;
     }
-    saveNilaiEkskul(siswaId, namaSiswa, selectedEkskulId, ekskulNilai, ekskulKeterangan);
-    setInlineEkskulSiswaId(null);
-    setSelectedEkskulId('');
-    setEkskulKeterangan('');
-    toast.success('Nilai Ekstrakurikuler berhasil disimpan');
+    
+    saveEkskulMutation.mutate({
+      siswa_id: siswaId,
+      ekskul_id: selectedEkskulId,
+      nilai: ekskulNilai,
+      keterangan: ekskulKeterangan,
+    }, {
+      onSuccess: () => {
+        setInlineEkskulSiswaId(null);
+        setSelectedEkskulId('');
+        setEkskulKeterangan('');
+      }
+    });
   };
 
   return (
@@ -127,9 +150,9 @@ export default function GuruWaliSiswa() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                 {filteredStudents.map((s) => (
                   <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono font-bold text-slate-800 dark:text-white">{s.id.toUpperCase()}</td>
-                    <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.nama}</td>
-                    <td className="px-6 py-4 font-mono text-xs">{s.rfidCard || 'Belum Registrasi'}</td>
+                    <td className="px-6 py-4 font-mono font-bold text-slate-800 dark:text-white">SISWA-{s.id}</td>
+                    <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
+                    <td className="px-6 py-4 font-mono text-xs">{s.uid_rfid || 'Belum Registrasi'}</td>
                     <td className="px-6 py-4">
                       <span className="text-[10px] font-bold px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full">
                         Aktif
@@ -148,7 +171,7 @@ export default function GuruWaliSiswa() {
             <div className="bg-amber-50 dark:bg-amber-500/5 p-4 border-b border-amber-100 dark:border-amber-500/10 text-xs text-amber-800 dark:text-amber-300 flex gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-amber-500" />
               <div>
-                Menampilkan log tap RFID gerbang utama hari ini (<strong>2026-06-24</strong>). Anda dapat memberikan dispensasi (Izin/Sakit) untuk siswa yang statusnya Alpha atau Terlambat.
+                Menampilkan log tap RFID gerbang utama hari ini (<strong>{todayStr}</strong>). Anda dapat memberikan dispensasi (Izin/Sakit) untuk siswa yang statusnya Alpha atau Terlambat.
               </div>
             </div>
 
@@ -165,20 +188,21 @@ export default function GuruWaliSiswa() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                   {filteredStudents.map((s) => {
-                    const absensi = absensiList.find(a => a.siswaId === s.id && a.tanggal === '2026-06-24');
-                    const status = absensi ? absensi.statusMasuk : 'alpha';
-                    const jam = absensi?.jamMasuk || '—';
+                    const absensi = todayAbsensi.find((a: any) => String(a.siswa_id || a.user_id) === String(s.id)) as any;
+                    const status = absensi ? (absensi.status_masuk || absensi.tipe) : 'alpha';
+                    const jam = absensi?.jam_masuk || absensi?.waktu_masuk || '—';
+                    const catatan = absensi?.catatan || absensi?.keterangan || '—';
                     
                     return (
                       <tr key={s.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${inlinePermitSiswaId === s.id ? 'bg-indigo-50/20 dark:bg-indigo-500/5' : ''}`}>
-                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.nama}</td>
+                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
                         <td className="px-6 py-4 text-center font-mono font-medium text-slate-600 dark:text-slate-300">{jam}</td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${STATUS_ABSENSI_BADGE[status].color}`}>
-                            {STATUS_ABSENSI_BADGE[status].label}
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${STATUS_ABSENSI_BADGE[status as any]?.color || 'bg-slate-100'}`}>
+                            {STATUS_ABSENSI_BADGE[status as any]?.label || status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400">{absensi?.catatan || '—'}</td>
+                        <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400">{catatan}</td>
                         <td className="px-6 py-4 text-right">
                           {status !== 'hadir' ? (
                             <button 
@@ -207,7 +231,7 @@ export default function GuruWaliSiswa() {
                 <div className="max-w-md space-y-4">
                   <div className="flex justify-between items-center">
                     <h4 className="font-bold text-slate-800 dark:text-white text-sm">
-                      Form Dispensasi Kehadiran: <span className="text-indigo-600">{classStudents.find(s => s.id === inlinePermitSiswaId)?.nama}</span>
+                      Form Dispensasi Kehadiran: <span className="text-indigo-600">{filteredStudents.find(s => s.id === inlinePermitSiswaId)?.name}</span>
                     </h4>
                     <button onClick={() => setInlinePermitSiswaId(null)} className="text-slate-400"><X className="w-4 h-4" /></button>
                   </div>
@@ -269,21 +293,26 @@ export default function GuruWaliSiswa() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                   {filteredStudents.map((s) => {
-                    const nilaiEkskul = nilaiEkskulList.filter(n => n.siswaId === s.id);
+                    const studentRapor = rapors.find((r: any) => String(r.siswa_id) === String(s.id));
+                    const nilaiEkskul = (studentRapor?.nilai_ekskuls || []).map((ne: any) => ({
+                      id: ne.id,
+                      ekskulNama: ne.ekskul?.nama || 'Ekskul',
+                      nilai: ne.nilai,
+                      keterangan: ne.keterangan,
+                    }));
                     
                     return (
                       <tr key={s.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${inlineEkskulSiswaId === s.id ? 'bg-indigo-50/20 dark:bg-indigo-500/5' : ''}`}>
-                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.nama}</td>
+                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
                         <td className="px-6 py-4">
                           {nilaiEkskul.length > 0 ? (
                             <div className="flex flex-wrap gap-1.5">
-                              {nilaiEkskul.map(ne => (
+                              {nilaiEkskul.map((ne: any) => (
                                 <span key={ne.id} className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-bold border border-indigo-200 dark:border-indigo-500/20">
                                   {ne.ekskulNama} ({ne.nilai})
                                   <button onClick={() => {
-                                    if (window.confirm(`Hapus keikutsertaan ekskul ${ne.ekskulNama} siswa ${s.nama}?`)) {
-                                      deleteNilaiEkskul(ne.id);
-                                      toast.success('Keikutsertaan ekskul dihapus');
+                                    if (window.confirm(`Hapus keikutsertaan ekskul ${ne.ekskulNama} siswa ${s.name}?`)) {
+                                      deleteEkskulMutation.mutate(ne.id);
                                     }
                                   }} className="text-red-500 hover:text-red-700 font-bold ml-1">×</button>
                                 </span>
@@ -318,7 +347,7 @@ export default function GuruWaliSiswa() {
                 <div className="max-w-md space-y-4">
                   <div className="flex justify-between items-center">
                     <h4 className="font-bold text-slate-800 dark:text-white text-sm">
-                      Input Nilai Ekstrakurikuler: <span className="text-indigo-600">{classStudents.find(s => s.id === inlineEkskulSiswaId)?.nama}</span>
+                      Input Nilai Ekstrakurikuler: <span className="text-indigo-600">{filteredStudents.find(s => s.id === inlineEkskulSiswaId)?.name}</span>
                     </h4>
                     <button onClick={() => setInlineEkskulSiswaId(null)} className="text-slate-400"><X className="w-4 h-4" /></button>
                   </div>
@@ -364,7 +393,7 @@ export default function GuruWaliSiswa() {
 
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => handleSaveEkskul(inlineEkskulSiswaId, classStudents.find(s => s.id === inlineEkskulSiswaId)?.nama || '')} 
+                      onClick={() => handleSaveEkskul(inlineEkskulSiswaId, filteredStudents.find(s => s.id === inlineEkskulSiswaId)?.name || '')} 
                       className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition-all active:scale-95 shadow-md shadow-indigo-600/10"
                     >
                       Simpan Nilai Ekskul
