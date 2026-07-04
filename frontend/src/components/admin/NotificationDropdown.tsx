@@ -1,29 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, CheckCheck, Info, AlertCircle, CheckCircle, CalendarDays, FileQuestion } from 'lucide-react';
+import { Bell, CheckCheck, Info, AlertCircle, CheckCircle, CalendarDays } from 'lucide-react';
+import { useNotifications, useMarkAllRead } from '../../hooks/useNotifications';
 
-interface NotificationItem {
-  id: number;
-  icon: typeof Info;
-  iconColor: string;
-  iconBg: string;
-  title: string;
-  description: string;
-  time: string;
-  read: boolean;
-}
-
-const mockNotifications: NotificationItem[] = [
-  { id: 1, icon: CalendarDays, iconColor: 'text-indigo-600', iconBg: 'bg-indigo-100 dark:bg-indigo-500/20', title: 'Jadwal Baru', description: 'Jadwal pelajaran Kelas X-1 telah diperbarui.', time: '10 menit lalu', read: false },
-  { id: 2, icon: FileQuestion, iconColor: 'text-amber-600', iconBg: 'bg-amber-100 dark:bg-amber-500/20', title: 'UH Matematika', description: 'Ulangan Harian Matematika Wajib akan dimulai dalam 30 menit.', time: '25 menit lalu', read: false },
-  { id: 3, icon: CheckCircle, iconColor: 'text-emerald-600', iconBg: 'bg-emerald-100 dark:bg-emerald-500/20', title: 'Tugas Dinilai', description: 'Tugas PR LKS Hal 24-25 telah dinilai oleh Bu Siti.', time: '2 jam lalu', read: false },
-  { id: 4, icon: AlertCircle, iconColor: 'text-red-600', iconBg: 'bg-red-100 dark:bg-red-500/20', title: 'Pengumuman', description: 'Libur tanggal merah 17 Agustus 2024.', time: '1 hari lalu', read: true },
-  { id: 5, icon: Info, iconColor: 'text-sky-600', iconBg: 'bg-sky-100 dark:bg-sky-500/20', title: 'Info Rapor', description: 'Rapor semester ganjil dapat diunduh mulai 20 Desember.', time: '3 hari lalu', read: true },
-];
+const typeMap = {
+  info: { icon: Info, iconColor: 'text-indigo-600', iconBg: 'bg-indigo-100 dark:bg-indigo-500/20' },
+  success: { icon: CheckCircle, iconColor: 'text-emerald-600', iconBg: 'bg-emerald-100 dark:bg-emerald-500/20' },
+  warning: { icon: CalendarDays, iconColor: 'text-amber-600', iconBg: 'bg-amber-100 dark:bg-amber-500/20' },
+  danger: { icon: AlertCircle, iconColor: 'text-red-600', iconBg: 'bg-red-100 dark:bg-red-500/20' },
+};
 
 export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
   const ref = useRef<HTMLDivElement>(null);
+
+  const { data: notifications = [] } = useNotifications();
+  const markAllReadMutation = useMarkAllRead();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -36,8 +27,27 @@ export default function NotificationDropdown() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    markAllReadMutation.mutate();
   };
+
+  function getNotificationMeta(type: string) {
+    return typeMap[type as keyof typeof typeMap] || typeMap.info;
+  }
+
+  function formatTime(createdAtStr: string) {
+    try {
+      const date = new Date(createdAtStr);
+      const diffMs = Date.now() - date.getTime();
+      const diffMins = Math.floor(diffMs / (60 * 1000));
+      if (diffMins < 1) return 'Baru saja';
+      if (diffMins < 60) return `${diffMins} menit lalu`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours} jam lalu`;
+      return date.toLocaleDateString('id-ID');
+    } catch (e) {
+      return '—';
+    }
+  }
 
   return (
     <div className="relative" ref={ref}>
@@ -71,21 +81,24 @@ export default function NotificationDropdown() {
                 <p className="text-xs font-bold text-slate-400">Tidak ada notifikasi</p>
               </div>
             ) : (
-              notifications.map(n => (
-                <div key={n.id} className={`flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${!n.read ? 'bg-indigo-50/30 dark:bg-indigo-500/5' : ''}`}>
-                  <div className={`w-8 h-8 rounded-full ${n.iconBg} flex items-center justify-center shrink-0 mt-0.5`}>
-                    <n.icon className={`w-4 h-4 ${n.iconColor}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-extrabold text-slate-800 dark:text-white truncate">{n.title}</span>
-                      {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>}
+              notifications.map(n => {
+                const meta = getNotificationMeta(n.type);
+                return (
+                  <div key={n.id} className={`flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${!n.read ? 'bg-indigo-50/30 dark:bg-indigo-500/5' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full ${meta.iconBg} flex items-center justify-center shrink-0 mt-0.5`}>
+                      <meta.icon className={`w-4 h-4 ${meta.iconColor}`} />
                     </div>
-                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.description}</p>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-1 block">{n.time}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-extrabold text-slate-800 dark:text-white truncate">{n.title}</span>
+                        {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>}
+                      </div>
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.description}</p>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-1 block">{formatTime(n.created_at)}</span>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

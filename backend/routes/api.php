@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\LmsMateriController;
 use App\Http\Controllers\Api\LmsTugasController;
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 
 // CMS Controllers
 use App\Http\Controllers\ProfilSekolahController;
@@ -62,6 +63,8 @@ Route::put('/user/password', [AuthController::class, 'updatePassword'])->middlew
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
     // 1. USER MANAGEMENT (Only Superadmin & Admin)
     Route::middleware('role:superadmin,admin')->group(function () {
@@ -207,6 +210,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // 11. PEMBAYARAN (Superadmin, Admin, Bendahara, Siswa, Orang Tua)
     Route::middleware('role:superadmin,admin,bendahara,siswa,orang_tua')->group(function () {
         Route::get('/pembayaran/tagihan', [PembayaranController::class, 'getTagihanSiswa']);
+        Route::get('/pembayaran/rfid/{uid}', [PembayaranController::class, 'getStudentByRfid']);
     });
 
     Route::middleware('role:superadmin,admin,bendahara')->group(function () {
@@ -218,10 +222,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Tagihan
         Route::post('/pembayaran/tagihan', [PembayaranController::class, 'createTagihanSiswa']);
+        Route::put('/pembayaran/tagihan/{id}/beasiswa', [PembayaranController::class, 'updateBeasiswa']);
 
         // Transaksi & Proses Bayar
         Route::post('/pembayaran/proses', [PembayaranController::class, 'prosesPembayaran']);
         Route::get('/pembayaran/transaksi', [PembayaranController::class, 'getTransaksi']);
+        Route::put('/pembayaran/transaksi/{id}', [PembayaranController::class, 'updateTransaksi']);
+        Route::delete('/pembayaran/transaksi/{id}', [PembayaranController::class, 'deleteTransaksi']);
         Route::get('/pembayaran/statistik', [PembayaranController::class, 'getStatistik']);
     });
 

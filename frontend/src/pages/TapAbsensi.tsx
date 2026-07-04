@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, SmartphoneNfc, CheckCircle2, XCircle, Lock, Clock } from 'lucide-react';
 import { STATUS_ABSENSI_BADGE } from '../types/absensi';
-import { useVerifyRfidPin } from '../hooks/useRfid';
+import { useVerifyGatekeeperPin } from '../hooks/useRfid';
 import { useTapAbsensi } from '../hooks/useAbsensi';
 import { toast } from 'sonner';
 
@@ -21,7 +21,7 @@ export default function TapAbsensi() {
   const rfidTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoBackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const verifyPin = useVerifyRfidPin();
+  const verifyGatekeeper = useVerifyGatekeeperPin();
   const tapAbsensi = useTapAbsensi();
 
   const processRfidScan = useCallback((uid: string) => {
@@ -74,25 +74,17 @@ export default function TapAbsensi() {
     e.preventDefault();
     if (!pin) return;
     
-    // In actual implementation, you might want a generic way to verify a global PIN.
-    // For now, if the PIN is specific to a user, it needs their UID. 
-    // Assuming there's a master PIN or we use a specific API for global PIN validation.
-    // Since `useVerifyRfidPin` requires `uid_rfid`, we'll assume a bypass for admin or use a fixed admin PIN.
-    // For this prototype, we'll allow a hardcoded '123456' as master PIN if the backend isn't ready for global pin
-    
-    // Check pin to satisfy linter usage error
-    if (verifyPin) {
-      console.log("Verify pin functionality exists for future implementation.");
-    }
-    
-    if (pin === '123456') { // Placeholder for master PIN until API supports global PIN check
-       setStep('scan');
-       setPinError(false);
-       setTimeout(() => rfidInputRef.current?.focus(), 300);
-    } else {
-       setPinError(true);
-       toast.error('PIN salah');
-    }
+    verifyGatekeeper.mutate(pin, {
+      onSuccess: () => {
+        setStep('scan');
+        setPinError(false);
+        setTimeout(() => rfidInputRef.current?.focus(), 300);
+      },
+      onError: () => {
+        setPinError(true);
+        toast.error('PIN salah');
+      }
+    });
   };
 
   const handleRfidScan = (e: React.FormEvent) => {

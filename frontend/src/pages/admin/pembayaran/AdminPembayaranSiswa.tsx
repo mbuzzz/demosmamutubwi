@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { Search, Banknote, Award, History, Plus, Pencil, Trash2, X, Filter, Printer, CheckCircle2 } from 'lucide-react';
-import { MOCK_SISWA } from '../../../types/absensi';
 import {
   STATUS_PEMBAYARAN_BADGE,
   rupiah,
@@ -15,13 +14,23 @@ import {
   useTagihanList,
   useJenisPembayaranList,
   useProsesPembayaran,
+  useCreateTagihan,
+  useUpdateBeasiswa,
+  useUpdateTransaksi,
+  useDeleteTransaksi,
 } from '../../../hooks/usePembayaran';
+import { useUsers } from '../../../hooks/useUsers';
 import { toast } from 'sonner';
 
 export default function AdminPembayaranSiswa() {
   const { data: list = [] } = useTagihanList();
   const { data: jenisList = [] } = useJenisPembayaranList();
+  const { data: studentUsers = [] } = useUsers('siswa');
   const bayarMutation = useProsesPembayaran();
+  const createTagihanMutation = useCreateTagihan();
+  const updateBeasiswaMutation = useUpdateBeasiswa();
+  const updateTrxMutation = useUpdateTransaksi();
+  const deleteTrxMutation = useDeleteTransaksi();
 
   const receiptRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
@@ -85,22 +94,71 @@ export default function AdminPembayaranSiswa() {
   };
 
   const handleBeasiswa = () => {
-    toast.info('Fitur beasiswa perlu disesuaikan dengan API backend');
-    setShowBeasiswa(false);
+    if (!selectedSiswa) return;
+    updateBeasiswaMutation.mutate({
+      id: selectedSiswa.id,
+      tipe: beasiswaTipe,
+      nilai: Number(beasiswaNilai),
+      keterangan: beasiswaKeterangan,
+    }, {
+      onSuccess: () => {
+        setShowBeasiswa(false);
+        setBeasiswaNilai('');
+        setBeasiswaKeterangan('');
+        setSelectedSiswa(null);
+      }
+    });
   };
 
   const handleTambahTagihan = () => {
-    toast.info('Fitur tambah tagihan manual perlu disesuaikan dengan API backend');
-    setShowTambah(false);
+    if (!tambahSiswaId || !tambahJenisId) {
+      toast.error('Siswa dan jenis pembayaran harus dipilih');
+      return;
+    }
+    createTagihanMutation.mutate({
+      jenis_pembayaran_id: tambahJenisId,
+      siswa_ids: [tambahSiswaId],
+      nama_tagihan: jenisList.find((j: any) => String(j.id) === tambahJenisId)?.nama || 'Tagihan',
+      nominal_tagihan: tambahNominal ? Number(tambahNominal) : undefined,
+      tenggat_waktu: tambahJatuhTempo || undefined,
+    }, {
+      onSuccess: () => {
+        setShowTambah(false);
+        setTambahSiswaId('');
+        setTambahJenisId('');
+        setTambahNominal('');
+        setTambahJatuhTempo('');
+      }
+    });
   };
 
   const handleEditTrx = () => {
-    toast.info('Fitur edit transaksi perlu disesuaikan dengan API backend');
-    setEditTrx(null);
+    if (!editTrx) return;
+    const nominal = Number(editTrxNominal);
+    if (!nominal || nominal <= 0) {
+      toast.error('Nominal tidak valid');
+      return;
+    }
+    updateTrxMutation.mutate({
+      id: editTrx.trx.id,
+      jumlah_bayar: nominal,
+    }, {
+      onSuccess: () => {
+        setEditTrx(null);
+        setEditTrxNominal('');
+        setSelectedSiswa(null);
+      }
+    });
   };
 
-  const handleDeleteTrx = (_recordId: string | number, _trxId: string | number) => {
-    toast.info('Fitur hapus transaksi perlu disesuaikan dengan API backend');
+  const handleDeleteTrx = (_recordId: string | number, trxId: string | number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+      deleteTrxMutation.mutate(trxId, {
+        onSuccess: () => {
+          setSelectedSiswa(null);
+        }
+      });
+    }
   };
 
   const openBayar = (p: Tagihan) => {
@@ -168,7 +226,7 @@ export default function AdminPembayaranSiswa() {
           </div>
           <select value={filterKelas} onChange={e => setFilterKelas(e.target.value)} className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">Semua Kelas</option>
-            {kelasList.map(k => <option key={k} value={k}>{k}</option>)}
+            {kelasList.map((k: any) => <option key={k} value={k}>{k}</option>)}
           </select>
               <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)} className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Semua Jenis</option>
@@ -349,7 +407,7 @@ export default function AdminPembayaranSiswa() {
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Siswa</label>
                 <select value={tambahSiswaId} onChange={e => setTambahSiswaId(e.target.value)} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option value="">Pilih siswa...</option>
-                  {MOCK_SISWA.map(s => <option key={s.id} value={s.id}>{s.nama} — {s.kelas}</option>)}
+                  {studentUsers.map((s: any) => <option key={s.id} value={s.id}>{s.name} — {s.kelas || '—'}</option>)}
                 </select>
               </div>
               <div>

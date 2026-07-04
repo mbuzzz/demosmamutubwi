@@ -267,16 +267,176 @@ class PembayaranController extends Controller
         $totalTerkumpul = TagihanSiswa::sum('nominal_terbayar');
         $totalBelumDibayar = $totalTagihan - $totalTerkumpul;
 
-        $persentaseTerkumpul = $totalTagihan > 0 ? ($totalTerkumpul / $totalTagihan) * 100 : 0;
+        $penerimaanHariIni = TransaksiPembayaran::whereDate('tanggal_bayar', \Carbon\Carbon::today())->sum('jumlah_bayar');
+
+        $siswaLunas = TagihanSiswa::where('status', 'lunas')->count();
+        $siswaNunggak = TagihanSiswa::whereIn('status', ['belum', 'sebagian'])->count();
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'total_tagihan' => $totalTagihan,
-                'total_terkumpul' => $totalTerkumpul,
-                'total_belum_dibayar' => $totalBelumDibayar,
-                'persentase_terkumpul' => round($persentaseTerkumpul, 2)
+                'total_penerimaan' => (float)$totalTerkumpul,
+                'penerimaan_hari_ini' => (float)$penerimaanHariIni,
+                'total_tunggakan' => (float)$totalBelumDibayar,
+                'siswa_lunas' => $siswaLunas,
+                'siswa_nunggak' => $siswaNunggak,
             ]
+        ]);
+    }
+
+    public function updateBeasiswa(Request $request, $id)
+    {
+        $request->validate([
+            'tipe' => 'required|in:persentase,nominal,bebas',
+            'nilai' => 'nullable|numeric|min:0',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $tagihan = TagihanSiswa::findOrFail($id);
+        $tagihan->update([
+            'beasiswa' => [
+                'tipe' => $request->tipe,
+                'nilai' => (float)($request->nilai ?? 0),
+                'keterangan' => $request->keterangan,
+            ]
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Beasiswa berhasil diupdate',
+            'data' => $tagihan
+        ]);
+    }
+
+    public function updateTransaksi(Request $request, $id)
+    {
+        $request->validate([
+            'jumlah_bayar' => 'required|numeric|min:1'
+        ]);
+
+        $transaksi = TransaksiPembayaran::findOrFail($id);
+        $tagihan = TagihanSiswa::findOrFail($transaksi->tagihan_id);
+
+        $diff = $request->jumlah_bayar - $transaksi->jumlah_bayar;
+        $newTerbayar = $tagihan->nominal_terbayar + $diff;
+
+        if ($newTerbayar > $tagihan->nominal_tagihan) {
+            return response()->json(['status' => 'error', 'message' => 'Melebihi total nominal tagihan.'], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $transaksi->update([
+                'jumlah_bayar' => $request->jumlah_bayar
+            ]);
+
+            $status = 'sebagian';
+            if ($newTerbayar <= 0) {
+                $status = 'belum';
+            } elseif ($newTerbayar >= $tagihan->nominal_tagihan) {
+                $status = 'lunas';
+            }
+
+            $tagihan->update([
+                'nominal_terbayar' => $newTerbayar,
+                'status' => $status
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaksi berhasil diupdate',
+                'data' => $transaksi
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteTransaksi($id)
+    {
+        $transaksi = TransaksiPembayaran::findOrFail($id);
+        $tagihan = TagihanSiswa::findOrFail($transaksi->tagihan_id);
+
+        $newTerbayar = $tagihan->nominal_terbayar - $transaksi->jumlah_bayar;
+
+        DB::beginTransaction();
+        try {
+            $transaksi->delete();
+
+            $status = 'sebagian';
+            if ($newTerbayar <= 0) {
+                $status = 'belum';
+            } elseif ($newTerbayar >= $tagihan->nominal_tagihan) {
+                $status = 'lunas';
+            }
+
+            $tagihan->update([
+                'nominal_terbayar' => $newTerbayar,
+                'status' => $status
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaksi berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getStudentByRfid($uid)
+    {
+        $user = User::where('uid_rfid', $uid)->where('role', 'siswa')->first();
+        
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Kartu RFID tidak terdaftar atau tidak aktif sebagai siswa.'
+            ], 404);
+        }
+
+        $tagihans = TagihanSiswa::where('siswa_id', $user->id)
+            ->where('status', '!=', 'lunas')
+            ->get();
+            
+        $mappedTagihans = $tagihans->map(function ($t) use ($user) {
+            return [
+                'id' => $t->id,
+                'siswa_id' => $t->siswa_id,
+                'siswa' => [
+                    'id' => $user->id,
+                    'nama' => $user->name,
+                    'kelas' => $user->kelas,
+                ],
+                'jenis_pembayaran_id' => $t->jenis_pembayaran_id,
+                'jenis_pembayaran' => [
+                    'id' => $t->jenisPembayaran->id,
+                    'nama' => $t->jenisPembayaran->nama,
+                    'nominal' => (float)$t->jenisPembayaran->nominal_default,
+                    'tipe' => $t->jenisPembayaran->tipe_siklus === 'sekali' ? 'sukarela' : 'wajib',
+                ],
+                'nominal' => (float)$t->nominal_tagihan,
+                'terbayar' => (float)$t->nominal_terbayar,
+                'sisa' => (float)($t->nominal_tagihan - $t->nominal_terbayar),
+                'status' => $t->status === 'sebagian' ? 'cicil' : $t->status,
+                'jatuh_tempo' => $t->tenggat_waktu,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'siswa' => [
+                'id' => $user->id,
+                'nama' => $user->name,
+                'kelas' => $user->kelas,
+            ],
+            'tagihan' => $mappedTagihans
         ]);
     }
 }

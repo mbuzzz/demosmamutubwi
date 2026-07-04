@@ -124,3 +124,12 @@ export function useVerifyRfidPin() {
     },
   });
 }
+
+export function useVerifyGatekeeperPin() {
+  return useMutation({
+    mutationFn: async (pin: string) => {
+      const res = await api.post('/absensi/verify-pin', { pin });
+      return res.data;
+    },
+  });
+}

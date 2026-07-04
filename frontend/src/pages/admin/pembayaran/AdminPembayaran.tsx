@@ -144,7 +144,7 @@ export default function AdminPembayaran() {
           
           <select value={filterKelas} onChange={e => setFilterKelas(e.target.value)} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600 dark:text-slate-300">
             <option value="">Semua Kelas</option>
-            {kelasList.map(k => <option key={k} value={k}>{k}</option>)}
+            {kelasList.map((k: any) => <option key={k} value={k}>{k}</option>)}
           </select>
 
           <button 

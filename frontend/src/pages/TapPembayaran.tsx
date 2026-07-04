@@ -1,22 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, SmartphoneNfc, CreditCard, CheckCircle2, XCircle, Clock, Receipt, Banknote } from 'lucide-react';
-import { KONFIGURASI_RFID_DEFAULT, MOCK_KARTU_RFID, waktuSekarang, type KonfigurasiRfid } from '../types/rfid';
+import { waktuSekarang } from '../types/rfid';
 import { STATUS_PEMBAYARAN_BADGE, rupiah, hitungBeasiswa, type Tagihan, type TransaksiPembayaran } from '../types/pembayaran';
-import { useTagihanList, useProsesPembayaran } from '../hooks/usePembayaran';
+import { useProsesPembayaran } from '../hooks/usePembayaran';
+import { useVerifyGatekeeperPin } from '../hooks/useRfid';
+import { api } from '../lib/api';
 import { toast } from 'sonner';
 
 type Step = 'pin' | 'scan' | 'student' | 'confirm' | 'done' | 'error';
 
 export default function TapPembayaran() {
-  const { data: list = [] } = useTagihanList();
   const bayarMutation = useProsesPembayaran();
+  const verifyGatekeeper = useVerifyGatekeeperPin();
 
   const [step, setStep] = useState<Step>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [config] = useState<KonfigurasiRfid>(KONFIGURASI_RFID_DEFAULT);
-  const [kartuTerdaftar, setKartuTerdaftar] = useState<typeof MOCK_KARTU_RFID[0] | null>(null);
+  const [kartuTerdaftar, setKartuTerdaftar] = useState<any>(null);
   const [tagihan, setTagihan] = useState<Tagihan[]>([]);
   const [selectedTagihan, setSelectedTagihan] = useState<string | null>(null);
   const [nominalBayar, setNominalBayar] = useState('');
@@ -28,30 +29,43 @@ export default function TapPembayaran() {
   const rfidTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoBackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const processRfidScan = useCallback((uid: string) => {
+  const processRfidScan = useCallback(async (uid: string) => {
     if (!uid || uid.length < 4) return;
     const normalized = uid.toUpperCase().trim();
 
-    const kartu = MOCK_KARTU_RFID.find(k => k.uid === normalized && k.status === 'aktif');
-    if (!kartu) {
-      const msg = 'Kartu RFID tidak terdaftar atau tidak aktif';
+    try {
+      const res = await api.get<any>(`/pembayaran/rfid/${normalized}`);
+      const data = res.data;
+      if (data.status === 'success') {
+        const studentInfo = data.siswa;
+        const tagihanSiswa = data.tagihan;
+        
+        setKartuTerdaftar({
+          id: studentInfo.id,
+          uid: normalized,
+          siswaId: String(studentInfo.id),
+          nama: studentInfo.name,
+          kelas: studentInfo.kelas,
+          status: 'aktif',
+        });
+        setTagihan(tagihanSiswa);
+
+        if (tagihanSiswa.length === 0) {
+          toast.info(`${studentInfo.name} — semua tagihan sudah lunas`);
+        }
+        setStep('student');
+      } else {
+        throw new Error(data.message || 'Kartu tidak valid');
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Kartu RFID tidak terdaftar atau tidak aktif';
       setScanError(msg);
       setStep('error');
       if (autoBackRef.current) clearTimeout(autoBackRef.current);
       autoBackRef.current = setTimeout(() => { setStep('scan'); setScanError(''); }, 2500);
       toast.error(msg);
-      return;
     }
-
-    const tagihanSiswa = list.filter((p: Tagihan) => String(p.siswa_id) === kartu.siswaId && p.status !== 'lunas' && p.status !== 'bebas');
-    setKartuTerdaftar(kartu);
-    setTagihan(tagihanSiswa);
-
-    if (tagihanSiswa.length === 0) {
-      toast.info(`${kartu.nama} — semua tagihan sudah lunas`);
-    }
-    setStep('student');
-  }, [list]);
+  }, []);
 
   useEffect(() => {
     if (rfidValue.length < 2) return;
@@ -72,14 +86,19 @@ export default function TapPembayaran() {
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === config.pin) {
-      setStep('scan');
-      setPinError(false);
-      setTimeout(() => rfidInputRef.current?.focus(), 300);
-    } else {
-      setPinError(true);
-      toast.error('PIN salah');
-    }
+    if (!pin) return;
+
+    verifyGatekeeper.mutate(pin, {
+      onSuccess: () => {
+        setStep('scan');
+        setPinError(false);
+        setTimeout(() => rfidInputRef.current?.focus(), 300);
+      },
+      onError: () => {
+        setPinError(true);
+        toast.error('PIN salah');
+      }
+    });
   };
 
   const handleRfidScan = (e: React.FormEvent) => {

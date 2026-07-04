@@ -263,5 +263,30 @@ class DatabaseSeeder extends Seeder
                 'status' => 'published',
             ]);
         }
+
+        // 11. Seed Notifications for Agus Setiawan
+        if ($agus) {
+            \App\Models\Notification::create([
+                'user_id' => $agus->id,
+                'type' => 'info',
+                'title' => 'Jadwal Baru',
+                'description' => 'Jadwal pelajaran Kelas X-1 telah diperbarui.',
+                'read' => false,
+            ]);
+            \App\Models\Notification::create([
+                'user_id' => $agus->id,
+                'type' => 'warning',
+                'title' => 'UH Matematika',
+                'description' => 'Ulangan Harian Matematika Wajib akan dimulai dalam 30 menit.',
+                'read' => false,
+            ]);
+            \App\Models\Notification::create([
+                'user_id' => $agus->id,
+                'type' => 'success',
+                'title' => 'Tugas Dinilai',
+                'description' => 'Tugas PR LKS Hal 24-25 telah dinilai oleh Bu Siti.',
+                'read' => false,
+            ]);
+        }
     }
 }
