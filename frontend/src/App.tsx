@@ -36,6 +36,7 @@ import AdminSPMBList from './pages/admin/spmb/AdminSPMBList';
 import AdminGelombangList from './pages/admin/spmb/AdminGelombangList';
 import AdminFormBuilder from './pages/admin/spmb/AdminFormBuilder';
 import AdminDownloadsList from './pages/admin/downloads/AdminDownloadsList';
+import AdminSearch from './pages/admin/Search';
 import AdminUserList from './pages/admin/akademik/AdminUserList';
 import AdminUserForm from './pages/admin/akademik/AdminUserForm';
 import AdminPenugasanList from './pages/admin/akademik/AdminPenugasanList';
@@ -137,6 +138,7 @@ export default function App() {
 
         {/* ========== SUPERADMIN / ADMIN ========== */}
         <Route path="/panel" element={<ProtectedRoute requiredRole="superadmin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/panel/search" element={<ProtectedRoute requiredRole="superadmin"><AdminSearch /></ProtectedRoute>} />
         <Route path="/panel/beranda" element={<ProtectedRoute requiredRole="superadmin"><AdminBeranda /></ProtectedRoute>} />
         <Route path="/panel/profil-sekolah" element={<ProtectedRoute requiredRole="superadmin"><AdminProfilSekolah /></ProtectedRoute>} />
         <Route path="/panel/faq-testimoni" element={<ProtectedRoute requiredRole="superadmin"><AdminFaqTestimoni /></ProtectedRoute>} />

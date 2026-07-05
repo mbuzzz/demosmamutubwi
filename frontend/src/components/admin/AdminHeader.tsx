@@ -24,6 +24,7 @@ export default function AdminHeader({
   title?: string
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchVal, setSearchVal] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -67,14 +68,24 @@ export default function AdminHeader({
         
         {/* Desktop Search */}
         {!isMobile && (
-          <div className="relative group hidden lg:block">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchVal.trim()) {
+                navigate(`/panel/search?q=${encodeURIComponent(searchVal.trim())}`);
+              }
+            }}
+            className="relative group hidden lg:block"
+          >
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-500 transition-colors" />
             <input 
               type="text" 
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
               placeholder="Cari siswa, kelas, berita..." 
               className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800/50 border border-transparent dark:border-slate-700 rounded-full text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-200 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/20 transition-all w-64 placeholder:font-normal dark:text-white"
             />
-          </div>
+          </form>
         )}
       </div>
 
