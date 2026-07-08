@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
-import type { PaketSoal, SoalItem, SesiUjian, UjianSiswaSesi, UjianJawabanSiswa } from '../types/cbt';
+import type { PaketSoal, SoalItem, SesiUjian } from '../types/cbt';
 
 // --- Guru & Admin Hooks ---
 
@@ -163,15 +163,18 @@ export function useMulaiUjian() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { jadwal_ujian_id: number; token: string }) => {
-      const res = await api.post<{
-         ujian_siswa: UjianSiswaSesi;
-         soal: SoalItem[];
-         durasi_tersisa_menit: number;
-       }>('/cbt/ujian/mulai', {
+      const res = await api.post<any>('/cbt/ujian/mulai', {
          sesi_ujian_id: data.jadwal_ujian_id,
          token: data.token,
        });
-      return res.data;
+      // Map backend response keys to frontend expected properties
+      return {
+        ujian_siswa: {
+          id: res.data.hasil_ujian_id,
+        },
+        soal: res.data.soals || [],
+        durasi_tersisa_menit: res.data.durasi_menit || 0,
+      };
     },
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['ujian-aktif'] });
@@ -182,9 +185,9 @@ export function useMulaiUjian() {
 // 3. Save Answer (Auto-save)
 export function useSimpanJawaban() {
   return useMutation({
-    mutationFn: async (data: { ujian_siswa_id: number; soal_id: number; jawaban: string; ragu_ragu: boolean }) => {
-      const res = await api.post<{ data: UjianJawabanSiswa }>('/cbt/ujian/simpan-jawaban', data);
-      return res.data.data;
+    mutationFn: async (data: { hasil_ujian_id: number; soal_id: number; opsi_jawaban_id?: number | null; jawaban_essay?: string | null }) => {
+      const res = await api.post<any>('/cbt/ujian/simpan-jawaban', data);
+      return res.data;
     },
   });
 }
