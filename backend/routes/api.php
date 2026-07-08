@@ -60,6 +60,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 Route::match(['PUT', 'POST'], '/user/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 Route::put('/user/password', [AuthController::class, 'updatePassword'])->middleware('auth:sanctum');
+Route::get('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
@@ -136,7 +137,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/konfigurasi-absensi', [KonfigurasiAbsensiController::class, 'update']);
 
         // Sistem Konfigurasi (Academic Settings)
-        Route::get('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'show']);
         Route::put('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'update']);
         Route::get('/sistem-konfigurasi/options', [SistemKonfigurasiController::class, 'getAvailableOptions']);
         

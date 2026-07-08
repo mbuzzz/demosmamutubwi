@@ -1,0 +1,144 @@
+version: "2"
+type: backend
+tech_stack:
+  - language: PHP
+  - framework: Laravel 11
+  - database: PostgreSQL
+  - other: Redis, Nginx, Docker
+routes:
+  - path: /api/login
+    file: app/Http/Controllers/AuthController.php
+    auth_required: false
+    description: Authenticate user session
+  - path: /api/user
+    file: app/Http/Controllers/AuthController.php
+    auth_required: true
+    description: Fetch authenticated user profile
+  - path: /api/logout
+    file: app/Http/Controllers/AuthController.php
+    auth_required: true
+    description: Terminate user session
+  - path: /api/absensi/tap
+    file: app/Http/Controllers/AbsensiController.php
+    auth_required: false
+    description: Record RFID card tap attendance
+  - path: /api/pembayaran/tagihan
+    file: app/Http/Controllers/PembayaranController.php
+    auth_required: true
+    description: Fetch or create student fee bills
+  - path: /api/pembayaran/proses
+    file: app/Http/Controllers/PembayaranController.php
+    auth_required: true
+    description: Process school fee payments
+  - path: /api/lms/tugas/{id}/submit
+    file: app/Http/Controllers/Api/LmsTugasController.php
+    auth_required: true
+    description: Submit student homework answers
+  - path: /api/lms/tugas/{id}/grade/{siswa_id}
+    file: app/Http/Controllers/Api/LmsTugasController.php
+    auth_required: true
+    description: Grade student homework submission
+  - path: /api/cbt/ujian/mulai
+    file: app/Http/Controllers/Api/CbtUjianController.php
+    auth_required: true
+    description: Start a CBT exam session
+  - path: /api/cbt/ujian/simpan-jawaban
+    file: app/Http/Controllers/Api/CbtUjianController.php
+    auth_required: true
+    description: Save student answer to a CBT question
+  - path: /api/cbt/ujian/selesai
+    file: app/Http/Controllers/Api/CbtUjianController.php
+    auth_required: true
+    description: Complete a CBT exam session
+  - path: /api/users
+    file: app/Http/Controllers/UserController.php
+    auth_required: true
+    description: Manage master users (CRUD)
+features:
+  - name: User Authentication
+    description: Handle login, session lifecycle, and profile management
+    files:
+      - app/Http/Controllers/AuthController.php
+      - app/Http/Middleware/CheckRole.php
+    entry_route: /api/login
+    user_interactions:
+      - Submit username and password
+      - Receive session cookie
+    api_calls:
+      - method: POST
+        endpoint: /api/login
+      - method: GET
+        endpoint: /api/user
+      - method: POST
+        endpoint: /api/logout
+    auth_required: false
+  - name: User Management CRUD
+    description: Add, update, and delete users from the admin panel
+    files:
+      - app/Http/Controllers/UserController.php
+    entry_route: /api/users
+    user_interactions:
+      - Fill user fields
+      - Click Save
+    api_calls:
+      - method: POST
+        endpoint: /api/users
+    auth_required: true
+  - name: RFID Attendance Logging
+    description: Log student attendance via RFID cards
+    files:
+      - app/Http/Controllers/AbsensiController.php
+    entry_route: /api/absensi/tap
+    user_interactions:
+      - Scan RFID card at terminal
+      - View check-in/check-out response
+    api_calls:
+      - method: POST
+        endpoint: /api/absensi/tap
+    auth_required: false
+  - name: School Fees SPP Payment
+    description: Process SPP payments manually or via RFID terminal
+    files:
+      - app/Http/Controllers/PembayaranController.php
+    entry_route: /api/pembayaran/proses
+    user_interactions:
+      - Select pending invoices
+      - Click pay
+    api_calls:
+      - method: GET
+        endpoint: /api/pembayaran/tagihan
+      - method: POST
+        endpoint: /api/pembayaran/proses
+    auth_required: true
+  - name: LMS Assignments
+    description: Submit homework and grade student responses
+    files:
+      - app/Http/Controllers/Api/LmsTugasController.php
+    entry_route: /api/lms/tugas/{id}/submit
+    user_interactions:
+      - Upload homework PDF
+      - Set grading marks
+    api_calls:
+      - method: POST
+        endpoint: /api/lms/tugas/{id}/submit
+      - method: POST
+        endpoint: /api/lms/tugas/{id}/grade/{siswa_id}
+    auth_required: true
+  - name: CBT Exam Engine
+    description: Conduct online examinations with anti-cheat controls
+    files:
+      - app/Http/Controllers/Api/CbtUjianController.php
+    entry_route: /api/cbt/ujian/mulai
+    user_interactions:
+      - Start test session
+      - Click options to save answers
+      - Complete test
+    api_calls:
+      - method: POST
+        endpoint: /api/cbt/ujian/mulai
+      - method: POST
+        endpoint: /api/cbt/ujian/simpan-jawaban
+      - method: POST
+        endpoint: /api/cbt/ujian/selesai
+    auth_required: true
+known_limitations: []

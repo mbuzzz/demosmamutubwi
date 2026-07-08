@@ -3,12 +3,15 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown, Users, Download, Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useAuth } from './auth/AuthContext';
+import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
+import { getFileUrl } from '../lib/api';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const { data: config } = useSistemKonfigurasi();
 
   // Menutup dropdown saat klik di luar area
   useEffect(() => {
@@ -40,7 +43,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="Logo SMAS Muh 1" className="h-10 w-10 object-contain drop-shadow-sm" />
+            <img src={config?.logo_sekolah ? getFileUrl(config.logo_sekolah) : "/logo.png"} alt="Logo SMAS Muh 1" className="h-10 w-10 object-contain drop-shadow-sm" />
             <div>
               <span className="font-bold text-base sm:text-lg block leading-none">SMAS MUHAMMADIYAH 1</span>
               <span className="text-[10px] text-slate-300 block mt-0.5 tracking-widest uppercase">Banyuwangi</span>

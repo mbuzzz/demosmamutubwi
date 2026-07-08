@@ -80,7 +80,8 @@ class DemoDataSeeder extends Seeder
                 'kelas_id' => $kelasX1->id,
                 'mapel_id' => $mapelMtk->id,
                 'judul' => 'Logaritma Dasar dan Sifat-sifatnya',
-                'deskripsi' => '<p>Pelajari materi di bawah ini sebelum mengerjakan tugas.</p>',
+                'tipe_file' => 'teks',
+                'konten' => '<p>Pelajari materi di bawah ini sebelum mengerjakan tugas.</p>',
             ]);
 
             $tugas = Tugas::create([
@@ -88,7 +89,7 @@ class DemoDataSeeder extends Seeder
                 'kelas_id' => $kelasX1->id,
                 'mapel_id' => $mapelMtk->id,
                 'judul' => 'Latihan Soal Logaritma',
-                'deskripsi' => '<p>Kerjakan LKS Halaman 45 bagian essay.</p>',
+                'instruksi' => '<p>Kerjakan LKS Halaman 45 bagian essay.</p>',
                 'tenggat_waktu' => now()->addDays(3),
             ]);
 
@@ -111,18 +112,17 @@ class DemoDataSeeder extends Seeder
             $bankSoal = BankSoal::create([
                 'guru_id' => $guruMtk->id,
                 'mapel_id' => $mapelMtk->id,
-                'kode_paket' => 'MTK-LOG-01',
-                'nama_paket' => 'Ulangan Harian Logaritma',
-                'tingkat' => '10',
+                'tingkat' => 10,
+                'judul' => 'Ulangan Harian Logaritma',
                 'tipe' => 'ujian',
                 'deskripsi' => 'Evaluasi kompetensi dasar logaritma'
             ]);
 
             $soal = Soal::create([
                 'bank_soal_id' => $bankSoal->id,
-                'tipe_soal' => 'pg',
+                'jenis' => 'pg',
                 'pertanyaan' => '<p>Berapakah nilai dari 2 log 8?</p>',
-                'skor_default' => 100
+                'bobot_nilai' => 10
             ]);
 
             OpsiJawaban::create(['soal_id' => $soal->id, 'teks_opsi' => '2', 'is_benar' => false]);
@@ -137,7 +137,7 @@ class DemoDataSeeder extends Seeder
                     'nama_sesi' => 'UH Logaritma X-1',
                     'waktu_mulai' => now()->subHour(),
                     'waktu_selesai' => now()->addDays(2),
-                    'durasi' => 90,
+                    'durasi_menit' => 90,
                     'token' => 'LOG123',
                     'is_aktif' => true,
                 ]);

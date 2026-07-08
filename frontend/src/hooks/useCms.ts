@@ -53,8 +53,9 @@ export function usePublicBeritaList() {
     queryKey: ['public-berita'],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const res = await api.get<{ data: PublicBerita[] }>('/public/berita');
-      return res.data.data;
+      const res = await api.get<PublicBerita[]>('/public/berita');
+      // Some endpoints return data directly, some wrap in { data: ... }
+      return Array.isArray(res.data) ? res.data : (res.data as any).data || [];
     },
   });
 }

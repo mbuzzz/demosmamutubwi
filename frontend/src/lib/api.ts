@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get API base URL and configure for development mode
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const baseURL = import.meta.env.VITE_API_URL || '/api';
 // Use the base URL for files as well, assuming it's the domain + /uploads
 // We strip /api to get the root domain where uploads are hosted
 const API_ROOT = baseURL.replace('/api', '');

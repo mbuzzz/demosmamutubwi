@@ -19,12 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register global middleware
         $middleware->append(\App\Http\Middleware\SanitizeInputs::class);
 
-        // Exclude XSRF-TOKEN from encryption so Axios can read it for CSRF
-        $middleware->encryptCookies(except: ['XSRF-TOKEN']);
-
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);
+
+        // Laravel Sanctum XSRF token should be encrypted so that ValidateCsrfToken can decrypt it.
+        // Axios automatically reads the encrypted value and sends it back, which Laravel decrypts.
+        $middleware->encryptCookies(except: []);
 
         // Add session support to API routes (needed for Sanctum SPA login)
         $middleware->api(prepend: [

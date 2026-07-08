@@ -121,23 +121,41 @@ class PenugasanController extends Controller
 
     public function guruClasses(Request $request)
     {
-        $guruId = $request->user()->id; // Or you could pass it as a parameter, but assuming auth
+        $guruId = $request->user()->id;
 
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        $classes = Penugasan::with(['kelas', 'mapel'])
+        // Get all penugasans for this teacher in this school year
+        $penugasans = Penugasan::with(['kelas', 'mapel'])
             ->where('guru_id', $guruId)
             ->where('tahun_ajaran', $tahunAjaran)
-            ->get()
-            ->groupBy(function ($item) {
-                return $item->kelas_id . '-' . $item->mapel_id;
-            })
-            ->map(function ($group) {
-                return $group->first(); // Since it's grouped by both, there should only be one unique combination
-            })
-            ->values();
+            ->get();
 
-        return response()->json($classes);
+        // Group by class
+        $classesGrouped = $penugasans->groupBy('kelas_id');
+
+        $result = [];
+        foreach ($classesGrouped as $kelasId => $group) {
+            $first = $group->first();
+            if (!$first || !$first->kelas) {
+                continue;
+            }
+
+            // Get unique mapels for this class taught by this teacher
+            $mapels = $group->map(function ($item) {
+                return $item->mapel;
+            })->filter()->unique('id')->values()->toArray();
+
+            $result[] = [
+                'id' => (string) $kelasId,
+                'nama' => $first->kelas->nama,
+                'tingkat' => $first->kelas->tingkat,
+                'jurusan' => $first->kelas->jurusan,
+                'mapels' => $mapels,
+            ];
+        }
+
+        return response()->json($result);
     }
 }

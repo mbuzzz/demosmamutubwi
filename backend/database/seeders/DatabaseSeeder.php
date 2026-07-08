@@ -18,9 +18,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Jalankan seeder master user, mapel, kelas, ekskul
+        // Jalankan seeder master user
         $this->call(UserSeeder::class);
-        $this->call(DemoDataSeeder::class);
 
         // Retrieve seeded users
         $admin = User::where('username', 'admin')->first();
@@ -289,5 +288,8 @@ class DatabaseSeeder extends Seeder
                 'read' => false,
             ]);
         }
+
+        // Run Demo Data Seeder at the end
+        $this->call(DemoDataSeeder::class);
     }
 }

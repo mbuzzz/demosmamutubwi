@@ -29,6 +29,8 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { useRoleSimulator } from '../simulator/RoleContext';
+import { useSistemKonfigurasi } from '../../hooks/useSistemKonfigurasi';
+import { getFileUrl } from '../../lib/api';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -50,6 +52,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
   const location = useLocation();
   const currentPath = location.pathname;
   const { simulatedRole } = useRoleSimulator();
+  const { data: config } = useSistemKonfigurasi();
 
   let navGroups: NavGroup[] = [];
 
@@ -304,7 +307,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
     >
       <div className={`h-[72px] flex items-center shrink-0 border-b border-slate-100 dark:border-slate-800 transition-all duration-300 ${isCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
         <Link to="/panel" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-10 justify-center' : 'w-full'}`}>
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain shrink-0" />
+          <img src={config?.logo_sekolah ? getFileUrl(config.logo_sekolah) : "/logo.png"} alt="Logo" className="w-8 h-8 object-contain shrink-0" />
           {!isCollapsed && (
             <div className="flex flex-col whitespace-nowrap animate-in fade-in duration-300">
               <span className="font-extrabold text-slate-800 dark:text-slate-100 text-sm tracking-tight leading-tight">SIT SMAM1 BWI</span>

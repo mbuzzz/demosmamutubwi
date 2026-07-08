@@ -38,9 +38,11 @@ export default function GuruBankSoalEditor() {
   const filteredPakets = pakets.filter(p => p.judul?.toLowerCase().includes(search.toLowerCase()) || p.deskripsi?.toLowerCase().includes(search.toLowerCase()));
 
   // Initialize localSoals when detailPaket is loaded
+  // Backend returns relation as 'soals' (hasMany), PaketSoal type uses 'soal' as optional alias
   useEffect(() => {
-    if (detailPaket?.soal) {
-      setLocalSoals(JSON.parse(JSON.stringify(detailPaket.soal))); // deep copy
+    const soalArr = (detailPaket as any)?.soals ?? detailPaket?.soal ?? null;
+    if (soalArr) {
+      setLocalSoals(JSON.parse(JSON.stringify(soalArr))); // deep copy
     } else {
       setLocalSoals([]);
     }
@@ -85,7 +87,7 @@ export default function GuruBankSoalEditor() {
     const newSoal: Partial<SoalItem> = {
       jenis: 'pg',
       pertanyaan: '',
-      bobot_nilai: 2.5,
+      bobot_nilai: 2, // integer — backend validates integer, min:1
       opsiJawabans: [
         { teks_opsi: '', is_benar: false },
         { teks_opsi: '', is_benar: false },
@@ -103,15 +105,25 @@ export default function GuruBankSoalEditor() {
     const currentSoal = localSoals[activeSoalIdx];
     if (!currentSoal) return;
 
+    const payload: any = {
+      jenis: currentSoal.jenis || 'pg',
+      pertanyaan: currentSoal.pertanyaan || '',
+      bobot_nilai: Math.max(1, Math.floor(Number(currentSoal.bobot_nilai) || 1)),
+    };
+
+    // Only send opsi_jawabans for PG type
+    if (payload.jenis === 'pg' && currentSoal.opsiJawabans && currentSoal.opsiJawabans.length > 0) {
+      payload.opsi_jawabans = currentSoal.opsiJawabans.map(o => ({
+        id: o.id,
+        teks_opsi: o.teks_opsi,
+        is_benar: !!o.is_benar,
+      }));
+    }
+
     saveSoalMutation.mutate({
       bank_soal_id: selectedPaketId,
       soal_id: currentSoal.id,
-      data: {
-        jenis: currentSoal.jenis,
-        pertanyaan: currentSoal.pertanyaan,
-        bobot_nilai: currentSoal.bobot_nilai,
-        opsi_jawabans: currentSoal.opsiJawabans, // backend expects opsi_jawabans
-      } as any // type override for opsi_jawabans mapping
+      data: payload,
     }, {
       onSuccess: () => {
         refetchDetail();
@@ -143,7 +155,7 @@ export default function GuruBankSoalEditor() {
       const newArr = [...prev];
       newArr[activeSoalIdx] = { ...newArr[activeSoalIdx], ...updates };
       
-      // If switching jenis to pg, ensure options exist
+      // If switching jenis to pg, ensure 5 options exist
       if (updates.jenis === 'pg' && (!newArr[activeSoalIdx].opsiJawabans || newArr[activeSoalIdx].opsiJawabans!.length < 2)) {
         newArr[activeSoalIdx].opsiJawabans = [
           { teks_opsi: '', is_benar: false },
@@ -152,11 +164,9 @@ export default function GuruBankSoalEditor() {
           { teks_opsi: '', is_benar: false },
           { teks_opsi: '', is_benar: false },
         ];
-      } else if (updates.jenis === 'bs' && (!newArr[activeSoalIdx].opsiJawabans || newArr[activeSoalIdx].opsiJawabans!.length < 2)) {
-        newArr[activeSoalIdx].opsiJawabans = [
-          { teks_opsi: 'Benar', is_benar: false },
-          { teks_opsi: 'Salah', is_benar: false }
-        ];
+      } else if (updates.jenis === 'essay') {
+        // Essay doesn't use opsiJawabans for answer options
+        newArr[activeSoalIdx].opsiJawabans = [];
       }
       return newArr;
     });
@@ -269,18 +279,18 @@ export default function GuruBankSoalEditor() {
                         onChange={(e) => updateLocalSoal({ jenis: e.target.value as any })}
                         className="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition-colors"
                       >
-                        <option value="pg">Pilihan Ganda</option>
-                        <option value="pg_kompleks">PG Kompleks (Multi Jawaban)</option>
+                        <option value="pg">Pilihan Ganda (PG)</option>
                         <option value="essay">Uraian / Essay</option>
-                        <option value="bs">Benar / Salah</option>
                       </select>
                     </div>
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bobot Skor:</label>
                       <input 
                         type="number" 
-                        value={activeSoal.bobot_nilai || 2.5}
-                        onChange={e => updateLocalSoal({ bobot_nilai: parseFloat(e.target.value) || 0 })} 
+                        min="1"
+                        step="1"
+                        value={activeSoal.bobot_nilai || 2}
+                        onChange={e => updateLocalSoal({ bobot_nilai: Math.max(1, Math.floor(parseFloat(e.target.value) || 1)) })} 
                         className="w-20 px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-colors" />
                     </div>
                   </div>

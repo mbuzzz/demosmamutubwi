@@ -22,8 +22,9 @@ export function useBankSoalDetail(id: number | null) {
     queryKey: ['bank-soal', id],
     queryFn: async () => {
       if (!id) return null;
-      const res = await api.get<{ data: PaketSoal }>(`/cbt/bank-soal/${id}`);
-      return res.data.data;
+      // Backend returns model directly (not wrapped in { data: ... })
+      const res = await api.get<PaketSoal>(`/cbt/bank-soal/${id}`);
+      return res.data;
     },
     enabled: !!id,
   });

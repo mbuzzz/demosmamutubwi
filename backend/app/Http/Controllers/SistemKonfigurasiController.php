@@ -47,12 +47,12 @@ class SistemKonfigurasiController extends Controller
 
         if ($request->hasFile('logo_sekolah')) {
             $path = $request->file('logo_sekolah')->store('images', 'public');
-            $config->update(['logo_sekolah' => $path]);
+            $config->update(['logo_sekolah' => '/storage/' . $path]);
         }
 
         if ($request->hasFile('kop_surat')) {
             $path = $request->file('kop_surat')->store('images', 'public');
-            $config->update(['kop_surat' => $path]);
+            $config->update(['kop_surat' => '/storage/' . $path]);
         }
 
         return response()->json([

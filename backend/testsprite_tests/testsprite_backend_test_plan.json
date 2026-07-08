@@ -1,0 +1,32 @@
+[
+  {
+    "id": "TC001",
+    "title": "test_user_authentication_login_profile_logout_flow",
+    "description": "Verify that users can successfully log in with valid credentials, retrieve their authenticated profile, and log out, ensuring session management works correctly."
+  },
+  {
+    "id": "TC002",
+    "title": "test_user_management_create_user_with_admin_session",
+    "description": "Verify that administrators can create new user records with valid data and that the new user appears in the user list."
+  },
+  {
+    "id": "TC003",
+    "title": "test_rfid_attendance_logging_with_valid_and_invalid_uid",
+    "description": "Verify that posting a valid RFID UID records attendance successfully and that an unknown or unregistered UID returns an appropriate error."
+  },
+  {
+    "id": "TC004",
+    "title": "test_school_fees_payment_retrieve_and_process",
+    "description": "Verify that authenticated users can retrieve outstanding bills and process payments correctly, and that invalid payment attempts are rejected."
+  },
+  {
+    "id": "TC005",
+    "title": "test_lms_assignments_submit_and_grade_homework",
+    "description": "Verify that students can submit homework for assignments and teachers can grade submissions, including validation of authentication and input correctness."
+  },
+  {
+    "id": "TC006",
+    "title": "test_cbt_exam_start_save_answer_and_complete",
+    "description": "Verify that students can start a CBT exam session with a valid token, save answers during the exam, and complete the exam session successfully."
+  }
+]

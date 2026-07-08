@@ -89,14 +89,16 @@ class CbtBankSoalController extends Controller
     public function storeSoal(Request $request, BankSoal $bankSoal)
     {
         $validated = $request->validate([
-            'jenis' => 'required|in:pg,essay',
+            'jenis' => 'required|in:pg,essay,pg_kompleks,pgk,bs',
             'pertanyaan' => 'required|string',
-            'bobot_nilai' => 'required|integer|min:1',
-            'file_media' => 'nullable|string', // Consider proper file upload handling if needed
-            'opsi_jawabans' => 'required_if:jenis,pg|array',
+            'bobot_nilai' => 'required|numeric|min:1',
+            'file_media' => 'nullable|string',
+            'opsi_jawabans' => 'required_if:jenis,pg,pg_kompleks,pgk,bs|array',
             'opsi_jawabans.*.teks_opsi' => 'required_with:opsi_jawabans|string',
             'opsi_jawabans.*.is_benar' => 'required_with:opsi_jawabans|boolean',
         ]);
+        // Cast bobot_nilai to integer for DB
+        $validated['bobot_nilai'] = (int) $validated['bobot_nilai'];
 
         $soal = $bankSoal->soals()->create([
             'jenis' => $validated['jenis'],
@@ -124,15 +126,18 @@ class CbtBankSoalController extends Controller
         }
 
         $validated = $request->validate([
-            'jenis' => 'sometimes|in:pg,essay',
+            'jenis' => 'sometimes|in:pg,essay,pg_kompleks,pgk,bs',
             'pertanyaan' => 'sometimes|string',
-            'bobot_nilai' => 'sometimes|integer|min:1',
+            'bobot_nilai' => 'sometimes|numeric|min:1',
             'file_media' => 'nullable|string',
             'opsi_jawabans' => 'sometimes|array',
             'opsi_jawabans.*.id' => 'nullable|exists:opsi_jawabans,id',
             'opsi_jawabans.*.teks_opsi' => 'required_with:opsi_jawabans|string',
             'opsi_jawabans.*.is_benar' => 'required_with:opsi_jawabans|boolean',
         ]);
+        if (isset($validated['bobot_nilai'])) {
+            $validated['bobot_nilai'] = (int) $validated['bobot_nilai'];
+        }
 
         $soal->update([
             'jenis' => $validated['jenis'] ?? $soal->jenis,

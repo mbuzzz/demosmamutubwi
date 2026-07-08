@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, GraduationCap, Users, ArrowRight } from 'lucide-react';
+import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
+import { getFileUrl } from '../lib/api';
 
 export default function Login() {
+  const { data: config } = useSistemKonfigurasi();
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden transition-colors">
       {/* Decorative Blobs */}
@@ -16,7 +19,7 @@ export default function Login() {
             <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
           </Link>
           <div className="flex items-center justify-center gap-3 mt-4">
-            <img src="/logo.png" alt="Logo SMAS Muh 1" className="h-14 w-14 object-contain bg-white dark:bg-slate-900 p-2 rounded-[15px] shadow-sm" />
+            <img src={config?.logo_sekolah ? getFileUrl(config.logo_sekolah) : "/logo.png"} alt="Logo SMAS Muh 1" className="h-14 w-14 object-contain bg-white dark:bg-slate-900 p-2 rounded-[15px] shadow-sm" />
             <div className="text-left">
               <h1 className="font-extrabold text-2xl text-slate-800 dark:text-white leading-tight">SMAS Muhammadiyah 1</h1>
               <p className="text-emerald-650 dark:text-emerald-400 font-bold uppercase tracking-widest text-xs">Banyuwangi</p>

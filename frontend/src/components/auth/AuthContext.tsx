@@ -83,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     setIsLoading(true);
     try {
+      await getCsrfCookie();
       await api.post('/logout');
     } catch (err) {
       console.error('Logout error on server:', err);
