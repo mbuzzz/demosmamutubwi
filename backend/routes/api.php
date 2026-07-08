@@ -98,12 +98,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/jadwal', [JadwalController::class, 'index']);
     });
 
-    // 3. MAPEL MANAGEMENT (Superadmin, Admin, Kurikulum)
+    // 3. MAPEL MANAGEMENT
     Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
         Route::get('/mapels/export/pdf', [MapelController::class, 'exportPdf']);
         Route::get('/mapels/export/xlsx', [MapelController::class, 'exportXlsx']);
         Route::post('/mapels/import/xlsx', [MapelController::class, 'importXlsx']);
-        Route::apiResource('mapels', MapelController::class);
+        Route::apiResource('mapels', MapelController::class)->except(['index', 'show']);
+    });
+
+    Route::middleware('role:superadmin,admin,kurikulum,guru')->group(function () {
+        Route::get('/mapels', [MapelController::class, 'index']);
+        Route::get('/mapels/{mapel}', [MapelController::class, 'show']);
     });
 
     // 4. EKSKUL MANAGEMENT (Superadmin, Admin, Kurikulum)
