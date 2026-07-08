@@ -54,8 +54,8 @@ services:
       CACHE_STORE: file
       QUEUE_CONNECTION: database
       FRONTEND_URL: https://demolms.rayan.web.id
-      SANCTUM_STATEFUL_DOMAINS: demolms.rayan.web.id
-      SESSION_DOMAIN: demolms.rayan.web.id
+      SANCTUM_STATEFUL_DOMAINS: demolms.rayan.web.id,localhost:1999,localhost,127.0.0.1
+      SESSION_DOMAIN: ""
     volumes:
       - backend_storage:/var/www/html/storage/app
     depends_on:
