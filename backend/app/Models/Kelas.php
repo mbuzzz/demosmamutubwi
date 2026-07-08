@@ -18,4 +18,22 @@ class Kelas extends Model
     {
         return $this->belongsTo(User::class, 'wali_kelas_id');
     }
+
+    /** Penugasan mengajar di kelas ini */
+    public function penugasans()
+    {
+        return $this->hasMany(Penugasan::class, 'kelas_id');
+    }
+
+    /** Daftar siswa aktif di kelas ini (berdasarkan nama kelas string) */
+    public function siswa()
+    {
+        return $this->hasMany(User::class, 'kelas', 'nama');
+    }
+
+    /** Riwayat pendaftaran kelas siswa */
+    public function riwayatSiswa()
+    {
+        return $this->hasMany(RiwayatKelas::class, 'kelas_id');
+    }
 }

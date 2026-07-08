@@ -70,6 +70,12 @@ class User extends Authenticatable
         return $this->hasMany(RiwayatKelas::class, 'siswa_id');
     }
 
+    /** Detail kelas aktif siswa (berdasarkan string nama kelas) */
+    public function kelasDetail()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas', 'nama');
+    }
+
     /** Notifikasi untuk pengguna */
     public function notifications()
     {

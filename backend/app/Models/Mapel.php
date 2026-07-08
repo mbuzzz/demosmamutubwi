@@ -12,4 +12,22 @@ class Mapel extends Model
     use HasFactory;
 
     protected $table = 'mapels';
+
+    /** Penugasan guru untuk mapel ini */
+    public function penugasans()
+    {
+        return $this->hasMany(Penugasan::class, 'mapel_id');
+    }
+
+    /** Tujuan Pembelajaran untuk mapel ini */
+    public function tujuanPembelajarans()
+    {
+        return $this->hasMany(TujuanPembelajaran::class, 'mapel_id');
+    }
+
+    /** Nilai-nilai siswa untuk mapel ini */
+    public function nilais()
+    {
+        return $this->hasMany(Nilai::class, 'mapel_id');
+    }
 }
