@@ -4,11 +4,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
 import { toast } from 'sonner';
+import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
+import { getFileUrl } from '../lib/api';
 
 export default function LoginAdmin() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { setSimulatedRole } = useRoleSimulator();
+  const { data: config } = useSistemKonfigurasi();
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -61,11 +65,19 @@ export default function LoginAdmin() {
           <Link to="/" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-indigo-650 transition-colors font-bold text-xs mb-4">
             <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Beranda
           </Link>
-          <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <ShieldAlert className="w-8 h-8" />
+          
+          <div className="flex flex-col items-center justify-center gap-3 mt-2 mb-4">
+            <div className="relative">
+              <img src={config?.logo_sekolah ? getFileUrl(config.logo_sekolah) : "/logo.png"} alt="Logo Sekolah" className="h-16 w-16 object-contain bg-white dark:bg-slate-900 p-2 rounded-[15px] shadow-sm border border-slate-100 dark:border-slate-800" />
+              <div className="absolute -bottom-2 -right-2 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 p-1.5 rounded-lg border border-white dark:border-slate-900">
+                <ShieldAlert className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-slate-850 dark:text-white leading-tight">Portal Administrator</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Masukkan username admin dan password Anda</p>
+            </div>
           </div>
-          <h2 className="text-2xl font-black text-slate-850 dark:text-white">Portal Administrator</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Masukkan username administrator dan password Anda</p>
         </div>
 
         {error && (
