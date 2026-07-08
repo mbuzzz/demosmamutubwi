@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\LmsTugasController;
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\JurnalController;
 
 // CMS Controllers
 use App\Http\Controllers\ProfilSekolahController;
@@ -66,6 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    
+    // Jurnal Mengajar
+    Route::apiResource('jurnal', JurnalController::class);
 
     // 1. USER MANAGEMENT (Only Superadmin & Admin)
     Route::middleware('role:superadmin,admin')->group(function () {

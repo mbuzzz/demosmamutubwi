@@ -12,7 +12,7 @@ export default function FormSPMB() {
   const { data: formFields } = usePublicFormFields(gelombangId || '');
   const createPendaftar = useCreatePendaftar();
 
-  const gelombang = gelombangList?.find(g => g.id === gelombangId);
+  const gelombang = gelombangList?.find(g => String(g.id) === String(gelombangId));
 
   const [formData, setFormData] = useState({
     nama_lengkap: '',

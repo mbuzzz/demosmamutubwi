@@ -59,18 +59,17 @@ class NilaiController extends Controller
         ]);
 
         if ($user->role === 'guru') {
-            // Check if teacher teaches this mapel to this student's class in the given academic year
-            $riwayatKelas = RiwayatKelas::where('siswa_id', $validated['siswa_id'])
-                ->where('tahun_ajaran', $validated['tahun_ajaran'])
-                ->first();
+            // Find student's current class matching users.kelas name
+            $student = \App\Models\User::findOrFail($validated['siswa_id']);
+            $kelas = \App\Models\Kelas::where('nama', $student->kelas)->first();
 
-            if (!$riwayatKelas) {
-                abort(403, 'Siswa tidak memiliki riwayat kelas di tahun ajaran tersebut.');
+            if (!$kelas) {
+                abort(403, 'Siswa tidak terdaftar di kelas manapun.');
             }
 
             $penugasan = Penugasan::where('guru_id', $user->id)
                 ->where('mapel_id', $validated['mapel_id'])
-                ->where('kelas_id', $riwayatKelas->kelas_id)
+                ->where('kelas_id', $kelas->id)
                 ->where('tahun_ajaran', $validated['tahun_ajaran'])
                 ->exists();
 

@@ -71,7 +71,7 @@ class User extends Authenticatable
     }
 
     /** Detail kelas aktif siswa (berdasarkan string nama kelas) */
-    public function kelasDetail()
+    public function kelas()
     {
         return $this->belongsTo(Kelas::class, 'kelas', 'nama');
     }
