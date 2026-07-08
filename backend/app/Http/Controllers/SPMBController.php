@@ -241,11 +241,10 @@ class SPMBController extends Controller
 
     public function publicGelombangAktif()
     {
-        $now = now()->toDateString();
+        // Show all active gelombang (not filtered by date) — admin controls via is_active flag.
+        // The frontend will show upcoming/ongoing/past status based on dates.
         return response()->json(
             GelombangPendaftaran::where('is_active', true)
-                ->where('tanggal_mulai', '<=', $now)
-                ->where('tanggal_selesai', '>=', $now)
                 ->withCount('pendaftars')
                 ->orderBy('tanggal_mulai')
                 ->get()

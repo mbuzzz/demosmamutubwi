@@ -138,6 +138,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Sistem Konfigurasi (Academic Settings)
         Route::put('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'update']);
+        Route::post('/sistem-konfigurasi', [SistemKonfigurasiController::class, 'update']); // For file uploads via FormData + _method=PUT
         Route::get('/sistem-konfigurasi/options', [SistemKonfigurasiController::class, 'getAvailableOptions']);
         
         // CMS Management

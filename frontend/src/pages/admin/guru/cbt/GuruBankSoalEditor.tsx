@@ -55,7 +55,13 @@ export default function GuruBankSoalEditor() {
   }
 
   function openCreatePaket() {
-    setCreatePaketForm({ title: '', mapel_id: mapelList?.[0]?.id || '', tingkat: '10', time: '', tipe: 'ujian' });
+    setCreatePaketForm({ 
+      title: '', 
+      mapel_id: mapelList && mapelList.length > 0 ? String(mapelList[0].id) : '', 
+      tingkat: '10', 
+      time: '', 
+      tipe: 'ujian' 
+    });
     setShowPurposeModal(true);
   }
 

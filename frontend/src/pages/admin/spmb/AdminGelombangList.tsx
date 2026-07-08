@@ -1,8 +1,20 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Edit, Trash2, Calendar, Users, DollarSign, Save, X, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Save, X, Loader2, Users, DollarSign } from 'lucide-react';
 import { useState } from 'react';
 import { useGelombangList, useCreateGelombang, useUpdateGelombang, useDeleteGelombang, type GelombangRecord } from '../../../hooks/useSPMB';
 import { toast } from 'sonner';
+
+function fmtDate(str: string) {
+  if (!str) return '-';
+  return new Date(str).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function gelombangStatus(g: GelombangRecord) {
+  const now = new Date().toISOString().split('T')[0];
+  if (now < g.tanggal_mulai) return { label: 'Akan Datang', cls: 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' };
+  if (now > g.tanggal_selesai) return { label: 'Berakhir', cls: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' };
+  return { label: 'Berlangsung', cls: 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' };
+}
 
 export default function AdminGelombangList() {
   const { data: gelombangList, isLoading } = useGelombangList();
@@ -112,13 +124,17 @@ export default function AdminGelombangList() {
                 {gelombangList?.length === 0 && (
                   <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-400">Belum ada gelombang</td></tr>
                 )}
-                {gelombangList?.map(g => {
-                  const filled = g.pendaftars_count || 0;
-                  const ratio = g.kuota && g.kuota > 0 ? (filled / g.kuota) * 100 : 0;
-                  return (
+                  {gelombangList?.map(g => {
+                    const filled = g.pendaftars_count || 0;
+                    const ratio = g.kuota && g.kuota > 0 ? (filled / g.kuota) * 100 : 0;
+                    const status = gelombangStatus(g);
+                    return (
                   <tr key={g.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{g.nama}</td>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-600 dark:text-slate-400">{g.tanggal_mulai}<br/>s/d {g.tanggal_selesai}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-slate-600 dark:text-slate-400">
+                      <div>{fmtDate(g.tanggal_mulai)}</div>
+                      <div className="text-slate-400">s/d {fmtDate(g.tanggal_selesai)}</div>
+                    </td>
                     <td className="px-6 py-4">
                       {g.kuota && (
                       <>
@@ -132,9 +148,10 @@ export default function AdminGelombangList() {
                     </td>
                     <td className="px-6 py-4 font-semibold text-emerald-600">Rp {g.biaya_pendaftaran.toLocaleString('id-ID')}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${g.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                        {g.is_active ? 'Aktif' : 'Nonaktif'}
-                      </span>
+                      <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${status.cls}`}>{status.label}</span>
+                      {g.is_active && (
+                        <span className="ml-1.5 px-2 py-1 rounded-md text-xs font-semibold border bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">Aktif</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button onClick={() => openEdit(g)} className="p-1.5 text-slate-400 hover:text-indigo-600"><Edit className="w-4 h-4" /></button>

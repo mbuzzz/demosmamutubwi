@@ -17,9 +17,9 @@ export default function GuruNilaiTp() {
   const { data: mapelList = [] } = useMapelList();
   
   // Filter mapelList based on what the teacher teaches in the selected class
-  const selectedKelasObj = kelasList.find(k => k.id === selectedKelasId);
-  const taughtMapelIds = new Set(selectedKelasObj ? selectedKelasObj.mapels.map(m => m.id) : []);
-  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(m.id));
+  const selectedKelasObj = kelasList.find(k => String(k.id) === selectedKelasId);
+  const taughtMapelIds = new Set(selectedKelasObj ? (selectedKelasObj.mapels || []).map((m: any) => String(m.id)) : []);
+  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(String(m.id)));
 
   // Find selected mapel to get its tingkat (X, XI, XII)
   const selectedMapel = guruMapelList.find(m => m.id === selectedMapelId);

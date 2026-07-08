@@ -24,8 +24,8 @@ export default function GuruBukuNilai() {
 
   // Filter mapelList based on what the teacher teaches in the selected class
   const selectedKelasObj = guruClasses.find(k => String(k.id) === selectedKelasId);
-  const taughtMapelIds = new Set(selectedKelasObj ? selectedKelasObj.mapels.map((m: any) => m.id) : []);
-  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(m.id));
+  const taughtMapelIds = new Set(selectedKelasObj ? (selectedKelasObj.mapels || []).map((m: any) => String(m.id)) : []);
+  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(String(m.id)));
 
   // Adjust selected mapel when class changes or on load
   useEffect(() => {

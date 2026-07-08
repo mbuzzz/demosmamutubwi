@@ -21,8 +21,8 @@ export default function GuruTujuanPembelajaran() {
   const { data: mapelList = [] } = useMapelList();
 
   // Filter mapelList based on what the teacher teaches
-  const taughtMapelIds = new Set(guruClasses.flatMap(k => k.mapels.map(m => m.id)));
-  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(m.id));
+  const taughtMapelIds = new Set(guruClasses.flatMap(k => (k.mapels || []).map((m: any) => String(m.id))));
+  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(String(m.id)));
 
   const { data: tpList = [], isLoading } = useTujuanPembelajaranList(selectedMapelId, selectedTingkat);
 

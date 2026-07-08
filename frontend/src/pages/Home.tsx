@@ -11,7 +11,7 @@ export default function Home() {
   const { data: beritaList = [] } = usePublicBeritaList();
   const { data: profil } = usePublicProfil();
 
-  const latestNews = beritaList.slice(0, 3);
+  const latestNews = beritaList.slice(0, 6);
 
   return (
     <div className="space-y-0">

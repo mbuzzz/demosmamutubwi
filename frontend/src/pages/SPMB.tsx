@@ -149,19 +149,22 @@ export default function SPMB() {
                   const fillRatio = quota > 0 ? filled / quota : 0;
                   const now = new Date().toISOString().split('T')[0];
                   const isOpen = gel.is_active && gel.tanggal_mulai <= now && gel.tanggal_selesai >= now;
+                  const isUpcoming = gel.is_active && gel.tanggal_mulai > now;
                   const isAlmostFull = fillRatio > 0.9;
                   let statusText = 'Dibuka';
-                  if (isAlmostFull) statusText = 'Hampir Penuh';
-                  else if (!gel.is_active) statusText = 'Ditutup';
-                  else if (gel.tanggal_mulai > now) statusText = 'Akan Datang';
-                  else if (gel.tanggal_selesai < now) statusText = 'Ditutup';
+                  if (!gel.is_active) statusText = 'Ditutup';
+                  else if (isUpcoming) statusText = 'Akan Datang';
+                  else if (isAlmostFull) statusText = 'Hampir Penuh';
+                  else if (gel.tanggal_selesai < now) statusText = 'Berakhir';
+                  else statusText = 'Berlangsung';
 
                   return (
-                  <div key={gel.id} className={`rounded-[15px] p-6 border ${isOpen ? 'border-brand-teal/30 dark:border-emerald-500/40 bg-white dark:bg-slate-900 shadow-card dark:shadow-none hover:shadow-card transition-shadow' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}`}>
+                  <div key={gel.id} className={`rounded-[15px] p-6 border ${isOpen ? 'border-brand-teal/30 dark:border-emerald-500/40 bg-white dark:bg-slate-900 shadow-card dark:shadow-none hover:shadow-card transition-shadow' : isUpcoming ? 'border-blue-200 dark:border-blue-500/40 bg-blue-50/30 dark:bg-blue-500/5' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}`}>
                     <div className="flex justify-between items-start mb-4">
                       <span className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${
                         isAlmostFull ? 'bg-orange-100 text-orange-700' :
                         isOpen ? 'bg-brand-green/10 text-brand-green dark:text-emerald-400' :
+                        isUpcoming ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' :
                         'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                       }`}>
                         {statusText}
@@ -195,10 +198,12 @@ export default function SPMB() {
                       className={`w-full py-3 rounded-[15px] font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                         isOpen 
                           ? 'bg-brand-teal hover:bg-brand-teal/90 text-white shadow-sm' 
+                          : isUpcoming
+                          ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 cursor-not-allowed'
                           : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
                       }`}
                     >
-                      {isOpen ? 'Daftar Gelombang Ini' : 'Pendaftaran Ditutup'}
+                      {isOpen ? 'Daftar Gelombang Ini' : isUpcoming ? 'Belum Dibuka' : 'Pendaftaran Ditutup'}
                     </button>
                   </div>
                   );

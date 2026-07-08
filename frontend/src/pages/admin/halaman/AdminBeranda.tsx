@@ -1,107 +1,163 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Save, Plus, Trash2, GripVertical, Image as ImageIcon, LayoutTemplate } from 'lucide-react';
-import { useState } from 'react';
+import { Save, Image as ImageIcon, LayoutTemplate, Newspaper, Star, ArrowRight, Loader2, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useSistemKonfigurasi, useUpdateSistemKonfigurasi } from '../../../hooks/useSistemKonfigurasi';
+import { toast } from 'sonner';
 
 export default function AdminBeranda() {
-  const [stats] = useState([
-    { id: 1, label: 'Siswa Aktif', value: '850+', icon: 'Users' },
-    { id: 2, label: 'Guru & Staf', value: '45+', icon: 'GraduationCap' },
-    { id: 3, label: 'Ekstrakurikuler', value: '30+', icon: 'Activity' },
-    { id: 4, label: 'Akreditasi', value: 'A', icon: 'Award' },
-  ]);
+  const { data: config, isLoading } = useSistemKonfigurasi();
+  const updateConfig = useUpdateSistemKonfigurasi();
+
+  const [slogan, setSlogan] = useState('');
+  const [telepon, setTelepon] = useState('');
+  const [email, setEmail] = useState('');
+  const [alamat, setAlamat] = useState('');
+  const [googleMapsEmbed, setGoogleMapsEmbed] = useState('');
+
+  useEffect(() => {
+    if (config) {
+      setSlogan(config.slogan ?? '');
+      setTelepon(config.telepon ?? '');
+      setEmail(config.email ?? '');
+      setAlamat(config.alamat ?? '');
+      setGoogleMapsEmbed(config.google_maps_embed ?? '');
+    }
+  }, [config]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateConfig.mutateAsync({ slogan, telepon, email, alamat, google_maps_embed: googleMapsEmbed });
+      toast.success('Pengaturan beranda berhasil disimpan');
+    } catch {
+      toast.error('Gagal menyimpan pengaturan');
+    }
+  };
+
+  const contentModules = [
+    {
+      icon: Newspaper,
+      title: 'Kelola Berita & Artikel',
+      desc: 'Tambah, edit, atau hapus berita dan artikel yang ditampilkan di beranda dan halaman berita.',
+      to: '/panel/berita',
+      color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    },
+    {
+      icon: Star,
+      title: 'Kelola Testimoni',
+      desc: 'Atur testimoni dari alumni dan orang tua yang ditampilkan di halaman beranda.',
+      to: '/panel/web/faq-testimoni',
+      color: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400',
+    },
+    {
+      icon: ImageIcon,
+      title: 'Kelola Galeri Foto',
+      desc: 'Upload dan atur koleksi foto kegiatan sekolah untuk halaman galeri dan beranda.',
+      to: '/panel/web/galeri',
+      color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    },
+    {
+      icon: LayoutTemplate,
+      title: 'Profil Sekolah',
+      desc: 'Edit visi, misi, sambutan kepala sekolah, dan sejarah singkat sekolah.',
+      to: '/panel/halaman/profil',
+      color: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400',
+    },
+  ];
 
   return (
     <AdminLayout title="Pengaturan Halaman Beranda">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-        
-        {/* Kolom Kiri: Hero & Highlight */}
+
+        {/* Kolom Kiri: Form konten beranda */}
         <div className="xl:col-span-2 space-y-6">
-          
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-              <LayoutTemplate className="w-4 h-4 text-indigo-500" /> Hero Section (Banner Atas)
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Headline Utama</label>
-                <input type="text" defaultValue="Pendidikan Modern & Berkarakter" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Sub-headline (Deskripsi Pendek)</label>
-                <textarea rows={2} defaultValue="Membentuk generasi unggul berkarakter Islami, cerdas secara akademis, dan terampil menyongsong masa depan." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Teks Tombol Utama (CTA)</label>
-                  <input type="text" defaultValue="Daftar Sekarang" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-200 mb-1.5">Link Tautan Tombol</label>
-                  <input type="text" defaultValue="/spmb" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                </div>
-              </div>
-            </div>
+
+          {/* Info */}
+          <div className="flex gap-3 p-4 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl">
+            <Info className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+              Konten utama beranda (nama, logo, headline) diatur di{' '}
+              <Link to="/panel/settings" className="underline font-bold">Pengaturan Sistem</Link>.
+              Di sini kamu bisa atur teks pendukung dan embed Maps yang muncul di beranda & footer.
+            </p>
           </div>
 
+          {/* Form teks beranda */}
           <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-indigo-500" /> Highlight Prestasi (Pin Berita)
+              <LayoutTemplate className="w-4 h-4 text-indigo-500" /> Teks & Konten Beranda
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Pilih maksimal 3 berita prestasi untuk ditampilkan khusus di halaman depan.</p>
-            
-            <div className="space-y-3">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <div className="font-bold text-slate-400 dark:text-slate-500 dark:text-slate-400 w-6">{item}.</div>
-                  <select className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700 dark:text-slate-300 dark:text-slate-200">
-                    <option>Prestasi Gemilang Siswa di OSN 2024</option>
-                    <option>Juara 1 Lomba Robotik Nasional</option>
-                    <option>Tim Basket Lolos ke Final DBL</option>
-                    <option value="">-- Pilih Berita --</option>
-                  </select>
-                  <button className="p-2 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+            {isLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-indigo-500" /></div>
+            ) : (
+              <form onSubmit={handleSave} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Slogan / Deskripsi Pendek</label>
+                  <textarea
+                    rows={3}
+                    value={slogan}
+                    onChange={e => setSlogan(e.target.value)}
+                    placeholder="Membentuk generasi unggul berkarakter Islami, cerdas secara akademis..."
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Slogan ini ditampilkan di Hero Section beranda dan footer.</p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Kolom Kanan: Statistik & Aksi */}
-        <div className="xl:col-span-1 space-y-6">
-          
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-bold text-slate-800 dark:text-white">Widget Statistik</h3>
-              <button className="text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition-colors">
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {stats.map((s) => (
-                <div key={s.id} className="group flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-xl hover:border-indigo-400 transition-colors">
-                  <GripVertical className="w-4 h-4 text-slate-400 dark:text-slate-500 dark:text-slate-400 cursor-grab active:cursor-grabbing shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <input type="text" defaultValue={s.value} className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800/50 border border-transparent hover:border-slate-200 dark:border-slate-700 focus:border-indigo-500 rounded text-sm font-bold focus:outline-none" placeholder="Angka" />
-                    <input type="text" defaultValue={s.label} className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800/50 border border-transparent hover:border-slate-200 dark:border-slate-700 focus:border-indigo-500 rounded text-xs text-slate-600 dark:text-slate-400 focus:outline-none" placeholder="Label" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Nomor Telepon</label>
+                    <input type="text" value={telepon} onChange={e => setTelepon(e.target.value)} placeholder="(0333) 421382" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
-                  <button className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 dark:text-slate-500 dark:text-slate-400 hover:text-red-500 transition-opacity"><Trash2 className="w-4 h-4" /></button>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Email Sekolah</label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="info@smasmuh1bwi.sch.id" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                  </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Alamat Lengkap</label>
+                  <textarea rows={2} value={alamat} onChange={e => setAlamat(e.target.value)} placeholder="Jl. Letkol Istiqlah No.109, Banyuwangi..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Embed Google Maps (kode iframe src)</label>
+                  <textarea rows={3} value={googleMapsEmbed} onChange={e => setGoogleMapsEmbed(e.target.value)} placeholder='https://maps.google.com/maps?...' className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white font-mono text-xs"></textarea>
+                  <p className="text-[11px] text-slate-400 mt-1">Ambil dari Google Maps → Share → Embed a map → copy URL dari src="..."</p>
+                </div>
+                <div className="pt-2">
+                  <button type="submit" disabled={updateConfig.isPending} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm disabled:opacity-50">
+                    {updateConfig.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* Kolom Kanan: Shortcut ke modul konten */}
+        <div className="xl:col-span-1 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800 sticky top-24">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Kelola Konten Beranda</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Akses cepat ke modul pengelolaan konten yang tampil di halaman beranda publik.</p>
+            <div className="space-y-3">
+              {contentModules.map((mod) => (
+                <Link
+                  key={mod.to}
+                  to={mod.to}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-500/40 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all group"
+                >
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${mod.color}`}>
+                    <mod.icon className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-slate-800 dark:text-white truncate">{mod.title}</div>
+                    <div className="text-[10px] text-slate-400 leading-tight mt-0.5 line-clamp-2">{mod.desc}</div>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </Link>
               ))}
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-3 text-center">Angka statistik ini muncul di bawah Hero section.</p>
           </div>
-
-          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800 sticky top-24">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Aksi Publikasi</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">Pastikan semua data sudah benar sebelum menyimpan. Perubahan akan langsung terlihat di website publik.</p>
-            <button className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl text-sm font-bold transition-colors shadow-sm">
-              <Save className="w-4 h-4" /> Simpan Perubahan Beranda
-            </button>
-          </div>
-
         </div>
+
       </div>
     </AdminLayout>
   );
