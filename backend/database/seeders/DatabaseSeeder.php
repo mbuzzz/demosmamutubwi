@@ -289,6 +289,40 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        // 12. Seed Gelombang Pendaftaran & Form Fields
+        $gelombang = \App\Models\GelombangPendaftaran::create([
+            'nama' => 'Gelombang Utama 2026/2027',
+            'tanggal_mulai' => '2026-01-01',
+            'tanggal_selesai' => '2026-12-31',
+            'kuota' => 100,
+            'biaya_pendaftaran' => 150000,
+            'is_active' => true,
+        ]);
+
+        \App\Models\FormField::create([
+            'gelombang_id' => $gelombang->id,
+            'label' => 'Nama Lengkap Calon Siswa',
+            'field_type' => 'text',
+            'is_required' => true,
+            'urutan' => 1
+        ]);
+
+        \App\Models\FormField::create([
+            'gelombang_id' => $gelombang->id,
+            'label' => 'Asal Sekolah (SMP / MTs)',
+            'field_type' => 'text',
+            'is_required' => true,
+            'urutan' => 2
+        ]);
+
+        \App\Models\FormField::create([
+            'gelombang_id' => $gelombang->id,
+            'label' => 'Nomor HP Orang Tua / Wali',
+            'field_type' => 'text',
+            'is_required' => true,
+            'urutan' => 3
+        ]);
+
         // Run Demo Data Seeder at the end
         $this->call(DemoDataSeeder::class);
     }

@@ -148,14 +148,16 @@ export default function SPMB() {
                   const quota = gel.kuota || 999;
                   const fillRatio = quota > 0 ? filled / quota : 0;
                   const now = new Date().toISOString().split('T')[0];
-                  const isOpen = gel.is_active && gel.tanggal_mulai <= now && gel.tanggal_selesai >= now;
-                  const isUpcoming = gel.is_active && gel.tanggal_mulai > now;
+                  const start = gel.tanggal_mulai.split('T')[0];
+                  const end = gel.tanggal_selesai.split('T')[0];
+                  const isOpen = gel.is_active && start <= now && end >= now;
+                  const isUpcoming = gel.is_active && start > now;
                   const isAlmostFull = fillRatio > 0.9;
                   let statusText = 'Dibuka';
                   if (!gel.is_active) statusText = 'Ditutup';
                   else if (isUpcoming) statusText = 'Akan Datang';
                   else if (isAlmostFull) statusText = 'Hampir Penuh';
-                  else if (gel.tanggal_selesai < now) statusText = 'Berakhir';
+                  else if (end < now) statusText = 'Berakhir';
                   else statusText = 'Berlangsung';
 
                   return (

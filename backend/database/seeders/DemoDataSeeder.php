@@ -66,6 +66,26 @@ class DemoDataSeeder extends Seeder
             'published_at' => now()->subDays(2)
         ]);
 
+        Berita::create([
+            'kategori_id' => $katAkademik->id,
+            'penulis_id' => $admin->id,
+            'judul' => 'SMAS Muhammadiyah 1 Banyuwangi Sukses Gelar Ujian Berbasis CBT',
+            'slug' => Str::slug('SMAS Muhammadiyah 1 Banyuwangi Sukses Gelar Ujian Berbasis CBT'),
+            'konten' => '<p>Sekolah kami sukses menggelar ujian online menggunakan sistem CBT terpadu. Seluruh siswa dapat mengikuti ujian dengan lancar tanpa hambatan teknis.</p>',
+            'status' => 'published',
+            'published_at' => now()->subDays(1)
+        ]);
+
+        Berita::create([
+            'kategori_id' => $katAkademik->id,
+            'penulis_id' => $admin->id,
+            'judul' => 'Peringatan Hari Besar Islam dan Kajian Bulanan di SMAM1',
+            'slug' => Str::slug('Peringatan Hari Besar Islam dan Kajian Bulanan di SMAM1'),
+            'konten' => '<p>Kajian bulanan siswa dan guru diselenggarakan khidmat di aula sekolah utama guna memperkuat akhlakul karimah dan karakter Islami siswa.</p>',
+            'status' => 'published',
+            'published_at' => now()
+        ]);
+
         Faq::create(['pertanyaan' => 'Kapan jadwal PPDB dibuka?', 'jawaban' => 'PPDB dibuka mulai bulan Januari setiap tahunnya.', 'urutan' => 1]);
         Faq::create(['pertanyaan' => 'Apa saja ekstrakurikuler unggulan?', 'jawaban' => 'Kami memiliki Tapak Suci, Hizbul Wathan, dan Tim Robotik.', 'urutan' => 2]);
 
