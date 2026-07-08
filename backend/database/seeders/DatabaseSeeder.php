@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
         $rina = User::where('username', 'rina')->first();
         $ahmad = User::where('username', 'ahmad')->first();
         $sugeng = User::where('username', 'sugeng')->first();
+        $agus = User::where('username', 'agus')->first();
+        $budi = User::where('username', 'budi')->first();
 
         // 2. Seed Kurikulum
         $kurikulum = Kurikulum::create([
@@ -88,6 +90,24 @@ class DatabaseSeeder extends Seeder
             'kurikulum_id' => $kurikulum->id,
             'wali_kelas_id' => null,
         ]);
+
+        // Seed RiwayatKelas for students
+        if ($agus && $kelasX1) {
+            \App\Models\RiwayatKelas::create([
+                'siswa_id' => $agus->id,
+                'kelas_id' => $kelasX1->id,
+                'tahun_ajaran' => '2025/2026',
+                'status' => 'aktif',
+            ]);
+        }
+        if ($budi && $kelasX1) {
+            \App\Models\RiwayatKelas::create([
+                'siswa_id' => $budi->id,
+                'kelas_id' => $kelasX1->id,
+                'tahun_ajaran' => '2025/2026',
+                'status' => 'aktif',
+            ]);
+        }
 
         // 5. Seed Mapel
         $mapelMtk = Mapel::create([
