@@ -392,14 +392,16 @@ class PembayaranController extends Controller
 
     public function getStudentByRfid($uid)
     {
-        $user = User::where('uid_rfid', $uid)->where('role', 'siswa')->first();
+        $kartu = \App\Models\KartuRfid::where('uid', $uid)->with('user')->first();
         
-        if (!$user) {
+        if (!$kartu || !$kartu->user || $kartu->user->role !== 'siswa') {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Kartu RFID tidak terdaftar atau tidak aktif sebagai siswa.'
             ], 404);
         }
+
+        $user = $kartu->user;
 
         $tagihans = TagihanSiswa::where('siswa_id', $user->id)
             ->where('status', '!=', 'lunas')

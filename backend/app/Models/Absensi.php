@@ -24,9 +24,36 @@ class Absensi extends Model
         'created_by'
     ];
 
+    protected $appends = ['user_id', 'tipe', 'waktu_masuk', 'waktu_pulang'];
+
     public function siswa()
     {
         return $this->belongsTo(User::class, 'siswa_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'siswa_id');
+    }
+
+    public function getUserIdAttribute()
+    {
+        return $this->siswa_id;
+    }
+
+    public function getTipeAttribute()
+    {
+        return $this->status_masuk;
+    }
+
+    public function getWaktuMasukAttribute()
+    {
+        return $this->jam_masuk;
+    }
+
+    public function getWaktuPulangAttribute()
+    {
+        return $this->jam_pulang;
     }
 
     public function admin()

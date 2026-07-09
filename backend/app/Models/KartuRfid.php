@@ -18,8 +18,20 @@ class KartuRfid extends Model
         'terdaftar'
     ];
 
-    public function siswa()
+    protected $appends = ['uid_rfid', 'user_id'];
+
+    public function user()
     {
         return $this->belongsTo(User::class, 'siswa_id');
+    }
+
+    public function getUidRfidAttribute()
+    {
+        return $this->uid;
+    }
+
+    public function getUserIdAttribute()
+    {
+        return $this->siswa_id;
     }
 }

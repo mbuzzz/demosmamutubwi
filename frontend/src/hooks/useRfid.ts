@@ -21,11 +21,11 @@ export interface RfidCard {
 
 export interface RfidConfig {
   id: number;
-  waktu_masuk_mulai: string;
-  waktu_masuk_akhir: string;
-  waktu_pulang_mulai: string;
-  waktu_pulang_akhir: string;
-  mode: 'absen_masuk' | 'absen_pulang' | 'bebas' | 'tutup';
+  pin: string;
+  jam_masuk: string;
+  jam_pulang: string;
+  toleransi_terlambat: number;
+  batas_alpha: string;
   created_at: string;
   updated_at: string;
 }

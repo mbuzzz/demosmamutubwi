@@ -17,7 +17,7 @@ class AbsensiController extends Controller
         $tanggal = $request->query('tanggal', Carbon::today()->toDateString());
         $kelasId = $request->query('kelas_id');
 
-        $query = Absensi::with(['siswa', 'admin'])->where('tanggal', $tanggal);
+        $query = Absensi::with(['user', 'admin'])->where('tanggal', $tanggal);
 
         $user = $request->user();
         if ($user) {
@@ -27,7 +27,7 @@ class AbsensiController extends Controller
                 $query->where('siswa_id', $user->siswa_id);
             } else {
                 if ($kelasId) {
-                    $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
+                    $query->whereHas('user.kelas', function ($q) use ($kelasId) {
                         $q->where('id', $kelasId);
                     });
                 }
@@ -45,7 +45,7 @@ class AbsensiController extends Controller
         $tahun = $request->query('tahun', Carbon::now()->year);
         $kelasId = $request->query('kelas_id');
 
-        $query = Absensi::with('siswa.kelas')
+        $query = Absensi::with('user.kelas')
             ->select('siswa_id', 
                 DB::raw('count(case when status_masuk = "hadir" then 1 end) as hadir'),
                 DB::raw('count(case when status_masuk = "sakit" then 1 end) as sakit'),
@@ -57,7 +57,7 @@ class AbsensiController extends Controller
             ->whereYear('tanggal', $tahun);
 
         if ($kelasId) {
-            $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
+            $query->whereHas('user.kelas', function ($q) use ($kelasId) {
                 $q->where('id', $kelasId);
             });
         }
@@ -135,11 +135,15 @@ class AbsensiController extends Controller
 
     public function tap(Request $request)
     {
+        if ($request->has('uid_rfid')) {
+            $request->merge(['uid' => $request->uid_rfid]);
+        }
+
         $validated = $request->validate([
             'uid' => 'required|string'
         ]);
 
-        $kartu = KartuRfid::where('uid', $validated['uid'])->with('siswa')->first();
+        $kartu = KartuRfid::where('uid', $validated['uid'])->with('user')->first();
 
         if (!$kartu) {
             return response()->json(['message' => 'Kartu tidak terdaftar'], 404);
@@ -188,7 +192,7 @@ class AbsensiController extends Controller
             return response()->json([
                 'message' => 'Absen masuk berhasil',
                 'status' => $statusMasuk,
-                'siswa' => $kartu->siswa,
+                'user' => $kartu->user,
                 'jam' => $jamSekarang
             ]);
         } else {
@@ -196,7 +200,7 @@ class AbsensiController extends Controller
             if ($absensiHariIni->jam_pulang) {
                 return response()->json([
                     'message' => 'Sudah melakukan absen pulang hari ini',
-                    'siswa' => $kartu->siswa
+                    'user' => $kartu->user
                 ], 400);
             }
 
@@ -215,7 +219,7 @@ class AbsensiController extends Controller
             return response()->json([
                 'message' => 'Absen pulang berhasil',
                 'status' => $statusPulang,
-                'siswa' => $kartu->siswa,
+                'user' => $kartu->user,
                 'jam' => $jamSekarang
             ]);
         }

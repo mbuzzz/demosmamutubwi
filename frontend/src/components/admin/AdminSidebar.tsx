@@ -137,6 +137,13 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Rekening & QRIS", path: "/panel/settings/bank", icon: CreditCard },
         ]
       },
+      {
+        title: "Kiosk / Mesin Tap",
+        items: [
+          { name: "Mesin Tap Absensi", path: "/tap/absensi", icon: ScanLine },
+          { name: "Mesin Tap Pembayaran", path: "/tap/pembayaran", icon: CreditCard },
+        ]
+      },
     ];
   } else if (simulatedRole === 'bendahara') {
     navGroups = [

@@ -10,12 +10,19 @@ class KartuRfidController extends Controller
 {
     public function index()
     {
-        $kartu = KartuRfid::with('siswa')->get();
+        $kartu = KartuRfid::with('user')->get();
         return response()->json($kartu);
     }
 
     public function store(Request $request)
     {
+        $payload = $request->all();
+        // Map frontend fields if present
+        if (isset($payload['uid_rfid'])) $payload['uid'] = $payload['uid_rfid'];
+        if (isset($payload['user_id'])) $payload['siswa_id'] = $payload['user_id'];
+
+        $request->merge($payload);
+
         $validated = $request->validate([
             'uid' => 'required|string|unique:kartu_rfids,uid',
             'siswa_id' => 'required|exists:users,id',
@@ -35,6 +42,13 @@ class KartuRfidController extends Controller
     public function update(Request $request, $id)
     {
         $kartu = KartuRfid::findOrFail($id);
+
+        $payload = $request->all();
+        // Map frontend fields if present
+        if (isset($payload['uid_rfid'])) $payload['uid'] = $payload['uid_rfid'];
+        if (isset($payload['user_id'])) $payload['siswa_id'] = $payload['user_id'];
+
+        $request->merge($payload);
 
         $validated = $request->validate([
             'uid' => ['required', 'string', Rule::unique('kartu_rfids')->ignore($kartu->id)],

@@ -9,11 +9,11 @@ export default function AdminSettingsRfid() {
   const updateConfig = useUpdateRfidConfig();
   
   const [config, setConfig] = useState<Partial<RfidConfig>>({
-    waktu_masuk_mulai: '06:00:00',
-    waktu_masuk_akhir: '07:30:00',
-    waktu_pulang_mulai: '13:00:00',
-    waktu_pulang_akhir: '16:00:00',
-    mode: 'bebas'
+    pin: '123456',
+    jam_masuk: '07:00:00',
+    jam_pulang: '15:30:00',
+    toleransi_terlambat: 15,
+    batas_alpha: '08:00:00'
   });
 
   useEffect(() => {
@@ -51,30 +51,28 @@ export default function AdminSettingsRfid() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Waktu Masuk Mulai</label>
-              <input type="time" step="1" value={config.waktu_masuk_mulai || ''} onChange={e => setConfig({ ...config, waktu_masuk_mulai: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Jam Masuk (Reguler)</label>
+              <input type="time" step="1" value={config.jam_masuk || ''} onChange={e => setConfig({ ...config, jam_masuk: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Waktu Masuk Akhir</label>
-              <input type="time" step="1" value={config.waktu_masuk_akhir || ''} onChange={e => setConfig({ ...config, waktu_masuk_akhir: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Jam Pulang (Reguler)</label>
+              <input type="time" step="1" value={config.jam_pulang || ''} onChange={e => setConfig({ ...config, jam_pulang: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Waktu Pulang Mulai</label>
-              <input type="time" step="1" value={config.waktu_pulang_mulai || ''} onChange={e => setConfig({ ...config, waktu_pulang_mulai: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Toleransi Terlambat (Menit)</label>
+              <input type="number" min={0} value={config.toleransi_terlambat || 0} onChange={e => setConfig({ ...config, toleransi_terlambat: Number(e.target.value) })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <p className="text-[10px] text-slate-500 mt-1">Lebih dari ini dianggap Terlambat</p>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Waktu Pulang Akhir</label>
-              <input type="time" step="1" value={config.waktu_pulang_akhir || ''} onChange={e => setConfig({ ...config, waktu_pulang_akhir: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Batas Waktu Alpha</label>
+              <input type="time" step="1" value={config.batas_alpha || ''} onChange={e => setConfig({ ...config, batas_alpha: e.target.value })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <p className="text-[10px] text-slate-500 mt-1">Lewat jam ini dianggap Alpha</p>
             </div>
           </div>
-          <div className="mt-4">
-             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Mode Mesin Tap</label>
-             <select value={config.mode || 'bebas'} onChange={e => setConfig({ ...config, mode: e.target.value as any })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
-                <option value="absen_masuk">Absen Masuk Saja</option>
-                <option value="absen_pulang">Absen Pulang Saja</option>
-                <option value="bebas">Otomatis berdasarkan jam</option>
-                <option value="tutup">Tutup Mesin Tap</option>
-             </select>
+          <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-4">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Global PIN Gatekeeper</label>
+            <input type="text" maxLength={6} value={config.pin || ''} onChange={e => setConfig({ ...config, pin: e.target.value.replace(/[^0-9]/g, '') })} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" placeholder="123456" />
+            <p className="text-[10px] text-slate-500 mt-1">PIN 6 digit ini digunakan untuk masuk ke layar mesin tap</p>
           </div>
         </div>
 

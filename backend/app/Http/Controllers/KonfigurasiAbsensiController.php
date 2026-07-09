@@ -18,7 +18,7 @@ class KonfigurasiAbsensiController extends Controller
                 'jam_masuk' => '07:00:00',
                 'jam_pulang' => '15:00:00',
                 'toleransi_terlambat' => 15,
-                'batas_alpha' => 60,
+                'batas_alpha' => '08:00:00',
             ]);
         }
 
