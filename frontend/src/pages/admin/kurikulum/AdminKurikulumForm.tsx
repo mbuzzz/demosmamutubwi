@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useKurikulum, useCreateKurikulum, useUpdateKurikulum } from '../../../hooks/useKurikulum';
+import { useKelasList } from '../../../hooks/useKelas';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
   type DragEndEvent
@@ -92,6 +93,16 @@ function SortableBlock({ block, onToggle, onRemove, onEditProps }: {
               <option value="single_row">1 Baris</option>
             </select>
           )}
+          {block.type === 'teks_bebas' && (
+            <input
+              type="text"
+              placeholder="Masukkan teks bebas..."
+              value={(block.properties?.content as string) || ''}
+              onChange={e => onEditProps({ ...block.properties, content: e.target.value })}
+              className="text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 bg-white dark:bg-slate-900 w-48"
+              onClick={e => e.stopPropagation()}
+            />
+          )}
           <button onClick={onRemove} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10">
             <X className="w-4 h-4" />
           </button>
@@ -107,6 +118,7 @@ export default function AdminKurikulumForm() {
   const isEdit = !!id;
 
   const { data: existingData, isLoading: loadingExisting } = useKurikulum(isEdit ? id : undefined);
+  const { data: kelasList = [] } = useKelasList();
   const createKurikulum = useCreateKurikulum();
   const updateKurikulum = useUpdateKurikulum();
 
@@ -119,6 +131,7 @@ export default function AdminKurikulumForm() {
   const [kkmDefault, setKkmDefault] = useState(75);
   const [metodeRemedial, setMetodeRemedial] = useState('Maksimal setara KKM');
   const [usesTp, setUsesTp] = useState(false);
+  const [kelasIds, setKelasIds] = useState<string[]>([]);
 
   // Bobot penilaian
   const [bobotTugas, setBobotTugas] = useState(30);
@@ -154,6 +167,9 @@ export default function AdminKurikulumForm() {
       }
       if (k.rapor_template) {
         setRaporBlocks(k.rapor_template as RaporBlock[]);
+      }
+      if (existingData.kelas_ids) {
+        setKelasIds(existingData.kelas_ids.map(String));
       }
     }
   }, [existingData]);
@@ -226,6 +242,7 @@ export default function AdminKurikulumForm() {
         template_rendah: templateRendah,
         template_gabungan: '{kalimat_tinggi}, serta {kalimat_rendah}.',
       },
+      kelas_ids: kelasIds,
     };
 
     try {
@@ -313,6 +330,26 @@ export default function AdminKurikulumForm() {
                     <div className="flex items-center gap-2">
                       <input type="checkbox" id="usesTp" checked={usesTp} onChange={e => setUsesTp(e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                       <label htmlFor="usesTp" className="text-sm font-medium text-slate-700 dark:text-slate-200">Gunakan Tujuan Pembelajaran (TP)</label>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5 mt-2">Terapkan ke Kelas</label>
+                      <div className="grid grid-cols-2 gap-2 mt-1 max-h-48 overflow-y-auto pr-2 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                        {kelasList.map((k: any) => (
+                          <label key={k.id} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={kelasIds.includes(String(k.id))}
+                              onChange={e => {
+                                if (e.target.checked) setKelasIds([...kelasIds, String(k.id)]);
+                                else setKelasIds(kelasIds.filter(id => id !== String(k.id)));
+                              }}
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span className="text-xs text-slate-700 dark:text-slate-300">{k.nama} (Tingkat {k.tingkat})</span>
+                          </label>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-1">Kosongkan jika hanya sebagai draft atau berlaku untuk semua yang tidak memiliki kurikulum khusus.</p>
                     </div>
                   </div>
                 </div>

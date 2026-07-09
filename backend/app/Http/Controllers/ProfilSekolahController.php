@@ -42,7 +42,8 @@ class ProfilSekolahController extends Controller
         ]);
 
         $profil = ProfilSekolah::firstOrCreate([]);
-        $profil->update($validated);
+        $dataToUpdate = collect($validated)->except(['sejarah_foto', 'kepsek_foto'])->toArray();
+        $profil->update($dataToUpdate);
 
         if ($request->hasFile('sejarah_foto')) {
             if ($profil->sejarah_foto) Storage::disk('public')->delete($profil->sejarah_foto);

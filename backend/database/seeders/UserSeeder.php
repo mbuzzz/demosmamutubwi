@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Superadmin
+        // Hanya Superadmin yang dibuat untuk production
         User::create([
             'name' => 'Admin SMAS Muh 1',
             'username' => 'admin',
@@ -19,117 +19,6 @@ class UserSeeder extends Seeder
             'role' => 'superadmin',
             'nip_nisn' => '197501012000031001',
             'is_active' => true,
-        ]);
-
-        // Guru
-        User::create([
-            'name' => 'Rina Fitriani, S.Pd',
-            'username' => 'rina',
-            'email' => 'rina.guru@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'guru',
-            'nip_nisn' => '198205122008012004',
-            'jabatan' => 'Guru Matematika',
-            'is_active' => true,
-        ]);
-
-        // Wali Kelas
-        User::create([
-            'name' => 'Ahmad Fauzi, S.Pd',
-            'username' => 'ahmad',
-            'email' => 'ahmad.wali@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'walikelas',
-            'nip_nisn' => '198001012005011002',
-            'kelas' => 'X-1',
-            'jabatan' => 'Wali Kelas X-1',
-            'is_active' => true,
-        ]);
-
-        // Kepala Sekolah
-        User::create([
-            'name' => 'Drs. H. Sugeng, M.Pd',
-            'username' => 'sugeng',
-            'email' => 'sugeng.kepsek@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'kepala_sekolah',
-            'nip_nisn' => '196504121990031001',
-            'jabatan' => 'Kepala Sekolah',
-            'is_active' => true,
-        ]);
-
-        // Kurikulum
-        User::create([
-            'name' => 'Dewi Sartika, S.Pd',
-            'username' => 'dewi',
-            'email' => 'dewi.kuri@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'kurikulum',
-            'nip_nisn' => '198512102010012003',
-            'jabatan' => 'Waka Kurikulum',
-            'is_active' => true,
-        ]);
-
-        // Bendahara
-        User::create([
-            'name' => 'Siti Nurhaliza, S.E',
-            'username' => 'siti',
-            'email' => 'siti.bendahara@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'bendahara',
-            'nip_nisn' => '199009092015082001',
-            'jabatan' => 'Bendahara Sekolah',
-            'is_active' => true,
-        ]);
-
-        // Siswa 1
-        $agus = User::create([
-            'name' => 'Agus Setiawan',
-            'username' => 'agus',
-            'email' => 'agus.siswa@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'siswa',
-            'nip_nisn' => '0081234501',
-            'kelas' => 'X-1',
-            'uid_rfid' => 'RF:AB:12:CD:34',
-            'is_active' => true,
-        ]);
-
-        // Siswa 2
-        $budi = User::create([
-            'name' => 'Budi Santoso',
-            'username' => 'budi',
-            'email' => 'budi.siswa@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'siswa',
-            'nip_nisn' => '0081234502',
-            'kelas' => 'X-1',
-            'uid_rfid' => 'RF:EF:56:GH:78',
-            'is_active' => true,
-        ]);
-
-        // Orang Tua 1 (Agus's parent)
-        User::create([
-            'name' => 'Bapak Joko Setiawan',
-            'username' => 'joko',
-            'email' => 'joko.ortu@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'orang_tua',
-            'nip_nisn' => 'ORTU-0081234501',
-            'is_active' => true,
-            'siswa_id' => $agus->id,
-        ]);
-
-        // Orang Tua 2 (Budi's parent)
-        User::create([
-            'name' => 'Bapak Slamet Santoso',
-            'username' => 'slamet',
-            'email' => 'slamet.ortu@sit.sch.id',
-            'password' => Hash::make('1234'),
-            'role' => 'orang_tua',
-            'nip_nisn' => 'ORTU-0081234502',
-            'is_active' => true,
-            'siswa_id' => $budi->id,
         ]);
     }
 }

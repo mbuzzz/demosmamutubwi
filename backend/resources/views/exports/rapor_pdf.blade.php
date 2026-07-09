@@ -234,6 +234,19 @@
                     </table>
                 </div>
             @endif
+            
+            <!-- 7. TEKS BEBAS -->
+            @if($block['type'] === 'teks_bebas')
+                @php
+                    $props = $block['properties'] ?? [];
+                    $content = $props['content'] ?? '';
+                @endphp
+                @if($content)
+                <div class="mb-4" style="text-align: justify;">
+                    {{ $content }}
+                </div>
+                @endif
+            @endif
 
         @endif
     @endforeach

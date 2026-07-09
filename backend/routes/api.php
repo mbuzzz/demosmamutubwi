@@ -58,8 +58,8 @@ Route::prefix('public')->group(function () {
 });
 
 // Public RFID Tap Routes
-Route::post('/absensi/tap', [AbsensiController::class, 'tap']);
-Route::post('/absensi/verify-pin', [KonfigurasiAbsensiController::class, 'verifyPin']);
+Route::middleware('throttle:120,1')->post('/absensi/tap', [AbsensiController::class, 'tap']);
+Route::middleware('throttle:5,1')->post('/absensi/verify-pin', [KonfigurasiAbsensiController::class, 'verifyPin']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
