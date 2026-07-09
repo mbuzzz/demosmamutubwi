@@ -14,6 +14,9 @@ export default function AdminRfidCards() {
 
   const { data: kartu = [], isLoading } = useRfidCards();
   const { data: allSiswa = [] } = useUsers('siswa');
+  const { data: allGuru = [] } = useUsers('guru');
+  
+  const allUsers = [...allSiswa, ...allGuru];
   const createRfid = useCreateRfid();
   const updateRfid = useUpdateRfid();
 
@@ -33,14 +36,14 @@ export default function AdminRfidCards() {
     return true;
   });
 
-  const siswaTanpaKartu = allSiswa.filter(s => !kartu.find(k => k.user_id === parseInt(s.id)));
+  const siswaTanpaKartu = allUsers.filter(s => !kartu.find(k => k.user_id === parseInt(s.id)));
 
   const handleRegister = () => {
-    if (!siswaIdBaru) { toast.error('Pilih siswa'); return; }
+    if (!siswaIdBaru) { toast.error('Pilih pengguna'); return; }
     if (!uidBaru) { toast.error('UID Kartu tidak boleh kosong'); return; }
     if (!pinBaru || pinBaru.length !== 6) { toast.error('PIN harus 6 digit'); return; }
 
-    const siswa = allSiswa.find(s => s.id === siswaIdBaru);
+    const siswa = allUsers.find(s => s.id === siswaIdBaru);
     if (!siswa) return;
 
     createRfid.mutate({
@@ -110,11 +113,11 @@ export default function AdminRfidCards() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-700 dark:text-indigo-400 mb-1">Siswa</label>
+                  <label className="block text-xs font-semibold text-indigo-700 dark:text-indigo-400 mb-1">Pengguna (Siswa / Guru)</label>
                   <select value={siswaIdBaru} onChange={e => setSiswaIdBaru(e.target.value)}
                     className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-600 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">-- Pilih Siswa --</option>
-                    {siswaTanpaKartu.map(s => <option key={s.id} value={s.id}>{s.name} ({s.kelas || '-'})</option>)}
+                    <option value="">-- Pilih Pengguna --</option>
+                    {siswaTanpaKartu.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role} - {s.kelas || s.jabatan || '-'})</option>)}
                   </select>
                 </div>
                 <div>
@@ -137,14 +140,19 @@ export default function AdminRfidCards() {
           ) : (
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-200 dark:border-slate-700">
-              <tr><th className="px-5 py-4">UID Kartu</th><th className="px-5 py-4">Siswa</th><th className="px-5 py-4">Kelas</th><th className="px-5 py-4">Status</th><th className="px-5 py-4">Terdaftar</th><th className="px-5 py-4">Aksi</th></tr>
+              <tr><th className="px-5 py-4">UID Kartu</th><th className="px-5 py-4">Pengguna</th><th className="px-5 py-4">Role / Kelas</th><th className="px-5 py-4">Status</th><th className="px-5 py-4">Terdaftar</th><th className="px-5 py-4">Aksi</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
               {filtered.map(k => (
                 <tr key={k.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="px-5 py-4 font-mono font-bold text-indigo-600 dark:text-indigo-400 text-xs">{k.uid_rfid}</td>
-                  <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{k.user?.name}</td>
-                  <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{k.user?.kelas || '-'}</td>
+                  <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">
+                    {k.user?.name}
+                  </td>
+                  <td className="px-5 py-4 text-slate-600 dark:text-slate-300">
+                    <span className="uppercase text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full mr-2">{k.user?.role}</span>
+                    {k.user?.kelas || '-'}
+                  </td>
                   <td className="px-5 py-4">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_KARTU_BADGE[k.status].color}`}>
                       {STATUS_KARTU_BADGE[k.status].label}
@@ -169,12 +177,12 @@ export default function AdminRfidCards() {
       {siswaTanpaKartu.length > 0 && (
         <div className="mt-6 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-5">
           <h3 className="font-bold text-amber-800 dark:text-amber-300 text-sm flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-4 h-4" /> {siswaTanpaKartu.length} siswa belum memiliki kartu RFID
+            <AlertTriangle className="w-4 h-4" /> {siswaTanpaKartu.length} pengguna belum memiliki kartu RFID
           </h3>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
             {siswaTanpaKartu.map(s => (
-              <span key={s.id} className="text-xs font-semibold bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-600 text-slate-700 dark:text-slate-300">
-                {s.name} ({s.kelas || '-'})
+              <span key={s.id} className="text-[10px] font-semibold bg-white dark:bg-slate-900 px-2 py-1 rounded border border-amber-200 dark:border-amber-600 text-slate-700 dark:text-slate-300">
+                {s.name} ({s.role})
               </span>
             ))}
           </div>
