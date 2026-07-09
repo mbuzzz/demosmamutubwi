@@ -14,7 +14,6 @@ class Tugas extends Model
     protected $fillable = [
         'guru_id',
         'mapel_id',
-        'kelas_id',
         'judul',
         'instruksi',
         'lampiran_url',
@@ -34,7 +33,7 @@ class Tugas extends Model
 
     public function kelas()
     {
-        return $this->belongsTo(Kelas::class, 'kelas_id');
+        return $this->belongsToMany(Kelas::class, 'tugas_kelas', 'tugas_id', 'kelas_id')->withTimestamps();
     }
 
     public function komentarLms()

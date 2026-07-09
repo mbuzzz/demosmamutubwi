@@ -16,12 +16,13 @@ export default function GuruTugas() {
   const [search, setSearch] = useState('');
 
   const { data: classes = [] } = useGuruClasses();
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [filterClassId, setFilterClassId] = useState<string>('');
+  const [formClassIds, setFormClassIds] = useState<string[]>([]);
   
   const { data: mapels = [] } = useMapelList();
   const [selectedMapelId, setSelectedMapelId] = useState<string>('');
 
-  const { data: tugasList = [], isLoading } = useTugasList(selectedClassId);
+  const { data: tugasList = [], isLoading } = useTugasList(filterClassId);
   const createTugas = useCreateTugas();
   const deleteTugas = useDeleteTugas();
 
@@ -30,21 +31,25 @@ export default function GuruTugas() {
   );
 
   const handleSave = () => {
-    if (!judul || !selectedClassId || !selectedMapelId || !tenggatWaktu) return;
+    if (!judul || formClassIds.length === 0 || !selectedMapelId || !tenggatWaktu) return;
     
-    createTugas.mutate({
+    // Type casting because the generated interface might complain about new structure
+    const payload: any = {
       judul,
       deskripsi,
-      kelas_id: selectedClassId,
+      kelas_ids: formClassIds,
       tenggat_waktu: tenggatWaktu,
       mapel_id: selectedMapelId, 
-      guru_id: 'will-be-overridden-by-backend' // Usually overridden by auth token
-    }, {
+      guru_id: 'will-be-overridden-by-backend'
+    };
+
+    createTugas.mutate(payload, {
       onSuccess: () => {
         setView('list');
         setJudul('');
         setDeskripsi('');
         setTenggatWaktu('');
+        setFormClassIds([]);
       }
     });
   };
@@ -95,13 +100,23 @@ export default function GuruTugas() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Target Kelas</label>
-                  <select value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium dark:text-white">
-                    <option value="">Pilih Kelas</option>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Target Kelas (Bisa Pilih Lebih dari 1)</label>
+                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
                     {classes.map(c => (
-                      <option key={c.id} value={c.id}>{c.nama}</option>
+                      <label key={c.id} className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-slate-300 text-amber-500 focus:ring-amber-500" 
+                          checked={formClassIds.includes(String(c.id))}
+                          onChange={e => {
+                            if (e.target.checked) setFormClassIds([...formClassIds, String(c.id)]);
+                            else setFormClassIds(formClassIds.filter(id => id !== String(c.id)));
+                          }}
+                        />
+                        {c.nama}
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
                 <div>
@@ -110,7 +125,7 @@ export default function GuruTugas() {
                     value={selectedMapelId}
                     onChange={e => setSelectedMapelId(e.target.value)}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium dark:text-white"
-                    disabled={!selectedClassId}
+                    disabled={formClassIds.length === 0}
                   >
                     <option value="">Pilih Mapel</option>
                     {mapels.map((m: any) => (
@@ -136,7 +151,7 @@ export default function GuruTugas() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div className="flex gap-4 items-center">
           <div className="w-full sm:w-64">
-                  <select value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white shadow-sm">
+                  <select value={filterClassId} onChange={e => setFilterClassId(e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white shadow-sm">
               <option value="">Semua Kelas</option>
               {classes.map(c => (
                 <option key={c.id} value={c.id}>{c.nama}</option>
@@ -179,7 +194,7 @@ export default function GuruTugas() {
                         </span>
                       </div>
                       <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Tenggat: {new Date(t.tenggat_waktu).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-                      <div className="text-[10px] text-slate-500">{t.kelas?.nama}</div>
+                      <div className="text-[10px] text-slate-500 text-ellipsis overflow-hidden whitespace-nowrap max-w-xs">{t.kelas?.map((k: any) => k.nama).join(', ')}</div>
                     </div>
                     <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Link to={`/panel/guru/tugas/detail/${t.id}`} className="p-2 text-slate-400 hover:text-indigo-600 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700" title="Review Jawaban"><Search className="w-4 h-4" /></Link>

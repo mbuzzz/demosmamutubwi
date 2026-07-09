@@ -13,14 +13,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // PostgreSQL does not support ALTER COLUMN on enum easily.
-        // Change column to string type to allow all jenis values.
-        DB::statement("ALTER TABLE soals ALTER COLUMN jenis TYPE VARCHAR(20)");
+        Schema::table('soals', function (Blueprint $table) {
+            $table->string('jenis', 20)->change();
+        });
     }
 
     public function down(): void
     {
-        // Revert to original enum (only pg and essay)
-        DB::statement("ALTER TABLE soals ALTER COLUMN jenis TYPE VARCHAR(10)");
+        Schema::table('soals', function (Blueprint $table) {
+            $table->string('jenis', 10)->change();
+        });
     }
 };

@@ -14,7 +14,6 @@ class Materi extends Model
     protected $fillable = [
         'guru_id',
         'mapel_id',
-        'kelas_id',
         'judul',
         'tipe_file',
         'konten',
@@ -34,7 +33,7 @@ class Materi extends Model
 
     public function kelas()
     {
-        return $this->belongsTo(Kelas::class, 'kelas_id');
+        return $this->belongsToMany(Kelas::class, 'materi_kelas', 'materi_id', 'kelas_id')->withTimestamps();
     }
 
     public function komentarLms()

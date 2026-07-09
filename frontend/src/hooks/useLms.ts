@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 export interface Materi {
   id: string;
   guru_id: string;
-  kelas_id: string;
+  kelas_ids?: string[];
   mapel_id: string;
   judul: string;
   deskripsi?: string;
@@ -13,7 +13,7 @@ export interface Materi {
   created_at: string;
   updated_at: string;
   guru?: { id: string; nama: string };
-  kelas?: { id: string; nama: string };
+  kelas?: { id: string; nama: string }[];
   mapel?: { id: string; nama: string };
   comments?: LmsComment[];
 }
@@ -21,7 +21,7 @@ export interface Materi {
 export interface Tugas {
   id: string;
   guru_id: string;
-  kelas_id: string;
+  kelas_ids?: string[];
   mapel_id: string;
   judul: string;
   deskripsi?: string;
@@ -29,7 +29,7 @@ export interface Tugas {
   created_at: string;
   updated_at: string;
   guru?: { id: string; nama: string };
-  kelas?: { id: string; nama: string };
+  kelas?: { id: string; nama: string }[];
   mapel?: { id: string; nama: string };
   comments?: LmsComment[];
 }

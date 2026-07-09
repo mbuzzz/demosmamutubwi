@@ -17,29 +17,28 @@ class LmsMateriController extends Controller
         $user = $request->user();
 
         if ($user) {
+            $targetKelasId = null;
             if ($user->role === 'siswa') {
                 $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
-                if ($kelasObj) {
-                    $query->where('kelas_id', $kelasObj->id);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
+                if ($kelasObj) $targetKelasId = $kelasObj->id;
             } elseif ($user->role === 'orang_tua') {
                 $siswa = $user->siswa;
                 if ($siswa) {
                     $kelasObj = \App\Models\Kelas::where('nama', $siswa->kelas)->first();
-                    if ($kelasObj) {
-                        $query->where('kelas_id', $kelasObj->id);
-                    } else {
-                        $query->whereRaw('1 = 0');
-                    }
-                } else {
-                    $query->whereRaw('1 = 0');
+                    if ($kelasObj) $targetKelasId = $kelasObj->id;
                 }
             } else {
                 if ($request->has('kelas_id')) {
-                    $query->where('kelas_id', $request->kelas_id);
+                    $targetKelasId = $request->kelas_id;
                 }
+            }
+
+            if ($targetKelasId) {
+                $query->whereHas('kelas', function($q) use ($targetKelasId) {
+                    $q->where('kelas.id', $targetKelasId);
+                });
+            } elseif (in_array($user->role, ['siswa', 'orang_tua'])) {
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -64,7 +63,8 @@ class LmsMateriController extends Controller
         $validator = Validator::make($request->all(), [
             'guru_id' => 'required|exists:users,id',
             'mapel_id' => 'required|exists:mapels,id',
-            'kelas_id' => 'required|exists:kelas,id',
+            'kelas_ids' => 'required|array',
+            'kelas_ids.*' => 'exists:kelas,id',
             'judul' => 'required|string|max:255',
             'konten' => 'nullable|string',
             'file_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240', // 10MB max
@@ -77,7 +77,7 @@ class LmsMateriController extends Controller
             ], 422);
         }
 
-        $data = $request->except('file_url');
+        $data = $request->except(['file_url', 'kelas_ids']);
 
         if ($request->hasFile('file_url')) {
             $file = $request->file('file_url');
@@ -86,6 +86,9 @@ class LmsMateriController extends Controller
         }
 
         $materi = Materi::create($data);
+        if ($request->has('kelas_ids')) {
+            $materi->kelas()->sync($request->kelas_ids);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -125,7 +128,8 @@ class LmsMateriController extends Controller
         $validator = Validator::make($request->all(), [
             'guru_id' => 'sometimes|exists:users,id',
             'mapel_id' => 'sometimes|exists:mapels,id',
-            'kelas_id' => 'sometimes|exists:kelas,id',
+            'kelas_ids' => 'sometimes|array',
+            'kelas_ids.*' => 'exists:kelas,id',
             'judul' => 'sometimes|string|max:255',
             'konten' => 'nullable|string',
             'file_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
@@ -138,7 +142,7 @@ class LmsMateriController extends Controller
             ], 422);
         }
 
-        $data = $request->except('file_url');
+        $data = $request->except(['file_url', 'kelas_ids']);
 
         if ($request->hasFile('file_url')) {
             // Hapus file lama jika ada
@@ -153,6 +157,9 @@ class LmsMateriController extends Controller
         }
 
         $materi->update($data);
+        if ($request->has('kelas_ids')) {
+            $materi->kelas()->sync($request->kelas_ids);
+        }
 
         return response()->json([
             'status' => 'success',

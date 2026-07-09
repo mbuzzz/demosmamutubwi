@@ -15,8 +15,15 @@ export const api = axios.create({
 export function getFileUrl(path: string | undefined): string {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  if (path.startsWith('/')) return `${API_ROOT}${path}`;
-  return `${API_ROOT}/${path}`;
+  
+  let normalizedPath = path;
+  if (!normalizedPath.startsWith('/storage/') && !normalizedPath.startsWith('storage/')) {
+    normalizedPath = normalizedPath.startsWith('/') ? `/storage${normalizedPath}` : `/storage/${normalizedPath}`;
+  } else if (normalizedPath.startsWith('storage/')) {
+    normalizedPath = `/${normalizedPath}`;
+  }
+  
+  return `${API_ROOT}${normalizedPath}`;
 }
 
 // Add a request interceptor to attach the token if we store it in localStorage

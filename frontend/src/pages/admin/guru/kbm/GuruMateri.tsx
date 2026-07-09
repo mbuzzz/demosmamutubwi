@@ -16,12 +16,13 @@ export default function GuruMateri() {
   const [search, setSearch] = useState('');
   
   const { data: classes = [] } = useGuruClasses();
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [filterClassId, setFilterClassId] = useState<string>('');
+  const [formClassIds, setFormClassIds] = useState<string[]>([]);
   
   const { data: mapels = [] } = useMapelList();
   const [selectedMapelId, setSelectedMapelId] = useState<string>('');
 
-  const { data: materiList = [], isLoading } = useMateriList(selectedClassId);
+  const { data: materiList = [], isLoading } = useMateriList(filterClassId);
   const createMateri = useCreateMateri();
   const deleteMateri = useDeleteMateri();
 
@@ -30,12 +31,12 @@ export default function GuruMateri() {
   );
 
   const handleSave = () => {
-    if (!judul || !selectedClassId || !selectedMapelId) return;
+    if (!judul || formClassIds.length === 0 || !selectedMapelId) return;
     
     const formData = new FormData();
     formData.append('judul', judul);
     formData.append('deskripsi', deskripsi);
-    formData.append('kelas_id', selectedClassId);
+    formClassIds.forEach(id => formData.append('kelas_ids[]', id));
     formData.append('mapel_id', selectedMapelId);
     if (fileInput) {
       formData.append('file_url', fileInput);
@@ -47,6 +48,7 @@ export default function GuruMateri() {
         setJudul('');
         setDeskripsi('');
         setFileInput(null);
+        setFormClassIds([]);
       }
     });
   };
@@ -89,17 +91,23 @@ export default function GuruMateri() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Target Kelas</label>
-                    <select 
-                      value={selectedClassId}
-                      onChange={e => setSelectedClassId(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white"
-                    >
-                      <option value="">Pilih Kelas</option>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Target Kelas (Bisa Pilih Lebih dari 1)</label>
+                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
                       {classes.map(c => (
-                        <option key={c.id} value={c.id}>{c.nama}</option>
+                        <label key={c.id} className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" 
+                            checked={formClassIds.includes(String(c.id))}
+                            onChange={e => {
+                              if (e.target.checked) setFormClassIds([...formClassIds, String(c.id)]);
+                              else setFormClassIds(formClassIds.filter(id => id !== String(c.id)));
+                            }}
+                          />
+                          {c.nama}
+                        </label>
                       ))}
-                    </select>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Mata Pelajaran</label>
@@ -107,7 +115,7 @@ export default function GuruMateri() {
                       value={selectedMapelId}
                       onChange={e => setSelectedMapelId(e.target.value)}
                       className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white"
-                      disabled={!selectedClassId}
+                      disabled={formClassIds.length === 0}
                     >
                       <option value="">Pilih Mapel</option>
                       {mapels.map((m: any) => (
@@ -157,8 +165,8 @@ export default function GuruMateri() {
         <div className="flex gap-4 items-center">
           <div className="w-full sm:w-64">
             <select 
-              value={selectedClassId}
-              onChange={e => setSelectedClassId(e.target.value)}
+              value={filterClassId}
+              onChange={e => setFilterClassId(e.target.value)}
               className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold dark:text-white shadow-sm"
             >
               <option value="">Semua Kelas</option>
@@ -202,7 +210,7 @@ export default function GuruMateri() {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1">{m.judul}</h4>
-                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{m.kelas?.nama} • {new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3 text-ellipsis overflow-hidden whitespace-nowrap max-w-xs">{m.kelas?.map((k: any) => k.nama).join(', ')} • {new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
                     </div>
                     <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Link to={`/panel/guru/materi/detail/${m.id}`} className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Eye className="w-4 h-4" /></Link>
