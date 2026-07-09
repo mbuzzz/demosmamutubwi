@@ -42,7 +42,7 @@ export default function AdminCetakRaporDetail() {
   const siswa = rapor.siswa || {};
   const initials = siswa.name ? siswa.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : 'AS';
 
-  const template = responseData.kurikulum?.rapor_template || [
+  const template = (responseData as any).kurikulum?.rapor_template || [
     { id: 'kop', type: 'kop_surat', visible: true, properties: { mode: 'text_only' } },
     { id: 'biodata', type: 'biodata_siswa', visible: true },
     { id: 'nilai', type: 'tabel_nilai', visible: true },

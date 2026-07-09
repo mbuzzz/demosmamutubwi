@@ -41,7 +41,7 @@ export default function GuruTugasDetail() {
     name: s.siswa?.nama || 'Unknown',
     nisn: '0000', // dummy
     status: s.status,
-    time: s.status !== 'belum' ? new Date(s.updated_at).toLocaleString('id-ID') : '',
+    time: s.status !== 'belum' ? new Date(s.updated_at).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '',
     file: s.file_url ? s.file_url.split('/').pop() : null,
     file_url: s.file_url,
     fileType: s.file_url ? s.file_url.split('.').pop()?.toUpperCase() : null,
@@ -163,7 +163,7 @@ export default function GuruTugasDetail() {
                 <div className={`flex items-center gap-2 text-sm font-bold px-3 py-1.5 rounded-lg w-fit ${
                   !isPastDeadline ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10' : 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10'
                 }`}>
-                  <Clock className="w-4 h-4" /> {!isPastDeadline ? `Masih Dibuka (${new Date(tugas.tenggat_waktu).toLocaleString('id-ID')})` : 'Ditutup'}
+                  <Clock className="w-4 h-4" /> {!isPastDeadline ? `Masih Dibuka (${new Date(tugas.tenggat_waktu).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })})` : 'Ditutup'}
                 </div>
               </div>
 

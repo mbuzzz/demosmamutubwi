@@ -202,7 +202,7 @@ export default function GuruMateri() {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1">{m.judul}</h4>
-                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{m.kelas?.nama} • {new Date(m.created_at).toLocaleDateString('id-ID')}</div>
+                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{m.kelas?.nama} • {new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
                     </div>
                     <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Link to={`/panel/guru/materi/detail/${m.id}`} className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg"><Eye className="w-4 h-4" /></Link>

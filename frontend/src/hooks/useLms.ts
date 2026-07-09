@@ -66,7 +66,7 @@ export function useMateriList(kelasId?: string) {
     queryKey: ['materi', kelasId],
     queryFn: async () => {
       const res = await api.get<any>('/lms/materi', { params: { kelas_id: kelasId } });
-      const data = res.data.data || res.data;
+      const data = (res.data as any).data || res.data;
       return data.map((item: any) => ({ ...item, deskripsi: item.konten || item.deskripsi }));
     },
   });
@@ -78,7 +78,7 @@ export function useMateriDetail(id?: string) {
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<{ data: Materi }>(`/lms/materi/${id}`);
-      const item: any = res.data.data || res.data;
+      const item: any = (res.data as any).data || res.data;
       return { ...item, deskripsi: item.konten || item.deskripsi };
     },
     enabled: !!id,
@@ -166,7 +166,7 @@ export function useTugasList(kelasId?: string) {
     queryKey: ['tugas', kelasId],
     queryFn: async () => {
       const res = await api.get<any>('/lms/tugas', { params: { kelas_id: kelasId } });
-      return res.data.data || res.data;
+      return (res.data as any).data || res.data;
     },
   });
 }
@@ -177,7 +177,7 @@ export function useTugasDetail(id?: string) {
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<{ data: Tugas }>(`/lms/tugas/${id}`);
-      const item: any = res.data.data || res.data;
+      const item: any = (res.data as any).data || res.data;
       return { ...item, deskripsi: item.instruksi || item.deskripsi };
     },
     enabled: !!id,
@@ -262,7 +262,7 @@ export function useGetSubmissions(tugasId?: string) {
     queryFn: async () => {
       if (!tugasId) return [];
       const res = await api.get<any>(`/lms/tugas/${tugasId}/submissions`);
-      const data = res.data.data || res.data;
+      const data = (res.data as any).data || res.data;
       return data.map((item: any) => ({ ...item, deskripsi: item.instruksi || item.deskripsi }));
     },
     enabled: !!tugasId,
@@ -275,7 +275,7 @@ export function useMySubmission(tugasId?: string) {
     queryFn: async () => {
       if (!tugasId) return null;
       const res = await api.get<{ data: any }>(`/lms/tugas/${tugasId}/my-submission`);
-      return res.data.data;
+      return (res.data as any).data || res.data;
     },
     enabled: !!tugasId,
   });

@@ -89,7 +89,7 @@ export default function GuruMateriDetail() {
                   </div>
                   <div className="flex-1">
                     <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-1">{materi.judul}</h2>
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{materi.kelas?.nama} • Dipublikasikan: {new Date(materi.created_at).toLocaleDateString('id-ID')}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{materi.kelas?.nama} • Dipublikasikan: {new Date(materi.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                   </div>
                 </div>
 
@@ -173,7 +173,7 @@ export default function GuruMateriDetail() {
                       <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700/50">
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-xs font-bold text-slate-800 dark:text-white">{c.user?.nama}</span>
-                          <span className="text-[10px] text-slate-400">{new Date(c.created_at).toLocaleDateString('id-ID')}</span>
+                          <span className="text-[10px] text-slate-400">{new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
                         <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{c.isi_komentar}</p>
                       </div>

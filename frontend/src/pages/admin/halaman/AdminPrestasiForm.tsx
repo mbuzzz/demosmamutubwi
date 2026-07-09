@@ -18,8 +18,6 @@ export default function AdminPrestasiForm() {
   const [form, setForm] = useState({
     judul: '',
     kategori: 'akademik',
-    tingkat: 'kabupaten',
-    tahun: new Date().getFullYear(),
     deskripsi: '',
   });
   const [image, setImage] = useState<File | null>(null);
@@ -31,13 +29,11 @@ export default function AdminPrestasiForm() {
       if (prestasi) {
         setForm({
           judul: prestasi.judul,
-          kategori: prestasi.kategori,
-          tingkat: prestasi.tingkat,
-          tahun: prestasi.tahun,
+          kategori: prestasi.kategori || 'akademik',
           deskripsi: prestasi.deskripsi || '',
         });
-        if (prestasi.image_path) {
-          setExistingImage(prestasi.image_path);
+        if (prestasi.gambar) {
+          setExistingImage(prestasi.gambar);
         }
       } else {
         toast.error('Data prestasi tidak ditemukan');
@@ -53,10 +49,8 @@ export default function AdminPrestasiForm() {
     const payload = new FormData();
     payload.append('judul', form.judul);
     payload.append('kategori', form.kategori);
-    payload.append('tingkat', form.tingkat);
-    payload.append('tahun', form.tahun.toString());
     payload.append('deskripsi', form.deskripsi);
-    if (image) payload.append('image', image);
+    if (image) payload.append('gambar', image);
 
     try {
       if (isEdit) {
@@ -119,31 +113,6 @@ export default function AdminPrestasiForm() {
                     <option value="non_akademik">Non Akademik</option>
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-200">Tingkat</label>
-                  <select 
-                    value={form.tingkat}
-                    onChange={e => setForm({ ...form, tingkat: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-all"
-                  >
-                    <option value="sekolah">Sekolah</option>
-                    <option value="kabupaten">Kabupaten</option>
-                    <option value="provinsi">Provinsi</option>
-                    <option value="nasional">Nasional</option>
-                    <option value="internasional">Internasional</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-200">Tahun</label>
-                <input 
-                  type="number" 
-                  value={form.tahun}
-                  onChange={e => setForm({ ...form, tahun: Number(e.target.value) })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-all"
-                  required
-                />
               </div>
 
               <div className="space-y-2">

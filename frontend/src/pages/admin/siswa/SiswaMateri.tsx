@@ -58,7 +58,7 @@ export default function SiswaMateri() {
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-1">{selectedMateri.judul}</h2>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedMateri.mapel?.nama} • Dipublikasikan: {new Date(selectedMateri.created_at).toLocaleDateString('id-ID')}</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedMateri.mapel?.nama} • Dipublikasikan: {new Date(selectedMateri.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                 </div>
               </div>
 
@@ -105,7 +105,7 @@ export default function SiswaMateri() {
                           {c.user?.nama} 
                           {c.user?.role_akses === 'guru' && <span className="text-[9px] bg-indigo-600 text-white px-1 rounded font-normal">Guru</span>}
                         </span>
-                        <span className="text-[10px] text-slate-400"><Clock className="w-2.5 h-2.5 inline mr-1" />{new Date(c.created_at).toLocaleDateString('id-ID')}</span>
+                        <span className="text-[10px] text-slate-400"><Clock className="w-2.5 h-2.5 inline mr-1" />{new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                       </div>
                       <p className="text-xs text-slate-650 dark:text-slate-350 leading-relaxed">{c.isi_komentar}</p>
                     </div>
@@ -149,7 +149,7 @@ export default function SiswaMateri() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{m.judul}</h4>
-                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{m.mapel?.nama} • {new Date(m.created_at).toLocaleDateString('id-ID')}</div>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{m.mapel?.nama} • {new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400`}>
                       MATERI

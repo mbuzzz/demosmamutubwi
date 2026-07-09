@@ -178,7 +178,7 @@ export default function GuruTugas() {
                           {!isPastDeadline ? 'Aktif' : 'Ditutup'}
                         </span>
                       </div>
-                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Tenggat: {new Date(t.tenggat_waktu).toLocaleString('id-ID')}</div>
+                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Tenggat: {new Date(t.tenggat_waktu).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-[10px] text-slate-500">{t.kelas?.nama}</div>
                     </div>
                     <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -72,7 +72,7 @@ export default function SiswaTugas() {
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-1">{selectedTugas.judul}</h2>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedTugas.mapel?.nama} • Deadline: <span className="text-amber-600">{new Date(selectedTugas.tenggat_waktu).toLocaleString('id-ID')}</span></p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedTugas.mapel?.nama} • Deadline: <span className="text-amber-600">{new Date(selectedTugas.tenggat_waktu).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></p>
                 </div>
               </div>
 
@@ -113,7 +113,7 @@ export default function SiswaTugas() {
                       <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
                       <div>
                         <div className="text-xs font-bold text-slate-800 dark:text-white">{fileJawaban}</div>
-                        <p className="text-[10px] text-slate-400">Tepat Waktu • Diupload pada {new Date(mySubmission!.updated_at).toLocaleDateString('id-ID')}</p>
+                        <p className="text-[10px] text-slate-400">Tepat Waktu • Diupload pada {new Date(mySubmission!.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                       </div>
                     </div>
                     {mySubmission?.file_url && (
@@ -187,7 +187,7 @@ export default function SiswaTugas() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-slate-800 dark:text-white leading-tight mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{t.judul}</h4>
-                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{t.mapel?.nama} • Deadline: {new Date(t.tenggat_waktu).toLocaleString('id-ID')}</div>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{t.mapel?.nama} • Deadline: {new Date(t.tenggat_waktu).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                   <div className="flex items-center gap-2">
                     <span className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-lg whitespace-nowrap bg-slate-100 text-slate-500`}>Lihat Detail</span>
                   </div>

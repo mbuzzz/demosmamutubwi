@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Search, Trash2, Edit, Award, Loader2 } from 'lucide-react';
+import { Plus, Search, Award, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePrestasiList, useDeletePrestasi } from '../../../hooks/usePrestasi';
@@ -10,7 +10,7 @@ export default function AdminPrestasiList() {
   const { data: prestasiList, isLoading } = usePrestasiList();
   const deletePrestasi = useDeletePrestasi();
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number | string) => {
     if (!confirm('Yakin ingin menghapus prestasi ini?')) return;
     await deletePrestasi.mutateAsync(id);
   };
