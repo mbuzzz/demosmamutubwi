@@ -55,8 +55,21 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-700/50 pt-6 text-center text-xs text-slate-400">
-        &copy; {new Date().getFullYear()} {config?.nama_sekolah || 'SMAS Muhammadiyah 1 Banyuwangi'}. All Rights Reserved.
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-700/50 pt-6 text-center text-xs text-slate-400 space-y-1.5">
+        <p>
+          &copy; {new Date().getFullYear()} {config?.nama_sekolah || 'SMAS Muhammadiyah 1 Banyuwangi'}. All Rights Reserved.
+        </p>
+        <p>
+          Created by{' '}
+          <a
+            href="https://rayan.web.id"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-teal hover:text-brand-yellow font-semibold transition-colors underline-offset-2 hover:underline"
+          >
+            PT. Rayan Smart Kreatif
+          </a>
+        </p>
       </div>
     </footer>
   );
