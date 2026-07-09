@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../ThemeProvider';
 import { useAuth } from '../auth/AuthContext';
 import NotificationDropdown from './NotificationDropdown';
+import { getFileUrl } from '../../lib/api';
 
 const ROLE_LABELS: Record<string, string> = {
   superadmin: 'Superadmin',
@@ -110,9 +111,17 @@ export default function AdminHeader({
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-2.5 sm:gap-3 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-800 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-slate-100 dark:border-slate-800 dark:hover:border-slate-700"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-              {userInitials}
-            </div>
+            {user?.foto ? (
+              <img 
+                src={getFileUrl(`/storage/${user.foto}`)} 
+                alt="Avatar" 
+                className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                {userInitials}
+              </div>
+            )}
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200 leading-none mb-1">{userName}</span>
               <span className="text-[10px] font-semibold text-slate-450 dark:text-slate-400 leading-none">{userRole}</span>

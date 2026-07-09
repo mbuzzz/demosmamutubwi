@@ -40,7 +40,11 @@ export default function FormSPMB() {
         data_form: Object.keys(extraData).length > 0 ? extraData : undefined,
       });
       toast.success('Pendaftaran Berhasil! Silakan cek email untuk informasi selanjutnya.');
-      navigate('/');
+      if (gelombang.redirect_url) {
+        window.location.href = gelombang.redirect_url;
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Gagal mendaftar';
       toast.error(msg);

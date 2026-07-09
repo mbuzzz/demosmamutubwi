@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { useUsers, useDeleteUser, useCreateUser, type UserRecord } from '../../../hooks/useUsers';
+import { getFileUrl } from '../../../lib/api';
 
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   superadmin: { label: 'Superadmin', color: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400' },
@@ -252,9 +253,13 @@ export default function AdminUserList() {
                       <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-sm shadow-inner">
-                              {initial}
-                            </div>
+                            {u.foto ? (
+                              <img src={getFileUrl(`/storage/${u.foto}`)} alt="Avatar" className="w-10 h-10 rounded-full object-cover shadow-inner" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-sm shadow-inner">
+                                {initial}
+                              </div>
+                            )}
                             <div>
                               <div className="font-bold text-slate-800 dark:text-white text-sm">{u.name}</div>
                               <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{u.email}</div>

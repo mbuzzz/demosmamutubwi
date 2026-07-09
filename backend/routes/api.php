@@ -40,6 +40,7 @@ use App\Http\Controllers\KategoriBeritaController;
 use App\Http\Controllers\GaleriController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\TestimoniController;
+use App\Http\Controllers\PrestasiController;
 
 // Public CMS Routes
 Route::prefix('public')->group(function () {
@@ -49,6 +50,7 @@ Route::prefix('public')->group(function () {
     Route::get('/kategori-berita', [KategoriBeritaController::class, 'publicIndex']);
     Route::get('/galeri', [GaleriController::class, 'index']);
     Route::get('/faq', [FaqController::class, 'index']);
+    Route::get("/prestasi", [PrestasiController::class, "index"]);
     Route::get('/testimoni', [TestimoniController::class, 'index']);
     
     // Public Guru Directory
@@ -161,6 +163,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/kategori-berita', [KategoriBeritaController::class, 'index']);
         Route::apiResource('kategori-berita', KategoriBeritaController::class)->except(['index', 'show']);
         Route::apiResource('galeri', GaleriController::class)->except(['index', 'show']);
+        Route::apiResource("prestasi", PrestasiController::class)->except(["index", "show"]);
         Route::apiResource('faq', FaqController::class)->except(['index', 'show']);
         Route::apiResource('testimoni', TestimoniController::class)->except(['index', 'show']);
     });

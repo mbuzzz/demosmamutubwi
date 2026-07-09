@@ -113,6 +113,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Halaman Beranda", path: "/panel/beranda", icon: LayoutTemplate },
           { name: "Profil Sekolah", path: "/panel/profil-sekolah", icon: Building2 },
+          { name: "Prestasi Unggulan", path: "/panel/prestasi", icon: Award },
           { name: "Daftar Berita", path: "/panel/berita", icon: Newspaper },
           { name: "Kategori Berita", path: "/panel/kategori-berita", icon: Tags },
           { name: "Galeri Foto", path: "/panel/galeri", icon: ImageIcon },

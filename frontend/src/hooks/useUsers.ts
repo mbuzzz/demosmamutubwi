@@ -15,6 +15,7 @@ export interface UserRecord {
   uid_rfid?: string | null;
   is_active?: boolean;
   siswa_id?: number | null;
+  foto?: string | null;
 }
 
 export function useUsers(role?: string, search?: string, kelas?: string) {

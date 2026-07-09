@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 const PERIODE_BERULANG = ['Bulanan', 'Mingguan', 'Tahunan'];
 
 function isPeriodeBerulang(periode: string): boolean {
+  if (!periode) return false;
   return PERIODE_BERULANG.some(p => periode.toLowerCase().includes(p.toLowerCase()));
 }
 

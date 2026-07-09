@@ -11,7 +11,7 @@ class GelombangPendaftaran extends Model
 
     protected $fillable = [
         'nama', 'tanggal_mulai', 'tanggal_selesai',
-        'kuota', 'biaya_pendaftaran', 'is_active',
+        'kuota', 'biaya_pendaftaran', 'is_active', 'redirect_url'
     ];
 
     protected function casts(): array

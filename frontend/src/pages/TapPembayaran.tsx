@@ -80,7 +80,7 @@ export default function TapPembayaran() {
   }, [rfidValue, processRfidScan]);
 
   useEffect(() => {
-    const timer = setInterval(() => setWaktu(waktuSekarang()), 10000);
+    const timer = setInterval(() => setWaktu(waktuSekarang()), 1000);
     return () => clearInterval(timer);
   }, []);
 

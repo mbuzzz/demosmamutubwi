@@ -2,6 +2,7 @@ import AdminLayout from '../../../../components/admin/AdminLayout';
 import { ArrowLeft, Printer, CheckCircle } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useRapor } from '../../../../hooks/useRapor';
+import { getFileUrl } from '../../../../lib/api';
 
 export default function AdminCetakRaporDetail() {
   const { id } = useParams<{ id: string }>();
@@ -64,9 +65,13 @@ export default function AdminCetakRaporDetail() {
         {/* Status Panel */}
         <div className="w-full lg:w-64 shrink-0 space-y-4">
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5">
-            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-3">
-              {initials}
-            </div>
+            {siswa.foto ? (
+              <img src={getFileUrl(`/storage/${siswa.foto}`)} alt="Avatar" className="w-16 h-16 rounded-full object-cover shadow-sm mx-auto mb-3" />
+            ) : (
+              <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-3">
+                {initials}
+              </div>
+            )}
             <h3 className="font-bold text-center text-slate-800 dark:text-white">{siswa.name}</h3>
             <p className="text-center text-xs text-slate-500 dark:text-slate-400 mb-4">NISN: {siswa.nip_nisn || '—'} • Kelas {siswa.kelas}</p>
             

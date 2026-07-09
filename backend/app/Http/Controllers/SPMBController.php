@@ -29,6 +29,7 @@ class SPMBController extends Controller
             'kuota' => 'nullable|integer|min:1',
             'biaya_pendaftaran' => 'required|numeric|min:0',
             'is_active' => 'boolean',
+            'redirect_url' => 'nullable|string|max:255',
         ]);
 
         $gelombang = GelombangPendaftaran::create($validated);
@@ -56,6 +57,7 @@ class SPMBController extends Controller
             'kuota' => 'nullable|integer|min:1',
             'biaya_pendaftaran' => 'required|numeric|min:0',
             'is_active' => 'boolean',
+            'redirect_url' => 'nullable|string|max:255',
         ]);
 
         $gelombang->update($validated);

@@ -212,6 +212,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
           title: "Web Publik",
           items: [
             { name: "Edit Profil Sekolah", path: "/panel/profil-sekolah", icon: Building2 },
+            { name: "Edit Prestasi", path: "/panel/prestasi", icon: Award },
             { name: "Kelola Berita", path: "/panel/berita", icon: Newspaper },
           ]
         }

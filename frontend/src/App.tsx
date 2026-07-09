@@ -25,6 +25,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Web Profile Admin Pages
 import AdminBeranda from './pages/admin/halaman/AdminBeranda';
 import AdminProfilSekolah from './pages/admin/halaman/AdminProfilSekolah';
+import AdminPrestasiList from './pages/admin/halaman/AdminPrestasiList';
 import AdminFaqTestimoni from './pages/admin/web/AdminFaqTestimoni';
 
 import AdminDashboard from './pages/admin/Dashboard';
@@ -137,6 +138,7 @@ export default function App() {
         <Route path="/bendahara" element={<LoginBendahara />} />
         <Route path="/tap/absensi" element={<TapAbsensi />} />
         <Route path="/tap/pembayaran" element={<TapPembayaran />} />
+        <Route path="/tap/bendahara" element={<TapPembayaran />} />
 
         {/* ========== SUPERADMIN / ADMIN ========== */}
         <Route path="/panel" element={<ProtectedRoute requiredRole="superadmin"><AdminDashboard /></ProtectedRoute>} />

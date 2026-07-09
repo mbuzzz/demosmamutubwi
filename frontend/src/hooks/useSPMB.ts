@@ -11,6 +11,7 @@ export interface GelombangRecord {
   kuota: number | null;
   biaya_pendaftaran: number;
   is_active: boolean;
+  redirect_url?: string | null;
   pendaftars_count?: number;
 }
 
