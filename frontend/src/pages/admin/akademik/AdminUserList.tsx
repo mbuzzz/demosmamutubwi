@@ -3,7 +3,7 @@ import { Plus, Search, Edit, Trash2, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useUserList, useDeleteUser, type UserRole } from '../../../hooks/useUsers';
+import { useUsers, useDeleteUser, type UserRecord } from '../../../hooks/useUsers';
 import { getFileUrl } from '../../../lib/api';
 
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
@@ -22,7 +22,7 @@ export default function AdminUserList() {
   const [search, setSearch] = useState('');
 
   // Queries & Mutations
-  const { data: users = [], isLoading, isError } = useUserList(activeTab);
+  const { data: users = [], isLoading, isError } = useUsers(activeTab !== 'semua' ? activeTab : undefined, search);
   const deleteUserMutation = useDeleteUser();
 
   const tabs = [
