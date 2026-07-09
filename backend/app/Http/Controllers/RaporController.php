@@ -39,7 +39,23 @@ class RaporController extends Controller
 
     public function show($id)
     {
-        $rapor = Rapor::with(['siswa', 'nilaiEkskuls.ekskul', 'sikaps'])->findOrFail($id);
+        try {
+            $rapor = Rapor::with(['siswa', 'nilaiEkskuls.ekskul', 'sikaps'])->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => "Rapor dengan ID {$id} tidak ditemukan. Buat rapor dulu dari menu Cetak Rapor.",
+            ], 404);
+        } catch (\Throwable $e) {
+            // Fallback if sikap_rapors table missing / relation broken
+            \Log::warning('Rapor show with sikaps failed: ' . $e->getMessage());
+            $rapor = Rapor::with(['siswa', 'nilaiEkskuls.ekskul'])->find($id);
+            if (!$rapor) {
+                return response()->json([
+                    'message' => "Rapor dengan ID {$id} tidak ditemukan.",
+                ], 404);
+            }
+        }
+
         $user = auth()->user();
         if ($user) {
             if ($user->role === 'siswa' && $rapor->siswa_id != $user->id) {
@@ -49,11 +65,17 @@ class RaporController extends Controller
                 abort(403, 'Unauthorized');
             }
         }
+
         $siswa = $rapor->siswa;
+        if (!$siswa) {
+            return response()->json([
+                'message' => 'Data siswa untuk rapor ini tidak ditemukan (siswa mungkin sudah dihapus).',
+            ], 422);
+        }
 
         // Get class info
         $kelas = Kelas::where('nama', $siswa->kelas)->first();
-        
+
         // Get active curriculum
         $config = SistemKonfigurasi::first();
         $kurikulum = null;
@@ -63,7 +85,7 @@ class RaporController extends Controller
         if (!$kurikulum && $config && $config->kurikulum_aktif_id) {
             $kurikulum = Kurikulum::find($config->kurikulum_aktif_id);
         }
-        
+
         // Get student grades
         $nilais = Nilai::with('mapel')
             ->where('siswa_id', $siswa->id)
@@ -71,17 +93,21 @@ class RaporController extends Controller
             ->where('semester', $rapor->semester)
             ->get();
 
-        // Create default sikaps if none exist
-        if ($rapor->sikaps->isEmpty()) {
-            $rapor->sikaps()->create([
-                'sikap' => 'spiritual',
-                'deskripsi' => 'Baik, sangat rajin melaksanakan sholat dhuha dan dhuhur berjamaah.'
-            ]);
-            $rapor->sikaps()->create([
-                'sikap' => 'sosial',
-                'deskripsi' => 'Sangat Baik, menunjukkan sikap santun kepada guru dan kepedulian tinggi terhadap teman.'
-            ]);
-            $rapor->load('sikaps');
+        // Create default sikaps if relation available and empty
+        try {
+            if (method_exists($rapor, 'sikaps') && $rapor->relationLoaded('sikaps') && $rapor->sikaps->isEmpty()) {
+                $rapor->sikaps()->create([
+                    'sikap' => 'spiritual',
+                    'deskripsi' => 'Baik, sangat rajin melaksanakan sholat dhuha dan dhuhur berjamaah.',
+                ]);
+                $rapor->sikaps()->create([
+                    'sikap' => 'sosial',
+                    'deskripsi' => 'Sangat Baik, menunjukkan sikap santun kepada guru dan kepedulian tinggi terhadap teman.',
+                ]);
+                $rapor->load('sikaps');
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal membuat default sikap rapor: ' . $e->getMessage());
         }
 
         return response()->json([
@@ -107,11 +133,30 @@ class RaporController extends Controller
             'status' => 'string|in:draft,published',
         ]);
 
-        $rapor = Rapor::create($validated);
+        // Avoid duplicate rapor for same student + year + semester
+        $existing = Rapor::where('siswa_id', $validated['siswa_id'])
+            ->where('tahun_ajaran', $validated['tahun_ajaran'])
+            ->where('semester', $validated['semester'])
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Rapor untuk siswa ini pada tahun/semester tersebut sudah ada',
+                'rapor' => $existing->load('siswa'),
+            ]);
+        }
+
+        $rapor = Rapor::create(array_merge([
+            'sakit' => 0,
+            'izin' => 0,
+            'alpha' => 0,
+            'terlambat' => 0,
+            'status' => 'draft',
+        ], $validated));
 
         return response()->json([
             'message' => 'Rapor berhasil dibuat',
-            'rapor' => $rapor,
+            'rapor' => $rapor->load('siswa'),
         ], 201);
     }
 

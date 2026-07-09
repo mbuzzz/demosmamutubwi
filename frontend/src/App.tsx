@@ -172,9 +172,9 @@ export default function App() {
         <Route path="/panel/kelas" element={<ProtectedRoute requiredRole="superadmin"><AdminKelasList /></ProtectedRoute>} />
         <Route path="/panel/mapel" element={<ProtectedRoute requiredRole="superadmin"><AdminMapelList /></ProtectedRoute>} />
         <Route path="/panel/nilai" element={<ProtectedRoute requiredRole="superadmin"><AdminNilaiEntry /></ProtectedRoute>} />
-        <Route path="/panel/rapor" element={<ProtectedRoute requiredRole="superadmin"><AdminRaporList /></ProtectedRoute>} />
-        <Route path="/panel/rapor/catatan" element={<ProtectedRoute requiredRole="superadmin"><AdminCatatanWali /></ProtectedRoute>} />
-        <Route path="/panel/rapor/cetak/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminCetakRaporDetail /></ProtectedRoute>} />
+        <Route path="/panel/rapor" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminRaporList /></ProtectedRoute>} />
+        <Route path="/panel/rapor/catatan" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminCatatanWali /></ProtectedRoute>} />
+        <Route path="/panel/rapor/cetak/:id" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminCetakRaporDetail /></ProtectedRoute>} />
         <Route path="/panel/settings" element={<ProtectedRoute requiredRole="superadmin"><AdminSettings /></ProtectedRoute>} />
         <Route path="/panel/settings/rfid" element={<ProtectedRoute requiredRole="superadmin"><AdminSettingsRfid /></ProtectedRoute>} />
         <Route path="/panel/settings/bank" element={<ProtectedRoute requiredRole="superadmin"><AdminSettingsBank /></ProtectedRoute>} />

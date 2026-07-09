@@ -196,15 +196,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/nilai-tp', [NilaiTpController::class, 'store']);
     });
 
-    // 9. NILAI & RAPOR (Superadmin, Admin, Guru, Kurikulum, Siswa, Orang Tua)
-    Route::middleware('role:superadmin,admin,guru,kurikulum,siswa,orang_tua')->group(function () {
+    // 9. NILAI & RAPOR (includes walikelas & kepala_sekolah for cetak/view)
+    Route::middleware('role:superadmin,admin,guru,walikelas,kepala_sekolah,kurikulum,siswa,orang_tua')->group(function () {
         Route::get('/nilais', [NilaiController::class, 'index']);
         Route::get('/rapors', [RaporController::class, 'index']);
         Route::get('/rapors/{id}', [RaporController::class, 'show']);
         Route::get('/rapors/{id}/pdf', [RaporController::class, 'exportPdf']);
     });
 
-    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum')->group(function () {
         Route::get('/nilai/monitoring-uh', [NilaiController::class, 'monitoringUH']);
         Route::post('/nilais', [NilaiController::class, 'store']);
         Route::post('/rapors', [RaporController::class, 'store']);
