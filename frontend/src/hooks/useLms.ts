@@ -66,7 +66,8 @@ export function useMateriList(kelasId?: string) {
     queryKey: ['materi', kelasId],
     queryFn: async () => {
       const res = await api.get<any>('/lms/materi', { params: { kelas_id: kelasId } });
-      return res.data.data || res.data;
+      const data = res.data.data || res.data;
+      return data.map((item: any) => ({ ...item, deskripsi: item.konten || item.deskripsi }));
     },
   });
 }
@@ -77,7 +78,8 @@ export function useMateriDetail(id?: string) {
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<Materi>(`/lms/materi/${id}`);
-      return res.data;
+      const item: any = res.data.data || res.data;
+      return { ...item, deskripsi: item.konten || item.deskripsi };
     },
     enabled: !!id,
   });
@@ -175,7 +177,8 @@ export function useTugasDetail(id?: string) {
     queryFn: async () => {
       if (!id) return null;
       const res = await api.get<Tugas>(`/lms/tugas/${id}`);
-      return res.data;
+      const item: any = res.data.data || res.data;
+      return { ...item, deskripsi: item.instruksi || item.deskripsi };
     },
     enabled: !!id,
   });
@@ -259,7 +262,8 @@ export function useGetSubmissions(tugasId?: string) {
     queryFn: async () => {
       if (!tugasId) return [];
       const res = await api.get<any>(`/lms/tugas/${tugasId}/submissions`);
-      return res.data.data || res.data;
+      const data = res.data.data || res.data;
+      return data.map((item: any) => ({ ...item, deskripsi: item.instruksi || item.deskripsi }));
     },
     enabled: !!tugasId,
   });

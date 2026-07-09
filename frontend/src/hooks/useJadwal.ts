@@ -15,6 +15,7 @@ export interface JadwalRecord {
   guru_id?: string | null;
   mapel?: { id: string; nama: string; kode: string } | null;
   guru?: { id: string; name: string } | null;
+  kelas?: { id: string; nama: string; tingkat: string } | null;
 }
 
 export function useJadwal(kelasId?: string) {

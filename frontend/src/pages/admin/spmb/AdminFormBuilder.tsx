@@ -175,6 +175,11 @@ export default function AdminFormBuilder() {
                     <div className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
                       <span className="flex items-center gap-1"><ToggleLeft className="w-3.5 h-3.5 text-slate-400" /> {field.field_type}</span>
                       <span>Urutan: <strong>{field.urutan}</strong></span>
+                      {field.gelombang_id ? (
+                        <span className="text-emerald-500 font-medium">Gelombang Khusus</span>
+                      ) : (
+                        <span className="text-indigo-500 font-medium">Semua Gelombang</span>
+                      )}
                       {field.options && <span className="text-indigo-500 truncate max-w-[200px]">[{field.options.join(', ')}]</span>}
                     </div>
                   </div>

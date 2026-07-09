@@ -27,20 +27,23 @@ class JadwalController extends Controller
             }
         }
 
-        if (!$kelasId) {
+        $config = SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+
+        $query = Jadwal::with(['mapel', 'guru', 'kelas'])
+            ->where('tahun_ajaran', $tahunAjaran);
+
+        if ($kelasId) {
+            $query->where('kelas_id', $kelasId);
+        } else if ($user && $user->role === 'guru') {
+            $query->where('guru_id', $user->id);
+        } else {
             return response()->json([
                 'message' => 'Kelas ID diperlukan.'
             ], 422);
         }
 
-        $config = SistemKonfigurasi::first();
-        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
-
-        $jadwals = Jadwal::with(['mapel', 'guru'])
-            ->where('kelas_id', $kelasId)
-            ->where('tahun_ajaran', $tahunAjaran)
-            ->orderBy('urutan_jam')
-            ->get();
+        $jadwals = $query->orderBy('urutan_jam')->get();
 
         return response()->json($jadwals);
     }

@@ -66,7 +66,7 @@ class LmsMateriController extends Controller
             'mapel_id' => 'required|exists:mapels,id',
             'kelas_id' => 'required|exists:kelas,id',
             'judul' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'konten' => 'nullable|string',
             'file_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240', // 10MB max
         ]);
 
@@ -127,7 +127,7 @@ class LmsMateriController extends Controller
             'mapel_id' => 'sometimes|exists:mapels,id',
             'kelas_id' => 'sometimes|exists:kelas,id',
             'judul' => 'sometimes|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'konten' => 'nullable|string',
             'file_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
         ]);
 

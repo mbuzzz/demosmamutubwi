@@ -16,7 +16,8 @@ import {
   UserCheck,
   CreditCard,
   ScanLine,
-  School
+  School,
+  Award
 } from 'lucide-react';
 import { useState } from 'react';
 import { useRoleSimulator } from '../simulator/RoleContext';

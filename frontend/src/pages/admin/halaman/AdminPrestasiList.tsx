@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Edit, Trash2, Award, Save, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Award, Save, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import { usePrestasiList, useCreatePrestasi, useUpdatePrestasi, useDeletePrestasi, type PrestasiRecord } from '../../../hooks/usePrestasi';
 import { getFileUrl } from '../../../lib/api';
