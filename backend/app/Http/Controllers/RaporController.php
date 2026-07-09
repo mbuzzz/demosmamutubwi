@@ -166,7 +166,7 @@ class RaporController extends Controller
         // We can check riwayat_kelas or the student's current kelas field
         $kelas = Kelas::where('nama', $siswa->kelas)->first();
         
-        // Get active curriculum
+        // Get active curriculum and system config (for kop_surat/logo)
         $config = SistemKonfigurasi::first();
         $kurikulum = null;
         if ($kelas && $kelas->kurikulum_id) {
@@ -217,6 +217,10 @@ class RaporController extends Controller
             ['id' => 'ttd', 'type' => 'signatures', 'visible' => true, 'properties' => ['layout' => 'two_columns']]
         ];
 
+        // Prepare system logo/kop for template (using public storage path)
+        $kopSuratUrl = $config && $config->kop_surat ? '/storage/' . ltrim($config->kop_surat, '/storage/') : null;
+        $logoUrl = $config && $config->logo_sekolah ? '/storage/' . ltrim($config->logo_sekolah, '/storage/') : null;
+
         // We can pass all these variables to a master Blade view which will render the blocks conditionally
         $pdf = Pdf::loadView('exports.rapor_pdf', compact(
             'rapor',
@@ -227,7 +231,9 @@ class RaporController extends Controller
             'nilaiEkskuls',
             'waliKelasName',
             'kepsekName',
-            'template'
+            'template',
+            'kopSuratUrl',
+            'logoUrl'
         ));
 
         return $pdf->download("rapor_{$siswa->name}_{$rapor->semester}.pdf");

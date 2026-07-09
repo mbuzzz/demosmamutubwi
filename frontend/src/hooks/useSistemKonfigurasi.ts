@@ -18,6 +18,12 @@ export interface SistemKonfigurasiRecord {
   facebook?: string;
   instagram?: string;
   twitter?: string;
+  spmb_alur_online?: string;
+  spmb_alur_verifikasi?: string;
+  spmb_alur_pembayaran?: string;
+  spmb_alur_tes?: string;
+  spmb_alur_pengumuman?: string;
+  spmb_biaya_info?: string;
   kurikulum_aktif?: {
     id: string;
     nama: string;

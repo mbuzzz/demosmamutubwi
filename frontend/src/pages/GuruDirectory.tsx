@@ -1,34 +1,19 @@
 import { useState } from 'react';
 import { Search, Mail, BookOpen, Loader2 } from 'lucide-react';
-import { useUsers } from '../hooks/useUsers';
-import { useMapelList } from '../hooks/useMapel';
-import { usePenugasanList } from '../hooks/usePenugasan';
+import { usePublicGuruDirectory } from '../hooks/useCms';
+import { getFileUrl } from '../lib/api';
 
 export default function GuruDirectory() {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { data: users = [], isLoading: usersLoading } = useUsers('guru');
-  const { data: mapels = [] } = useMapelList();
-  const { data: penugasans = [] } = usePenugasanList();
+  const { data: publicGurus = [], isLoading } = usePublicGuruDirectory();
 
-  // Map penugasan to get subjects taught by each guru
-  const guruSubjects = new Map<number, string[]>();
-  penugasans.forEach((p: any) => {
-    if (!guruSubjects.has(p.guru_id)) {
-      guruSubjects.set(p.guru_id, []);
-    }
-    const mapel = mapels.find((m: any) => m.id === String(p.mapel_id));
-    if (mapel && !guruSubjects.get(p.guru_id)!.includes(mapel.nama)) {
-      guruSubjects.get(p.guru_id)!.push(mapel.nama);
-    }
-  });
-
-  const teachers = users.map((user: any) => ({
-    name: user.name,
-    subject: guruSubjects.get(user.id)?.join(', ') || user.jabatan || 'Tenaga Pendidik',
-    email: user.email,
-    img: user.foto ? (user.foto.startsWith('http') ? user.foto : `/storage/${user.foto}`) : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    id: user.id,
+  const teachers = publicGurus.map((guru) => ({
+    name: guru.name,
+    subject: guru.subject,
+    email: guru.email,
+    img: guru.foto ? getFileUrl(guru.foto) : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    id: guru.id,
   }));
 
   const filteredTeachers = teachers.filter(teacher => 
@@ -36,7 +21,7 @@ export default function GuruDirectory() {
     teacher.subject.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (usersLoading) {
+  if (isLoading) {
     return (
       <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 flex justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />

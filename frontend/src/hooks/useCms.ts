@@ -37,6 +37,26 @@ export interface PublicFaq {
   jawaban: string;
 }
 
+export interface PublicGuru {
+  id: number;
+  name: string;
+  email: string;
+  jabatan: string | null;
+  foto: string | null;
+  subject: string;
+}
+
+export function usePublicGuruDirectory() {
+  return useQuery({
+    queryKey: ['public-guru'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const res = await api.get<PublicGuru[]>('/public/guru');
+      return res.data;
+    },
+  });
+}
+
 export function usePublicProfil() {
   return useQuery({
     queryKey: ['public-profil'],

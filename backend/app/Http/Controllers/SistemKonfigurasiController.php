@@ -36,6 +36,13 @@ class SistemKonfigurasiController extends Controller
             'facebook' => 'sometimes|nullable|string',
             'instagram' => 'sometimes|nullable|string',
             'twitter' => 'sometimes|nullable|string',
+            // SPMB Content
+            'spmb_alur_online' => 'sometimes|nullable|string',
+            'spmb_alur_verifikasi' => 'sometimes|nullable|string',
+            'spmb_alur_pembayaran' => 'sometimes|nullable|string',
+            'spmb_alur_tes' => 'sometimes|nullable|string',
+            'spmb_alur_pengumuman' => 'sometimes|nullable|string',
+            'spmb_biaya_info' => 'sometimes|nullable|string',
         ]);
 
         $config = SistemKonfigurasi::first();

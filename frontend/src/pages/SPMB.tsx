@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowRight, FileText, CheckCircle, ClipboardList, Info, Calendar, CreditCard, Users, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePublicGelombangAktif } from '../hooks/useSPMB';
+import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('id-ID', {
@@ -13,6 +14,7 @@ export default function SPMB() {
   const [activeTab, setActiveTab] = useState('informasi');
   const navigate = useNavigate();
   const { data: gelombangData, isLoading } = usePublicGelombangAktif();
+  const { data: config } = useSistemKonfigurasi();
 
   return (
     <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 sm:px-6 lg:px-8 min-h-screen">
@@ -80,7 +82,7 @@ export default function SPMB() {
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">1. Pengisian Formulir Online</h3>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Calon siswa memilih gelombang yang tersedia dan melengkapi biodata diri secara penuh. Dokumen pendukung seperti KK, Akta Kelahiran, dan Surat Keterangan Lulus bisa diunggah di akhir.</p>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{config?.spmb_alur_online || 'Calon siswa memilih gelombang yang tersedia dan melengkapi biodata diri secara penuh. Dokumen pendukung seperti KK, Akta Kelahiran, dan Surat Keterangan Lulus bisa diunggah di akhir.'}</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
@@ -89,7 +91,7 @@ export default function SPMB() {
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">2. Verifikasi Data & Tes CBT</h3>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Panitia memvalidasi berkas pendaftaran. Siswa akan mendapatkan Token Ujian Mandiri (CBT) untuk melakukan tes pemetaan kelas dari rumah.</p>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{config?.spmb_alur_verifikasi || 'Panitia memvalidasi berkas pendaftaran. Siswa akan mendapatkan Token Ujian Mandiri (CBT) untuk melakukan tes pemetaan kelas dari rumah.'}</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
@@ -218,49 +220,19 @@ export default function SPMB() {
           {/* TAB 3: PEMBAYARAN */}
           {activeTab === 'pembayaran' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">Rincian Biaya Pendaftaran & SPP</h2>
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8 border-b pb-4">Rincian Biaya Pendidikan</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                {/* Rincian Masuk */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[15px] shadow-sm overflow-hidden">
-                  <div className="bg-brand-blueDark dark:bg-brand-yellow dark:text-brand-blueDark text-white p-4 font-bold text-lg flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-brand-yellow" /> Biaya Awal (Daftar Ulang)
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-[15px] p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="w-12 h-12 bg-white dark:bg-slate-900 rounded-[15px] flex items-center justify-center text-brand-blueDark dark:text-brand-yellow shrink-0 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <Info className="w-6 h-6" />
                   </div>
-                  <div className="p-0">
-                    <table className="w-full text-sm text-left">
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:hover:bg-slate-800 dark:bg-slate-800"><td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">Formulir Pendaftaran</td><td className="px-6 py-4 font-bold text-slate-900 dark:text-white text-right">Rp 200.000</td></tr>
-                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:hover:bg-slate-800 dark:bg-slate-800"><td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">Uang Seragam (4 Stel)</td><td className="px-6 py-4 font-bold text-slate-900 dark:text-white text-right">Rp 1.500.000</td></tr>
-                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:hover:bg-slate-800 dark:bg-slate-800"><td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">Uang Kegiatan 1 Tahun</td><td className="px-6 py-4 font-bold text-slate-900 dark:text-white text-right">Rp 800.000</td></tr>
-                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:hover:bg-slate-800 dark:bg-slate-800"><td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">Uang Infaq Gedung (DPP)</td><td className="px-6 py-4 font-bold text-slate-900 dark:text-white text-right">Rp 3.500.000</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="bg-slate-100 dark:bg-slate-800 p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                    <span className="font-bold text-slate-700 dark:text-slate-300">Estimasi Total</span>
-                    <span className="text-xl font-extrabold text-brand-teal dark:text-emerald-400">Rp 6.000.000</span>
-                  </div>
-                </div>
-
-                {/* SPP Bulanan */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[15px] shadow-sm overflow-hidden">
-                  <div className="bg-brand-teal text-white p-4 font-bold text-lg flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-brand-yellow" /> SPP Bulanan
-                  </div>
-                  <div className="p-0">
-                    <table className="w-full text-sm text-left">
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:hover:bg-slate-800 dark:bg-slate-800"><td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">SPP Pendidikan</td><td className="px-6 py-4 font-bold text-slate-900 dark:text-white text-right">Rp 450.000</td></tr>
-                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800dark:hover:bg-slate-800 dark:bg-slate-800"><td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">Ekstrakurikuler Wajib</td><td className="px-6 py-4 font-bold text-slate-900 dark:text-white text-right">Rp 50.000</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="bg-slate-100 dark:bg-slate-800 p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center mt-auto">
-                    <span className="font-bold text-slate-700 dark:text-slate-300">Total SPP Bulanan</span>
-                    <span className="text-xl font-extrabold text-brand-teal dark:text-emerald-400">Rp 500.000</span>
-                  </div>
-                  <div className="p-6 text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900">
-                    *Terdapat program keringanan biaya dan beasiswa penuh bagi siswa Yatim/Piatu berprestasi yang lolos seleksi berkas Lazismu.
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Informasi Pembayaran</h3>
+                    <div 
+                      className="text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line font-mono text-sm"
+                      dangerouslySetInnerHTML={{ __html: config?.spmb_biaya_info ? config.spmb_biaya_info.replace(/\n/g, '<br/>') : 'Silakan hubungi panitia untuk informasi detail biaya pendidikan.' }}
+                    />
                   </div>
                 </div>
               </div>

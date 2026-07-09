@@ -11,7 +11,13 @@ class ProfilSekolahController extends Controller
     public function show()
     {
         $profil = ProfilSekolah::firstOrCreate([]);
-        return response()->json($profil);
+        $config = \App\Models\SistemKonfigurasi::first();
+        
+        $data = $profil->toArray();
+        $data['nama_sekolah'] = $config ? $config->nama_sekolah : 'SMAS Muhammadiyah 1 Banyuwangi';
+        $data['akreditasi'] = 'A'; // Or store in SistemKonfigurasi later
+
+        return response()->json($data);
     }
 
     public function update(Request $request)

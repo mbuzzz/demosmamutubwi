@@ -13,6 +13,27 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class UserController extends Controller
 {
+    public function publicDirectory()
+    {
+        $gurus = User::whereIn('role', ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'])
+            ->with(['penugasans.mapel'])
+            ->get();
+
+        $result = $gurus->map(function ($guru) {
+            $mapels = $guru->penugasans->map(fn($p) => $p->mapel->nama)->filter()->unique()->values()->implode(', ');
+            return [
+                'id' => $guru->id,
+                'name' => $guru->name,
+                'email' => $guru->email,
+                'jabatan' => $guru->jabatan,
+                'foto' => $guru->foto,
+                'subject' => $mapels ?: ($guru->jabatan ?: 'Tenaga Pendidik'),
+            ];
+        });
+
+        return response()->json($result);
+    }
+
     public function index(Request $request)
     {
         $query = User::query();

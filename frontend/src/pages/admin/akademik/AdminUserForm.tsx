@@ -1,51 +1,55 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link, useParams } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Save, ArrowLeft, User as UserIcon, Lock, Camera, Mail, Phone, Building, Shield, ScanLine } from 'lucide-react';
-import { toast } from 'sonner';
-import { randomUid } from '../../../types/rfid';
-import { useUser, useCreateUser, useUpdateUser } from '../../../hooks/useUsers';
+import { Save, User as UserIcon, Camera, ArrowLeft, Building, Lock, Mail, Phone, ScanLine, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useUser, useCreateUser, useUpdateUser, useUsers } from '../../../hooks/useUsers';
 import { useKelasList } from '../../../hooks/useKelas';
+import { toast } from 'sonner';
 
 export default function AdminUserForm() {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
+  const navigate = useNavigate();
 
-  // Queries & Mutations
   const { data: user, isLoading: isUserLoading } = useUser(id);
   const { data: kelasList = [] } = useKelasList();
+  const { data: siswaList = [] } = useUsers('siswa');
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
 
-  // Form states
-  const [role, setRole] = useState('siswa');
   const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('siswa');
+  
   const [nipNisn, setNipNisn] = useState('');
-  const [rfidUid, setRfidUid] = useState('');
   const [kelas, setKelas] = useState('');
   const [jabatan, setJabatan] = useState('');
   const [phone, setPhone] = useState('');
+  const [rfidUid, setRfidUid] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [siswaId, setSiswaId] = useState('');
 
-  // Load user data in edit mode
   useEffect(() => {
     if (isEdit && user) {
-      setRole(user.role);
       setName(user.name);
-      setUsername(user.username || '');
       setEmail(user.email);
+      setUsername(user.username);
+      setRole(user.role);
       setNipNisn(user.nip_nisn || '');
-      setRfidUid(user.uid_rfid || '');
       setKelas(user.kelas || '');
       setJabatan(user.jabatan || '');
       setPhone(user.phone || '');
-      setIsActive(user.is_active ?? true);
+      setRfidUid(user.uid_rfid || '');
+      setIsActive(user.is_active !== false);
+      setSiswaId(user.siswa_id ? String(user.siswa_id) : '');
     }
   }, [isEdit, user]);
+
+  const randomUid = () => {
+    return 'RF:' + Array.from({length: 4}, () => Math.floor(Math.random()*256).toString(16).padStart(2, '0').toUpperCase()).join(':');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,10 +65,11 @@ export default function AdminUserForm() {
       role,
       nip_nisn: nipNisn || null,
       uid_rfid: rfidUid || null,
-      kelas: role === 'siswa' ? kelas : null,
-      jabatan: role !== 'siswa' ? (role === 'guru' || role === 'walikelas' || role === 'kurikulum' || role === 'kepala_sekolah' ? jabatan : null) : null,
+      kelas: role === 'siswa' || role === 'walikelas' ? kelas : null,
+      jabatan: role !== 'siswa' && role !== 'orang_tua' ? jabatan : null,
       phone: phone || null,
       is_active: isActive,
+      siswa_id: role === 'orang_tua' ? (siswaId ? parseInt(siswaId) : null) : null,
     };
 
     if (password) {
@@ -142,16 +147,19 @@ export default function AdminUserForm() {
                   <option value="bendahara">Bendahara</option>
                   <option value="admin">Admin / Staff Tata Usaha</option>
                   <option value="superadmin">Superadmin Sistem</option>
+                  <option value="orang_tua">Orang Tua / Wali Murid</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Status Akun</label>
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                    <input type="radio" name="status" checked={isActive} onChange={() => setIsActive(true)} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" /> Aktif
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="status" checked={isActive} onChange={() => setIsActive(true)} className="w-4 h-4 text-indigo-600 focus:ring-indigo-500" />
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Aktif</span>
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                    <input type="radio" name="status" checked={!isActive} onChange={() => setIsActive(false)} className="text-red-600 focus:ring-red-500 w-4 h-4" /> Nonaktif
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="status" checked={!isActive} onChange={() => setIsActive(false)} className="w-4 h-4 text-red-500 focus:ring-red-500" />
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nonaktif (Suspend)</span>
                   </label>
                 </div>
               </div>
@@ -159,44 +167,52 @@ export default function AdminUserForm() {
           </div>
         </div>
 
-        {/* Kolom Kanan: Data Pribadi & Spesifik Role */}
+        {/* Kolom Kanan: Data Personal & Kredensial */}
         <div className="xl:col-span-2 space-y-6">
           <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-              <UserIcon className="w-4 h-4 text-indigo-500" /> Data Pribadi
+              <UserIcon className="w-4 h-4 text-indigo-500" /> Data Personal & Kredensial
             </h3>
+            
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Lengkap</label>
-                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Masukkan nama lengkap" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Username (Login)</label>
-                  <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Contoh: agus123" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white font-mono" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Aktif</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Lengkap Sesuai Identitas <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@sekolah.com" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required />
+                    <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Contoh: Budi Santoso" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Username Login <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 font-bold text-sm">@</span>
+                    <input type="text" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} placeholder="budisantoso" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required />
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nomor Handphone (WhatsApp)</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Alamat Email Valid <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="08123456789" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="budi@example.com" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Password {isEdit && <span className="text-xs font-normal text-slate-450">(Kosongkan jika tidak diubah)</span>}
-                  </label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nomor Telepon / WhatsApp</label>
                   <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="08123456789" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password Login {isEdit && <span className="text-slate-400 font-normal">(Kosongi jika tidak diubah)</span>}</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative md:col-span-2">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={isEdit ? "Ketik untuk mengganti password" : "Minimal 6 karakter"} className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" required={!isEdit} />
                   </div>
@@ -209,7 +225,7 @@ export default function AdminUserForm() {
           <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800 border-l-4 border-l-indigo-500 bg-indigo-50/20">
             <h3 className="font-bold text-indigo-900 dark:text-indigo-300 mb-4 pb-2 border-b border-indigo-100 flex items-center gap-2">
               <Building className="w-4 h-4 text-indigo-600" /> 
-              Data Akademik Khusus ({role === 'siswa' ? 'Siswa' : 'Staf / Guru'})
+              Data Spesifik ({role === 'siswa' ? 'Siswa' : role === 'orang_tua' ? 'Orang Tua' : 'Staf / Guru'})
             </h3>
             
             {role === 'siswa' && (
@@ -252,7 +268,22 @@ export default function AdminUserForm() {
               </div>
             )}
 
-            {role !== 'siswa' && (
+            {role === 'orang_tua' && (
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">Pilih Data Siswa (Anak)</label>
+                  <select value={siswaId} onChange={e => setSiswaId(e.target.value)} className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                    <option value="">-- Pilih Anak / Siswa --</option>
+                    {siswaList.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.kelas || 'Belum Ada Kelas'})</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Akun wali murid ini akan memiliki akses untuk memantau data anak yang dipilih.</p>
+                </div>
+              </div>
+            )}
+
+            {role !== 'siswa' && role !== 'orang_tua' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">NIP / NBM</label>
@@ -307,6 +338,7 @@ export default function AdminUserForm() {
             </button>
           </div>
         </div>
+
       </form>
     </AdminLayout>
   );

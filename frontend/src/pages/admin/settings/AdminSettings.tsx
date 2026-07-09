@@ -28,6 +28,14 @@ export default function AdminSettings() {
   const [twitter, setTwitter] = useState('');
   const [alamat, setAlamat] = useState('');
   const [googleMapsEmbed, setGoogleMapsEmbed] = useState('');
+  
+  // SPMB Content States
+  const [spmbAlurOnline, setSpmbAlurOnline] = useState('');
+  const [spmbAlurVerifikasi, setSpmbAlurVerifikasi] = useState('');
+  const [spmbAlurPembayaran, setSpmbAlurPembayaran] = useState('');
+  const [spmbAlurTes, setSpmbAlurTes] = useState('');
+  const [spmbAlurPengumuman, setSpmbAlurPengumuman] = useState('');
+  const [spmbBiayaInfo, setSpmbBiayaInfo] = useState('');
 
   // Auto-populate form when config loads
   useEffect(() => {
@@ -44,6 +52,14 @@ export default function AdminSettings() {
       setTwitter(config.twitter ?? '');
       setAlamat(config.alamat ?? '');
       setGoogleMapsEmbed(config.google_maps_embed ?? '');
+      
+      // Populate SPMB Content
+      setSpmbAlurOnline(config.spmb_alur_online ?? '');
+      setSpmbAlurVerifikasi(config.spmb_alur_verifikasi ?? '');
+      setSpmbAlurPembayaran(config.spmb_alur_pembayaran ?? '');
+      setSpmbAlurTes(config.spmb_alur_tes ?? '');
+      setSpmbAlurPengumuman(config.spmb_alur_pengumuman ?? '');
+      setSpmbBiayaInfo(config.spmb_biaya_info ?? '');
     }
   }, [config]);
 
@@ -57,13 +73,22 @@ export default function AdminSettings() {
       formData.append('email', email);
       if (logoFile) formData.append('logo_sekolah', logoFile);
       if (kopSuratFile) formData.append('kop_surat', kopSuratFile);
+      
+      // SPMB Content
+      formData.append('spmb_alur_online', spmbAlurOnline);
+      formData.append('spmb_alur_verifikasi', spmbAlurVerifikasi);
+      formData.append('spmb_alur_pembayaran', spmbAlurPembayaran);
+      formData.append('spmb_alur_tes', spmbAlurTes);
+      formData.append('spmb_alur_pengumuman', spmbAlurPengumuman);
+      formData.append('spmb_biaya_info', spmbBiayaInfo);
+      
       // _method=PUT so Laravel recognizes as PUT for method spoofing
       formData.append('_method', 'PUT');
 
       await updateConfig.mutateAsync(formData);
       setLogoFile(null);
       setKopSuratFile(null);
-      toast.success('Identitas & Gambar berhasil diperbarui');
+      toast.success('Identitas & Konten SPMB berhasil diperbarui');
     } catch {
       toast.error('Gagal menyimpan identitas');
     }
@@ -160,6 +185,25 @@ export default function AdminSettings() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Deskripsi Singkat / Slogan</label>
                   <textarea rows={3} value={slogan} onChange={e => setSlogan(e.target.value)} placeholder="Membentuk generasi unggul berkarakter Islami..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"></textarea>
+                </div>
+                
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200 mb-3">Konten Halaman SPMB (Dapat Diedit)</h4>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Alur 1: Pengisian Formulir Online</label>
+                      <textarea rows={2} value={spmbAlurOnline} onChange={e => setSpmbAlurOnline(e.target.value)} placeholder="Calon siswa memilih gelombang yang tersedia dan melengkapi biodata diri secara penuh..." className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white"></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Alur 2: Verifikasi Data & Tes CBT</label>
+                      <textarea rows={2} value={spmbAlurVerifikasi} onChange={e => setSpmbAlurVerifikasi(e.target.value)} placeholder="Panitia memvalidasi berkas pendaftaran. Siswa akan mendapatkan Token Ujian Mandiri..." className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white"></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Rincian Biaya Pendaftaran & SPP</label>
+                      <textarea rows={3} value={spmbBiayaInfo} onChange={e => setSpmbBiayaInfo(e.target.value)} placeholder="Biaya Formulir: Rp 200.000&#10;Uang Seragam: Rp 1.500.000&#10;SPP Bulanan: Rp 450.000..." className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white font-mono"></textarea>
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

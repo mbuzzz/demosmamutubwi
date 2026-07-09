@@ -50,6 +50,9 @@ Route::prefix('public')->group(function () {
     Route::get('/galeri', [GaleriController::class, 'index']);
     Route::get('/faq', [FaqController::class, 'index']);
     Route::get('/testimoni', [TestimoniController::class, 'index']);
+    
+    // Public Guru Directory
+    Route::get('/guru', [App\Http\Controllers\UserController::class, 'publicDirectory']);
 });
 
 // Public RFID Tap Routes
