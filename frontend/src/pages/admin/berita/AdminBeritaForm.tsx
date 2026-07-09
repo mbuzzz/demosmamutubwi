@@ -6,6 +6,7 @@ import 'react-quill/dist/quill.snow.css';
 import { Save, Image as ImageIcon, Tag as TagIcon, Loader2, Link as LinkIcon } from 'lucide-react';
 import { useCreateBerita, useUpdateBerita, useBeritaDetail } from '../../../hooks/useBerita';
 import { useKategoriBerita } from '../../../hooks/useKategoriBerita';
+import { getFileUrl } from '../../../lib/api';
 
 export default function AdminBeritaForm() {
   const { id } = useParams();
@@ -62,16 +63,15 @@ export default function AdminBeritaForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !content) return;
+    if (!title || !content || !categoryId) return;
 
     try {
       const formData = new FormData();
       formData.append('judul', title);
-      formData.append('slug', slug);
       formData.append('konten', content);
       formData.append('status', status);
-      if (categoryId) formData.append('kategori_id', categoryId);
-      if (gambar) formData.append('gambar', gambar);
+      formData.append('kategori_id', categoryId);
+      if (gambar) formData.append('cover_image', gambar);
 
       if (isEdit) {
         await updateBerita.mutateAsync({ id: id!, data: formData });
@@ -164,6 +164,7 @@ export default function AdminBeritaForm() {
                 <select 
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
+                  required
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">-- Pilih Kategori --</option>
@@ -197,9 +198,9 @@ export default function AdminBeritaForm() {
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Pilih Thumbnail</p>
                   <p className="text-[11px] text-slate-500 mt-1">Maks 2MB (JPG, PNG, WEBP)</p>
                 </label>
-                {detail?.gambar && !gambar && (
+                {detail?.cover_image && !gambar && (
                   <div className="mt-4">
-                    <img src={detail.gambar} alt="Thumbnail" className="w-full rounded-lg" />
+                    <img src={getFileUrl(detail.cover_image)} alt="Thumbnail" className="w-full rounded-lg" />
                   </div>
                 )}
                 {gambar && (

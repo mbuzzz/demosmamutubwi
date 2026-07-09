@@ -10,7 +10,12 @@ class KategoriBeritaController extends Controller
 {
     public function index()
     {
-        return response()->json(KategoriBerita::all());
+        return response()->json(KategoriBerita::query()->orderBy('nama')->get());
+    }
+
+    public function publicIndex()
+    {
+        return response()->json(KategoriBerita::query()->orderBy('nama')->get());
     }
 
     public function store(Request $request)

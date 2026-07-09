@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useBeritaList, useDeleteBerita } from '../../../hooks/useBerita';
 import Swal from 'sweetalert2';
+import { getFileUrl } from '../../../lib/api';
 
 export default function AdminBeritaList() {
   const [search, setSearch] = useState('');
@@ -76,8 +77,8 @@ export default function AdminBeritaList() {
                   <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">
                       <div className="flex items-center gap-3">
-                        {b.gambar ? (
-                          <img src={b.gambar} alt={b.judul} className="w-12 h-12 rounded object-cover" />
+                        {b.cover_image ? (
+                          <img src={getFileUrl(b.cover_image)} alt={b.judul} className="w-12 h-12 rounded object-cover" />
                         ) : (
                           <div className="w-12 h-12 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-xs">No Img</div>
                         )}
@@ -91,7 +92,7 @@ export default function AdminBeritaList() {
                         <span className="text-slate-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">{new Date(b.created_at).toLocaleDateString('id-ID')}</td>
+                    <td className="px-6 py-4">{new Date(b.published_at || b.created_at).toLocaleDateString('id-ID')}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 sm:px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap ${b.status === 'published' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
                         {b.status === 'published' ? 'Published' : 'Draft'}

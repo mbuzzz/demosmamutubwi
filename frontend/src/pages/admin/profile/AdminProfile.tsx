@@ -2,7 +2,7 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 import { Save, User, Lock, Mail, Phone, ShieldCheck, Camera, Trash2, Loader2, Upload } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../components/auth/AuthContext';
-import { api } from '../../../lib/api';
+import { api, getFileUrl } from '../../../lib/api';
 import { toast } from 'sonner';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -25,6 +25,7 @@ export default function AdminProfile() {
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [foto, setFoto] = useState<string | null>(null);
+  const [avatarVersion, setAvatarVersion] = useState(() => Date.now());
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
@@ -37,6 +38,7 @@ export default function AdminProfile() {
       setUsername(user.username || '');
       setPhone(user.phone || '');
       setFoto(user.foto || null);
+      setAvatarVersion(Date.now());
     }
   }, [user]);
 
@@ -85,9 +87,13 @@ export default function AdminProfile() {
       toast.success('Foto profil berhasil diperbarui!');
       await checkSession();
       setFoto(res.data.user?.foto || null);
+      setAvatarVersion(Date.now());
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Gagal mengunggah foto.');
     } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       setUploading(false);
     }
   };
@@ -99,6 +105,7 @@ export default function AdminProfile() {
       toast.success('Foto profil berhasil dihapus');
       await checkSession();
       setFoto(null);
+      setAvatarVersion(Date.now());
     } catch {
       toast.error('Gagal menghapus foto');
     }
@@ -126,9 +133,8 @@ export default function AdminProfile() {
     }
   };
 
-  const fotoUrl = foto
-    ? (foto.startsWith('http') ? foto : `/storage/${foto}`)
-    : null;
+  const fotoUrl = foto ? getFileUrl(`/storage/${foto}`) : null;
+  const fotoUrlWithVersion = fotoUrl ? `${fotoUrl}${fotoUrl.includes('?') ? '&' : '?'}v=${avatarVersion}` : null;
   const userInitials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const userRoleLabel = user?.role ? (ROLE_LABELS[user.role] || user.role) : 'Tamu';
 
@@ -143,8 +149,8 @@ export default function AdminProfile() {
             <div className="absolute -top-10 left-6">
               <div className="relative w-20 h-20 group">
                 <div className="w-full h-full bg-white dark:bg-slate-900 rounded-full p-1 shadow-md">
-                  {fotoUrl ? (
-                    <img src={fotoUrl} alt="Avatar" className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-900" />
+                  {fotoUrlWithVersion ? (
+                    <img src={fotoUrlWithVersion} alt="Avatar" className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-900" />
                   ) : (
                     <div className="w-full h-full bg-indigo-100 dark:bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-2xl border border-indigo-200 dark:border-indigo-800">
                       {userInitials || 'U'}

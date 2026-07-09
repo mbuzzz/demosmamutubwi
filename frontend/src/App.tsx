@@ -131,6 +131,8 @@ export default function App() {
         <Route path="/login/siswa" element={<LoginSiswa />} />
         <Route path="/login/guru" element={<LoginGuru />} />
         <Route path="/login/orang-tua" element={<LoginOrangTua />} />
+        <Route path="/login/admin" element={<LoginAdmin />} />
+        <Route path="/login/bendahara" element={<LoginBendahara />} />
         <Route path="/adminlogin" element={<LoginAdmin />} />
         <Route path="/bendahara" element={<LoginBendahara />} />
         <Route path="/tap/absensi" element={<TapAbsensi />} />
@@ -144,6 +146,7 @@ export default function App() {
         <Route path="/panel/faq-testimoni" element={<ProtectedRoute requiredRole="superadmin"><AdminFaqTestimoni /></ProtectedRoute>} />
         <Route path="/panel/berita" element={<ProtectedRoute requiredRole="superadmin"><AdminBeritaList /></ProtectedRoute>} />
         <Route path="/panel/berita/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminBeritaForm /></ProtectedRoute>} />
+        <Route path="/panel/berita/edit/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminBeritaForm /></ProtectedRoute>} />
         <Route path="/panel/kategori-berita" element={<ProtectedRoute requiredRole="superadmin"><AdminKategoriList /></ProtectedRoute>} />
         <Route path="/panel/galeri" element={<ProtectedRoute requiredRole="superadmin"><AdminGaleriList /></ProtectedRoute>} />
         <Route path="/panel/spmb" element={<ProtectedRoute requiredRole="superadmin"><AdminSPMBList /></ProtectedRoute>} />

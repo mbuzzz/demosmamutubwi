@@ -45,7 +45,7 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-3">
             <img src={config?.logo_sekolah ? getFileUrl(config.logo_sekolah) : "/logo.png"} alt="Logo SMAS Muh 1" className="h-10 w-10 object-contain drop-shadow-sm" />
             <div>
-              <span className="font-bold text-base sm:text-lg block leading-none">SMAS MUHAMMADIYAH 1</span>
+              <span className="font-bold text-base sm:text-lg block leading-none">{(config?.nama_sekolah || 'SMAS Muhammadiyah 1').toUpperCase()}</span>
               <span className="text-[10px] text-slate-300 block mt-0.5 tracking-widest uppercase">Banyuwangi</span>
             </div>
           </Link>

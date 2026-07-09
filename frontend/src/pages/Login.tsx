@@ -13,7 +13,7 @@ export default function Login() {
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl opacity-50"></div>
       </div>
 
-      <div className="w-full max-w-3xl relative z-10 space-y-8">
+      <div className="w-full max-w-7xl relative z-10 space-y-8">
         <div className="text-center space-y-3">
           <Link to="/" className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
@@ -25,24 +25,24 @@ export default function Login() {
               <p className="text-emerald-650 dark:text-emerald-400 font-bold uppercase tracking-widest text-xs">Banyuwangi</p>
             </div>
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white pt-2">Portal Log In Terpadu</h2>
-          <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto text-sm">
-            Selamat datang di Sistem Informasi Terpadu (SIT). Silakan pilih rute portal masuk sesuai dengan peran Anda.
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white pt-2">Portal Log In Terpadu</h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            Pilih portal sesuai peran Anda untuk mengakses fitur SIT dengan cepat dan aman.
           </p>
         </div>
 
         {/* 5 Portal Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 xl:gap-5 max-w-7xl mx-auto">
           
           {/* Card 1: Siswa */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-800 transition-all flex flex-col justify-between group">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-emerald-300 dark:hover:border-emerald-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-5">
                 <GraduationCap className="w-6 h-6" />
               </div>
               <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Siswa</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Akses untuk melihat jadwal pelajaran, materi belajar KBM, tugas & PR harian, ujian online (CBT), dan rapor penilaian akhir.
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                Jadwal pelajaran, materi belajar, tugas harian, CBT, dan rapor nilai akhir.
               </p>
             </div>
             <Link 
@@ -54,14 +54,14 @@ export default function Login() {
           </div>
 
           {/* Card 2: Orang Tua */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-800 transition-all flex flex-col justify-between group">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
               <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Orang Tua</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Akses untuk memantau absensi kehadiran harian anak, tagihan keuangan & SPP sekolah, daftar tugas LMS, serta rapor nilai akhir anak.
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                Pantau absensi, tagihan, tugas LMS, dan perkembangan rapor anak.
               </p>
             </div>
             <Link 
@@ -73,14 +73,14 @@ export default function Login() {
           </div>
 
           {/* Card 3: Guru & Staf */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-800 transition-all flex flex-col justify-between group">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
               <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Guru & Staf</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Akses untuk pengisian jurnal mengajar, presensi siswa kelas, bank materi, tugas, bank soal CBT, serta catatan rapor kelas binaan.
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                Kelola jurnal mengajar, presensi kelas, materi, tugas, CBT, dan catatan rapor.
               </p>
             </div>
             <Link 
@@ -92,14 +92,14 @@ export default function Login() {
           </div>
 
           {/* Card 4: Administrator */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-purple-800 transition-all flex flex-col justify-between group">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
               <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Administrator</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Akses untuk mengelola data pengguna, penugasan, kurikulum, SPMB, dan seluruh konfigurasi sistem sekolah.
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                Kelola pengguna, penugasan, kurikulum, SPMB, dan konfigurasi sistem sekolah.
               </p>
             </div>
             <Link 
@@ -111,14 +111,14 @@ export default function Login() {
           </div>
 
           {/* Card 5: Bendahara */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-amber-300 dark:hover:border-amber-800 transition-all flex flex-col justify-between group">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-amber-300 dark:hover:border-amber-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
               <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Bendahara</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Akses untuk mengelola jenis pembayaran, tagihan siswa, transaksi, dan laporan keuangan sekolah.
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                Kelola jenis pembayaran, tagihan siswa, transaksi, dan laporan keuangan.
               </p>
             </div>
             <Link 

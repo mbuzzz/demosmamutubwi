@@ -159,6 +159,13 @@ export default function About() {
           {activeTab === 'sejarah' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 border-b pb-4">Sejarah Perjalanan Kami</h2>
+              {profil.sejarah_foto && (
+                <img
+                  src={getFileUrl(profil.sejarah_foto)}
+                  alt="Foto sejarah sekolah"
+                  className="w-full max-h-[360px] object-cover rounded-[15px] border border-slate-200 dark:border-slate-700 mb-6"
+                />
+              )}
               <div 
                 className="prose prose-lg text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line"
                 dangerouslySetInnerHTML={{ __html: profil.sejarah_teks || 'Detail sejarah sekolah sedang diperbarui.' }}
@@ -184,6 +191,7 @@ export default function About() {
                   <div>
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{profil.kepsek_nama || 'Kepala Sekolah'}</h3>
                     <p className="text-brand-teal dark:text-emerald-400 font-semibold text-lg">Kepala Sekolah {profil.nama_sekolah}</p>
+                    {profil.kepsek_nip && <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">NIP: {profil.kepsek_nip}</p>}
                   </div>
                   <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-[15px] text-slate-700 dark:text-slate-300 leading-relaxed text-lg border border-slate-100 dark:border-slate-800 relative">
                     <Quote className="absolute top-6 right-6 w-12 h-12 text-slate-200 dark:text-slate-700" />

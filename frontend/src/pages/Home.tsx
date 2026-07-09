@@ -4,12 +4,14 @@ import { Award, BookOpen, GraduationCap, ArrowRight, Quote } from 'lucide-react'
 import { usePublicBeritaList, usePublicProfil } from '../hooks/useCms';
 import DOMPurify from 'dompurify';
 import { getFileUrl } from '../lib/api';
+import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
 
 export default function Home() {
   const navigate = useNavigate();
   
   const { data: beritaList = [] } = usePublicBeritaList();
   const { data: profil } = usePublicProfil();
+  const { data: config } = useSistemKonfigurasi();
 
   const latestNews = beritaList.slice(0, 6);
 
@@ -33,7 +35,7 @@ export default function Home() {
                   Pendidikan <span className="text-gradien-biru-hijau">Modern</span> Berbasis Karakter.
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed mb-8 max-w-md">
-                  Mengintegrasikan kurikulum unggulan dengan teknologi tata kelola digital untuk melahirkan generasi yang cerdas dan Islami.
+                  {config?.slogan || 'Mengintegrasikan kurikulum unggulan dengan teknologi tata kelola digital untuk melahirkan generasi yang cerdas dan Islami.'}
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a 
@@ -55,7 +57,7 @@ export default function Home() {
             {/* Bento Block 2: Featured Image (Span 1 col on md, 2 cols on lg) */}
             <div className="md:col-span-1 lg:col-span-2 row-span-1 lg:row-span-2 rounded-[15px] overflow-hidden shadow-card dark:shadow-none relative">
               <img 
-                src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80" 
+                src={profil?.sejarah_foto ? getFileUrl(profil.sejarah_foto) : "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80"} 
                 alt="Kegiatan Belajar" 
                 className="w-full h-full object-cover min-h-[250px]"
               />
@@ -112,6 +114,7 @@ export default function Home() {
                   <div className="mt-4 text-center pb-2">
                     <h4 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">{profil?.kepsek_nama || 'Drs. H. Suwito, M.Pd.'}</h4>
                     <p className="text-brand-teal dark:text-emerald-400 text-sm font-semibold mt-1">Kepala Sekolah</p>
+                    {profil?.kepsek_nip && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">NIP: {profil.kepsek_nip}</p>}
                   </div>
                 </div>
               </div>

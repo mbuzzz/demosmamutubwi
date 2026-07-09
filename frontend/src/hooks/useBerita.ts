@@ -8,7 +8,7 @@ export interface BeritaRecord {
   judul: string;
   slug: string;
   konten: string;
-  gambar?: string | null;
+  cover_image?: string | null;
   penulis_id: string;
   kategori_id?: string | null;
   status: 'draft' | 'published';

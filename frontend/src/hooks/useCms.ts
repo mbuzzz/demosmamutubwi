@@ -4,9 +4,11 @@ import { api } from '../lib/api';
 export interface PublicProfilSekolah {
   nama_sekolah: string;
   sejarah_teks: string;
+  sejarah_foto?: string;
   visi_teks: string;
   misi_list: string[];
   kepsek_nama: string;
+  kepsek_nip?: string;
   kepsek_sambutan: string;
   kepsek_foto?: string;
   akreditasi: string;

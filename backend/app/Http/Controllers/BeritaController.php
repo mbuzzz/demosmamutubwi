@@ -26,9 +26,33 @@ class BeritaController extends Controller
         return response()->json($query->latest()->get());
     }
 
-    public function show($slug)
+    public function publicIndex(Request $request)
     {
-        $berita = Berita::with(['kategori', 'penulis'])->where('slug', $slug)->firstOrFail();
+        $query = Berita::with(['kategori', 'penulis'])
+            ->where('status', 'published');
+
+        if ($request->has('kategori')) {
+            $query->whereHas('kategori', function ($q) use ($request) {
+                $q->where('slug', $request->kategori);
+            });
+        }
+
+        return response()->json($query->latest('published_at')->get());
+    }
+
+    public function show($id)
+    {
+        $berita = Berita::with(['kategori', 'penulis'])->findOrFail($id);
+        return response()->json($berita);
+    }
+
+    public function publicShow($slug)
+    {
+        $berita = Berita::with(['kategori', 'penulis'])
+            ->where('status', 'published')
+            ->where('slug', $slug)
+            ->firstOrFail();
+
         return response()->json($berita);
     }
 

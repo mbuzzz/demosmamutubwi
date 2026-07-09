@@ -44,9 +44,9 @@ use App\Http\Controllers\TestimoniController;
 // Public CMS Routes
 Route::prefix('public')->group(function () {
     Route::get('/profil', [ProfilSekolahController::class, 'show']);
-    Route::get('/berita', [BeritaController::class, 'index']);
-    Route::get('/berita/{slug}', [BeritaController::class, 'show']);
-    Route::get('/kategori-berita', [KategoriBeritaController::class, 'index']);
+    Route::get('/berita', [BeritaController::class, 'publicIndex']);
+    Route::get('/berita/{slug}', [BeritaController::class, 'publicShow']);
+    Route::get('/kategori-berita', [KategoriBeritaController::class, 'publicIndex']);
     Route::get('/galeri', [GaleriController::class, 'index']);
     Route::get('/faq', [FaqController::class, 'index']);
     Route::get('/testimoni', [TestimoniController::class, 'index']);
@@ -155,7 +155,10 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // CMS Management
         Route::put('/profil-sekolah', [ProfilSekolahController::class, 'update']);
+        Route::get('/berita', [BeritaController::class, 'index']);
+        Route::get('/berita/{id}', [BeritaController::class, 'show']);
         Route::apiResource('berita', BeritaController::class)->except(['index', 'show']);
+        Route::get('/kategori-berita', [KategoriBeritaController::class, 'index']);
         Route::apiResource('kategori-berita', KategoriBeritaController::class)->except(['index', 'show']);
         Route::apiResource('galeri', GaleriController::class)->except(['index', 'show']);
         Route::apiResource('faq', FaqController::class)->except(['index', 'show']);

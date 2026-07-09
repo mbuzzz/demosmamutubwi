@@ -11,6 +11,7 @@ class SanitizeInputs
     private array $excludedFields = [
         'password', 'password_confirmation', 'current_password',
         '_token', 'XSRF-TOKEN', 'foto',
+        'sejarah_teks', 'visi_teks', 'kepsek_sambutan',
     ];
 
     public function handle(Request $request, Closure $next): Response

@@ -14,7 +14,7 @@ class ProfilSekolahController extends Controller
         $config = \App\Models\SistemKonfigurasi::first();
         
         $data = $profil->toArray();
-        $data['nama_sekolah'] = $config ? $config->nama_sekolah : 'SMAS Muhammadiyah 1 Banyuwangi';
+        $data['nama_sekolah'] = $config && $config->nama_sekolah ? $config->nama_sekolah : 'SMAS Muhammadiyah 1 Banyuwangi';
         $data['akreditasi'] = 'A'; // Or store in SistemKonfigurasi later
 
         return response()->json($data);
@@ -22,13 +22,23 @@ class ProfilSekolahController extends Controller
 
     public function update(Request $request)
     {
+        if (is_string($request->input('misi_list'))) {
+            $decodedMisi = json_decode($request->input('misi_list'), true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedMisi)) {
+                $request->merge(['misi_list' => $decodedMisi]);
+            }
+        }
+
         $validated = $request->validate([
             'sejarah_teks' => 'sometimes|nullable|string',
+            'sejarah_foto' => 'sometimes|nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'visi_teks' => 'sometimes|nullable|string',
             'misi_list' => 'sometimes|nullable|array',
+            'misi_list.*' => 'nullable|string',
             'kepsek_nama' => 'sometimes|nullable|string',
             'kepsek_nip' => 'sometimes|nullable|string',
             'kepsek_sambutan' => 'sometimes|nullable|string',
+            'kepsek_foto' => 'sometimes|nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $profil = ProfilSekolah::firstOrCreate([]);
@@ -46,9 +56,11 @@ class ProfilSekolahController extends Controller
             $profil->update(['kepsek_foto' => $path]);
         }
 
+        $freshProfil = $profil->fresh();
+
         return response()->json([
             'message' => 'Profil sekolah berhasil diperbarui',
-            'data' => $profil,
+            'data' => $freshProfil,
         ]);
     }
 }
