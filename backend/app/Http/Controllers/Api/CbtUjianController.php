@@ -207,6 +207,38 @@ class CbtUjianController extends Controller
                 'total_nilai' => $nilaiPg, // Update later if essay is graded
             ]);
 
+            // Sync nilai CBT ke tabel nilais untuk Rapor (jika ujian adalah UTS/UAS)
+            $tipeUjian = $hasil->sesiUjian->bankSoal->tipe;
+            $mapelId = $hasil->sesiUjian->bankSoal->mapel_id;
+            $siswaId = $hasil->siswa_id;
+            $config = \App\Models\SistemKonfigurasi::first();
+            $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+            $semester = $config ? $config->semester_aktif : 'ganjil';
+
+            $nilaiField = null;
+            if (in_array($tipeUjian, ['uts', 'ujian'])) {
+                $nilaiField = 'nilai_uts';
+            } elseif (in_array($tipeUjian, ['uas', 'ujian'])) {
+                $nilaiField = 'nilai_uas';
+            }
+
+            if ($nilaiField && $mapelId) {
+                \App\Models\Nilai::updateOrCreate(
+                    [
+                        'siswa_id' => $siswaId,
+                        'mapel_id' => $mapelId,
+                        'semester' => $semester,
+                        'tahun_ajaran' => $tahunAjaran,
+                    ],
+                    [
+                        $nilaiField => round($nilaiPg),
+                        'nilai_akhir' => round($nilaiPg),
+                        'predikat' => $nilaiPg >= 90 ? 'A' : ($nilaiPg >= 80 ? 'B' : ($nilaiPg >= 75 ? 'C' : 'D')),
+                        'guru_id' => $hasil->sesiUjian->bankSoal->guru_id,
+                    ]
+                );
+            }
+
             DB::commit();
 
             return response()->json(['message' => 'Ujian selesai', 'nilai_pg' => $nilaiPg]);

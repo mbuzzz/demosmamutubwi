@@ -1,23 +1,48 @@
 import { useState } from 'react';
-import { Search, Mail, BookOpen } from 'lucide-react';
+import { Search, Mail, BookOpen, Loader2 } from 'lucide-react';
+import { useUsers } from '../hooks/useUsers';
+import { useMapelList } from '../hooks/useMapel';
+import { usePenugasanList } from '../hooks/usePenugasan';
 
 export default function GuruDirectory() {
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Mock data for teachers
-  const teachers = [
-    { name: 'Budi Santoso, S.Pd.', subject: 'Matematika', email: 'budi.santoso@smasmuh1bwi.sch.id', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80' },
-    { name: 'Siti Rahma, S.Pd.I.', subject: 'Pendidikan Agama Islam', email: 'siti.rahma@smasmuh1bwi.sch.id', img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80' },
-    { name: 'Ahmad Faisal, S.Si.', subject: 'Fisika & Kimia', email: 'ahmad.faisal@smasmuh1bwi.sch.id', img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80' },
-    { name: 'Indah Lestari, M.Pd.', subject: 'Bahasa Indonesia', email: 'indah.lestari@smasmuh1bwi.sch.id', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
-    { name: 'Rian Pratama, S.Kom.', subject: 'Teknologi Informasi / TIK', email: 'rian.pratama@smasmuh1bwi.sch.id', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80' },
-    { name: 'Dewi Sartika, S.Pd.', subject: 'Bahasa Inggris', email: 'dewi.sartika@smasmuh1bwi.sch.id', img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80' }
-  ];
+  const { data: users = [], isLoading: usersLoading } = useUsers('guru');
+  const { data: mapels = [] } = useMapelList();
+  const { data: penugasans = [] } = usePenugasanList();
+
+  // Map penugasan to get subjects taught by each guru
+  const guruSubjects = new Map<number, string[]>();
+  penugasans.forEach((p: any) => {
+    if (!guruSubjects.has(p.guru_id)) {
+      guruSubjects.set(p.guru_id, []);
+    }
+    const mapel = mapels.find((m: any) => m.id === String(p.mapel_id));
+    if (mapel && !guruSubjects.get(p.guru_id)!.includes(mapel.nama)) {
+      guruSubjects.get(p.guru_id)!.push(mapel.nama);
+    }
+  });
+
+  const teachers = users.map((user: any) => ({
+    name: user.name,
+    subject: guruSubjects.get(user.id)?.join(', ') || user.jabatan || 'Tenaga Pendidik',
+    email: user.email,
+    img: user.foto ? (user.foto.startsWith('http') ? user.foto : `/storage/${user.foto}`) : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    id: user.id,
+  }));
 
   const filteredTeachers = teachers.filter(teacher => 
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     teacher.subject.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (usersLoading) {
+    return (
+      <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 flex justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 sm:px-6 lg:px-8">
