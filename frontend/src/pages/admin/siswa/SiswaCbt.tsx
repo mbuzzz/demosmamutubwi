@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { type SesiUjian, type TipeUjian, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
 import { useUjianAktifList, useMulaiUjian, useSimpanJawaban, useSelesaiUjian } from '../../../hooks/useCbt';
 import { useAuth } from '../../../components/auth/AuthContext';
+import { getFileUrl } from '../../../lib/api';
 
 interface Question {
   id: number;
@@ -187,17 +188,17 @@ export default function SiswaCbt() {
        }, {
          onSuccess: (data) => {
            // map data soal
-           const questions: Question[] = data.soal.map((s, index) => {
-              const opsi = s.opsi_jawabans || s.opsiJawabans;
-              return {
-                id: s.id as number,
-                nomor: index + 1,
-                tipe: s.jenis,
-                pertanyaan: s.pertanyaan,
-                options: opsi ? opsi.map((o: any) => ({ id: o.id, teks_opsi: o.teks_opsi })) : undefined,
-                kunci: opsi ? opsi.filter((o: any) => o.is_benar).map((o: any) => o.teks_opsi).join(', ') : '',
-              };
-           });
+            const questions: Question[] = data.soal.map((s, index) => {
+               const opsi = s.opsi_jawabans || s.opsiJawabans;
+               return {
+                 id: s.id as number,
+                 nomor: index + 1,
+                 tipe: s.jenis,
+                 pertanyaan: s.pertanyaan,
+                 options: opsi ? opsi.map((o: any) => ({ id: o.id, teks_opsi: o.teks_opsi })) : undefined,
+                 kunci: opsi ? opsi.filter((o: any) => o.is_benar).map((o: any) => String(o.id)).join(', ') : '',
+               };
+            });
            
            const examWithQuestions = {
               ...exam,
@@ -237,7 +238,7 @@ export default function SiswaCbt() {
                  tipe: s.jenis,
                  pertanyaan: s.pertanyaan,
                  options: opsi ? opsi.map((o: any) => ({ id: o.id, teks_opsi: o.teks_opsi })) : undefined,
-                 kunci: opsi ? opsi.filter((o: any) => o.is_benar).map((o: any) => o.teks_opsi).join(', ') : '',
+                 kunci: opsi ? opsi.filter((o: any) => o.is_benar).map((o: any) => String(o.id)).join(', ') : '',
                };
             });
             
@@ -500,6 +501,7 @@ export default function SiswaCbt() {
                     {activeQ.options.map((opt: any, oIdx) => {
                       const label = ['A', 'B', 'C', 'D', 'E'][oIdx];
                       const selected = answers[activeQ.id] === String(opt.id);
+                      const isImage = opt.teks_opsi && (opt.teks_opsi.startsWith('http') || opt.teks_opsi.startsWith('/storage') || opt.teks_opsi.startsWith('/images') || /\.(jpeg|jpg|gif|png|webp|svg)/i.test(opt.teks_opsi));
                       return (
                         <div key={label} onClick={() => handleSelectAnswer(String(opt.id))}
                           className={`flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all ${
@@ -514,7 +516,11 @@ export default function SiswaCbt() {
                           }`}>
                             {label}
                           </div>
-                          <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{opt.teks_opsi}</span>
+                          {isImage ? (
+                            <img src={getFileUrl(opt.teks_opsi)} alt={label} className="max-h-24 object-contain rounded-lg border border-slate-100 dark:border-slate-855 bg-white p-1" />
+                          ) : (
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{opt.teks_opsi}</span>
+                          )}
                         </div>
                       );
                     })}
