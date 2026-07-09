@@ -55,7 +55,7 @@ export default function LoginBendahara() {
         <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-teal-500/10 blur-3xl opacity-50"></div>
       </div>
 
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl border border-slate-200 dark:border-slate-850 p-8 relative z-10">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl border border-slate-200 dark:border-slate-800 p-8 relative z-10">
         <div className="text-center mb-6">
           <Link to="/" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-teal-600 transition-colors font-bold text-xs mb-4">
             <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Beranda
@@ -63,7 +63,7 @@ export default function LoginBendahara() {
           <div className="w-16 h-16 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Wallet className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black text-slate-850 dark:text-white">Portal Keuangan & Bendahara</h2>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white">Portal Keuangan & Bendahara</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Masukkan username bendahara dan password Anda</p>
         </div>
 
@@ -76,7 +76,7 @@ export default function LoginBendahara() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1.5 pl-1">Username Bendahara</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 pl-1">Username Bendahara</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
@@ -85,13 +85,13 @@ export default function LoginBendahara() {
                 value={username} 
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Contoh: siti" 
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:text-white font-mono" 
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:text-white font-mono" 
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase mb-1.5 pl-1">Password</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 pl-1">Password</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
@@ -100,7 +100,7 @@ export default function LoginBendahara() {
                 value={password} 
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••" 
-                className="w-full pl-9 pr-12 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:text-white" 
+                className="w-full pl-9 pr-12 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:text-white" 
               />
               <button 
                 type="button"
@@ -113,12 +113,12 @@ export default function LoginBendahara() {
           </div>
 
           <div className="flex items-center justify-between pl-1 pr-1 text-xs">
-            <label className="flex items-center gap-2 text-slate-655 dark:text-slate-400 cursor-pointer font-bold select-none">
+            <label className="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer font-bold select-none">
               <input 
                 type="checkbox" 
                 checked={rememberMe}
                 onChange={e => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-slate-300 dark:border-slate-750" 
+                className="w-4 h-4 text-teal-600 focus:ring-teal-500 rounded border-slate-300 dark:border-slate-700" 
               />
               Ingat Saya
             </label>

@@ -15,14 +15,14 @@ export default function Login() {
 
       <div className="w-full max-w-7xl relative z-10 space-y-8">
         <div className="text-center space-y-3">
-          <Link to="/" className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors font-semibold text-sm">
+          <Link to="/" className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
           </Link>
           <div className="flex items-center justify-center gap-3 mt-4">
             <img src={config?.logo_sekolah ? getFileUrl(config.logo_sekolah) : "/logo.png"} alt="Logo SMAS Muh 1" className="h-14 w-14 object-contain bg-white dark:bg-slate-900 p-2 rounded-[15px] shadow-sm" />
             <div className="text-left">
               <h1 className="font-extrabold text-2xl text-slate-800 dark:text-white leading-tight">SMAS Muhammadiyah 1</h1>
-              <p className="text-emerald-650 dark:text-emerald-400 font-bold uppercase tracking-widest text-xs">Banyuwangi</p>
+              <p className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest text-xs">Banyuwangi</p>
             </div>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white pt-2">Portal Log In Terpadu</h2>
@@ -35,12 +35,12 @@ export default function Login() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 xl:gap-5 max-w-7xl mx-auto">
           
           {/* Card 1: Siswa */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-emerald-300 dark:hover:border-emerald-800 transition-all flex flex-col justify-between group min-h-[340px]">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-emerald-300 dark:hover:border-emerald-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-5">
                 <GraduationCap className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Siswa</h3>
+              <h3 className="font-black text-slate-800 dark:text-white text-lg mb-2">Portal Siswa</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
                 Jadwal pelajaran, materi belajar, tugas harian, CBT, dan rapor nilai akhir.
               </p>
@@ -54,31 +54,31 @@ export default function Login() {
           </div>
 
           {/* Card 2: Orang Tua */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all flex flex-col justify-between group min-h-[340px]">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Orang Tua</h3>
+              <h3 className="font-black text-slate-800 dark:text-white text-lg mb-2">Portal Orang Tua</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
                 Pantau absensi, tagihan, tugas LMS, dan perkembangan rapor anak.
               </p>
             </div>
             <Link 
               to="/login/orang-tua" 
-              className="mt-auto w-full flex items-center justify-center gap-2 bg-indigo-650 hover:bg-indigo-750 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
+              className="mt-auto w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
             >
               Masuk Portal Wali <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
           {/* Card 3: Guru & Staf */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-800 transition-all flex flex-col justify-between group min-h-[340px]">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Guru & Staf</h3>
+              <h3 className="font-black text-slate-800 dark:text-white text-lg mb-2">Portal Guru & Staf</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
                 Kelola jurnal mengajar, presensi kelas, materi, tugas, CBT, dan catatan rapor.
               </p>
@@ -92,12 +92,12 @@ export default function Login() {
           </div>
 
           {/* Card 4: Administrator */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-800 transition-all flex flex-col justify-between group min-h-[340px]">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Administrator</h3>
+              <h3 className="font-black text-slate-800 dark:text-white text-lg mb-2">Portal Administrator</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
                 Kelola pengguna, penugasan, kurikulum, SPMB, dan konfigurasi sistem sekolah.
               </p>
@@ -111,12 +111,12 @@ export default function Login() {
           </div>
 
           {/* Card 5: Bendahara */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-850 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-amber-300 dark:hover:border-amber-800 transition-all flex flex-col justify-between group min-h-[340px]">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-amber-300 dark:hover:border-amber-800 transition-all flex flex-col justify-between group min-h-[340px]">
             <div>
               <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-slate-850 dark:text-white text-lg mb-2">Portal Bendahara</h3>
+              <h3 className="font-black text-slate-800 dark:text-white text-lg mb-2">Portal Bendahara</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
                 Kelola jenis pembayaran, tagihan siswa, transaksi, dan laporan keuangan.
               </p>
@@ -131,7 +131,7 @@ export default function Login() {
 
         </div>
 
-        <div className="text-center text-[10px] text-slate-400 dark:text-slate-500 pt-4 border-t border-slate-200 dark:border-slate-850">
+        <div className="text-center text-[10px] text-slate-400 dark:text-slate-500 pt-4 border-t border-slate-200 dark:border-slate-800">
           SMAS Muhammadiyah 1 Banyuwangi — Sistem Informasi Terpadu © {new Date().getFullYear()}
         </div>
       </div>
