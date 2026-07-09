@@ -60,13 +60,25 @@ class BeritaController extends Controller
     {
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
             'kategori_id' => 'required|exists:kategori_beritas,id',
             'konten' => 'required|string',
             'cover_image' => 'nullable|image|max:2048',
             'status' => 'required|in:draft,published',
         ]);
 
-        $validated['slug'] = Str::slug($validated['judul']) . '-' . Str::random(5);
+        $baseSlug = !empty($validated['slug'])
+            ? Str::slug($validated['slug'])
+            : Str::slug($validated['judul']);
+        $validated['slug'] = $baseSlug ?: ('berita-' . Str::random(6));
+        // Ensure uniqueness
+        $original = $validated['slug'];
+        $i = 1;
+        while (Berita::where('slug', $validated['slug'])->exists()) {
+            $validated['slug'] = $original . '-' . $i;
+            $i++;
+        }
+
         $validated['penulis_id'] = auth()->id();
 
         if ($validated['status'] == 'published') {
@@ -87,14 +99,26 @@ class BeritaController extends Controller
 
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
             'kategori_id' => 'required|exists:kategori_beritas,id',
             'konten' => 'required|string',
             'cover_image' => 'nullable|image|max:2048',
             'status' => 'required|in:draft,published',
         ]);
 
-        if ($berita->judul !== $validated['judul']) {
+        if (!empty($validated['slug'])) {
+            $slug = Str::slug($validated['slug']) ?: $berita->slug;
+            $original = $slug;
+            $i = 1;
+            while (Berita::where('slug', $slug)->where('id', '!=', $berita->id)->exists()) {
+                $slug = $original . '-' . $i;
+                $i++;
+            }
+            $validated['slug'] = $slug;
+        } elseif ($berita->judul !== $validated['judul']) {
             $validated['slug'] = Str::slug($validated['judul']) . '-' . Str::random(5);
+        } else {
+            unset($validated['slug']);
         }
 
         if ($berita->status !== 'published' && $validated['status'] === 'published') {

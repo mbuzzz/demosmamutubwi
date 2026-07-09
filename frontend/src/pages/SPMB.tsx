@@ -76,33 +76,51 @@ export default function SPMB() {
                 <div>
                   <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Alur Pendaftaran Digital</h2>
                   <div className="space-y-6">
-                    <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-[15px] flex items-center justify-center text-brand-blueDark dark:text-brand-yellow shrink-0 shadow-sm border border-slate-200 dark:border-slate-700">
-                        <FileText className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">1. Pengisian Formulir Online</h3>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{config?.spmb_alur_online || 'Calon siswa memilih gelombang yang tersedia dan melengkapi biodata diri secara penuh. Dokumen pendukung seperti KK, Akta Kelahiran, dan Surat Keterangan Lulus bisa diunggah di akhir.'}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-brand-teal/10 rounded-[15px] flex items-center justify-center text-brand-teal dark:text-emerald-400 shrink-0 shadow-sm border border-brand-teal/20 dark:border-emerald-500/30">
-                        <ClipboardList className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">2. Verifikasi Data & Tes CBT</h3>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{config?.spmb_alur_verifikasi || 'Panitia memvalidasi berkas pendaftaran. Siswa akan mendapatkan Token Ujian Mandiri (CBT) untuk melakukan tes pemetaan kelas dari rumah.'}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-brand-green/10 rounded-[15px] flex items-center justify-center text-brand-green dark:text-emerald-400 shrink-0 shadow-sm border border-brand-green/20 dark:border-emerald-500/30">
-                        <CheckCircle className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">3. Pengumuman Kelulusan</h3>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Surat Keputusan (SK) Kelulusan dapat diakses dan diunduh di dashboard pendaftaran masing-masing siswa, diikuti instruksi registrasi ulang.</p>
-                      </div>
-                    </div>
+                    {[
+                      {
+                        title: '1. Pengisian Formulir Online',
+                        text: config?.spmb_alur_online || 'Calon siswa memilih gelombang yang tersedia dan melengkapi biodata diri secara penuh. Dokumen pendukung seperti KK, Akta Kelahiran, dan Surat Keterangan Lulus bisa diunggah di akhir.',
+                        icon: FileText,
+                        box: 'bg-slate-100 dark:bg-slate-800 text-brand-blueDark dark:text-brand-yellow border-slate-200 dark:border-slate-700',
+                      },
+                      {
+                        title: '2. Verifikasi Data',
+                        text: config?.spmb_alur_verifikasi || 'Panitia memvalidasi berkas pendaftaran sebelum tahap berikutnya.',
+                        icon: ClipboardList,
+                        box: 'bg-brand-teal/10 text-brand-teal dark:text-emerald-400 border-brand-teal/20 dark:border-emerald-500/30',
+                      },
+                      {
+                        title: '3. Pembayaran',
+                        text: config?.spmb_alur_pembayaran || 'Lakukan pembayaran formulir / registrasi sesuai instruksi panitia dan unggah bukti transfer bila diminta.',
+                        icon: CreditCard,
+                        box: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
+                      },
+                      {
+                        title: '4. Tes / CBT',
+                        text: config?.spmb_alur_tes || 'Siswa mengikuti tes pemetaan (CBT) sesuai jadwal atau token ujian mandiri yang diberikan panitia.',
+                        icon: Users,
+                        box: 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30',
+                      },
+                      {
+                        title: '5. Pengumuman Kelulusan',
+                        text: config?.spmb_alur_pengumuman || 'Surat Keputusan (SK) Kelulusan dapat diakses di dashboard pendaftaran, diikuti instruksi registrasi ulang.',
+                        icon: CheckCircle,
+                        box: 'bg-brand-green/10 text-brand-green dark:text-emerald-400 border-brand-green/20 dark:border-emerald-500/30',
+                      },
+                    ].map((step) => {
+                      const Icon = step.icon;
+                      return (
+                        <div key={step.title} className="flex gap-4">
+                          <div className={`w-12 h-12 rounded-[15px] flex items-center justify-center shrink-0 shadow-sm border ${step.box}`}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{step.title}</h3>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-line">{step.text}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 

@@ -46,22 +46,35 @@ export function useSistemKonfigurasi() {
 export function useUpdateSistemKonfigurasi() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: FormData | {
-      tahun_ajaran_aktif?: string;
-      semester_aktif?: 'ganjil' | 'genap';
-      kurikulum_aktif_id?: string | null;
-      nama_sekolah?: string;
-      slogan?: string;
-      telepon?: string;
-      email?: string;
-      alamat?: string;
-      google_maps_embed?: string;
-      facebook?: string;
-      instagram?: string;
-      twitter?: string;
-    }) => {
+    mutationFn: async (
+      data:
+        | FormData
+        | Partial<
+            Pick<
+              SistemKonfigurasiRecord,
+              | 'tahun_ajaran_aktif'
+              | 'semester_aktif'
+              | 'kurikulum_aktif_id'
+              | 'nama_sekolah'
+              | 'slogan'
+              | 'telepon'
+              | 'email'
+              | 'alamat'
+              | 'google_maps_embed'
+              | 'facebook'
+              | 'instagram'
+              | 'twitter'
+              | 'spmb_alur_online'
+              | 'spmb_alur_verifikasi'
+              | 'spmb_alur_pembayaran'
+              | 'spmb_alur_tes'
+              | 'spmb_alur_pengumuman'
+              | 'spmb_biaya_info'
+            >
+          >
+    ) => {
       if (data instanceof FormData) {
-        data.append('_method', 'PUT');
+        if (!data.has('_method')) data.append('_method', 'PUT');
         const res = await api.post('/sistem-konfigurasi', data, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
