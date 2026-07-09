@@ -47,44 +47,22 @@ class NilaiController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $validated = $request->validate([
-            'siswa_id' => 'required|exists:users,id',
+        $request->validate([
             'mapel_id' => 'required|exists:mapels,id',
-            'nilai_tugas' => 'nullable|numeric|min:0|max:100',
-            'nilai_uts' => 'nullable|numeric|min:0|max:100',
-            'nilai_uas' => 'nullable|numeric|min:0|max:100',
-            'semester' => 'required|string',
-            'tahun_ajaran' => 'required|string',
-            'catatan' => 'nullable|string',
+            'scores' => 'required|array',
+            'scores.*.siswa_id' => 'required|exists:users,id',
+            'scores.*.nilai_tugas' => 'nullable|numeric|min:0|max:100',
+            'scores.*.nilai_uts' => 'nullable|numeric|min:0|max:100',
+            'scores.*.nilai_uas' => 'nullable|numeric|min:0|max:100',
+            'scores.*.catatan' => 'nullable|string',
         ]);
 
-        if ($user->role === 'guru') {
-            // Find student's current class matching users.kelas name
-            $student = \App\Models\User::findOrFail($validated['siswa_id']);
-            $kelas = \App\Models\Kelas::where('nama', $student->kelas)->first();
-
-            if (!$kelas) {
-                abort(403, 'Siswa tidak terdaftar di kelas manapun.');
-            }
-
-            $penugasan = Penugasan::where('guru_id', $user->id)
-                ->where('mapel_id', $validated['mapel_id'])
-                ->where('kelas_id', $kelas->id)
-                ->where('tahun_ajaran', $validated['tahun_ajaran'])
-                ->exists();
-
-            if (!$penugasan) {
-                abort(403, 'Anda tidak ditugaskan mengajar mapel tersebut di kelas siswa ini.');
-            }
-        }
-
-        $validated['guru_id'] = $user->id;
-
-        // Auto calculate nilai_akhir and predikat
         $config = SistemKonfigurasi::first() ?: new SistemKonfigurasi([
             'tahun_ajaran_aktif' => '2025/2026',
             'semester_aktif' => 'ganjil',
         ]);
+        $tahunAjaran = $config->tahun_ajaran_aktif;
+        $semester = $config->semester_aktif;
 
         $kurikulum = null;
         if ($config->kurikulum_aktif_id) {
@@ -99,47 +77,75 @@ class NilaiController extends Controller
             ]);
         }
 
-        $nilaiTugas = $validated['nilai_tugas'] ?? 0;
-        $nilaiUts = $validated['nilai_uts'] ?? 0;
-        $nilaiUas = $validated['nilai_uas'] ?? 0;
-
         $bobotTugas = $kurikulum->bobot_tugas ?? 30;
         $bobotUts = $kurikulum->bobot_uts ?? 30;
         $bobotUas = $kurikulum->bobot_uas ?? 40;
-
         $totalBobot = $bobotTugas + $bobotUts + $bobotUas;
         if ($totalBobot <= 0) $totalBobot = 100;
 
-        $nilaiAkhir = round(
-            ($nilaiTugas * $bobotTugas +
-             $nilaiUts * $bobotUts +
-             $nilaiUas * $bobotUas) / $totalBobot
-        );
+        $kkm = $kurikulum->kkm_default ?? 75;
 
-        $validated['nilai_akhir'] = $nilaiAkhir;
+        \DB::beginTransaction();
+        try {
+            foreach ($request->scores as $score) {
+                if ($user->role === 'guru') {
+                    $student = \App\Models\User::find($score['siswa_id']);
+                    if (!$student || !$student->kelas) continue;
 
-        $kkm = $kurikulum->kkm_default;
-        if ($nilaiAkhir >= 90) $predikat = 'A';
-        elseif ($nilaiAkhir >= 80) $predikat = 'B';
-        elseif ($nilaiAkhir >= $kkm) $predikat = 'C';
-        else $predikat = 'D';
+                    $kelas = \App\Models\Kelas::where('nama', $student->kelas)->first();
+                    if (!$kelas) continue;
 
-        $validated['predikat'] = $predikat;
+                    $penugasan = Penugasan::where('guru_id', $user->id)
+                        ->where('mapel_id', $request->mapel_id)
+                        ->where('kelas_id', $kelas->id)
+                        ->where('tahun_ajaran', $tahunAjaran)
+                        ->exists();
 
-        $nilai = Nilai::updateOrCreate(
-            [
-                'siswa_id' => $validated['siswa_id'],
-                'mapel_id' => $validated['mapel_id'],
-                'semester' => $validated['semester'],
-                'tahun_ajaran' => $validated['tahun_ajaran'],
-            ],
-            $validated
-        );
+                    if (!$penugasan) continue;
+                }
 
-        return response()->json([
-            'message' => 'Nilai saved successfully',
-            'nilai' => $nilai,
-        ]);
+                $nilaiTugas = $score['nilai_tugas'] ?? 0;
+                $nilaiUts = $score['nilai_uts'] ?? 0;
+                $nilaiUas = $score['nilai_uas'] ?? 0;
+
+                $nilaiAkhir = round(
+                    ($nilaiTugas * $bobotTugas +
+                     $nilaiUts * $bobotUts +
+                     $nilaiUas * $bobotUas) / $totalBobot
+                );
+
+                if ($nilaiAkhir >= 90) $predikat = 'A';
+                elseif ($nilaiAkhir >= 80) $predikat = 'B';
+                elseif ($nilaiAkhir >= $kkm) $predikat = 'C';
+                else $predikat = 'D';
+
+                Nilai::updateOrCreate(
+                    [
+                        'siswa_id' => $score['siswa_id'],
+                        'mapel_id' => $request->mapel_id,
+                        'semester' => $semester,
+                        'tahun_ajaran' => $tahunAjaran,
+                    ],
+                    [
+                        'guru_id' => $user->id,
+                        'nilai_tugas' => $score['nilai_tugas'] ?? null,
+                        'nilai_uts' => $score['nilai_uts'] ?? null,
+                        'nilai_uas' => $score['nilai_uas'] ?? null,
+                        'nilai_akhir' => $nilaiAkhir,
+                        'predikat' => $predikat,
+                        'catatan' => $score['catatan'] ?? null,
+                    ]
+                );
+            }
+            \DB::commit();
+
+            return response()->json([
+                'message' => 'Nilai siswa berhasil disimpan',
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json(['message' => 'Gagal menyimpan nilai', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function monitoringUH(Request $request)
