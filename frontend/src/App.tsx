@@ -26,6 +26,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminBeranda from './pages/admin/halaman/AdminBeranda';
 import AdminProfilSekolah from './pages/admin/halaman/AdminProfilSekolah';
 import AdminPrestasiList from './pages/admin/halaman/AdminPrestasiList';
+import AdminPrestasiForm from './pages/admin/halaman/AdminPrestasiForm';
 import AdminFaqTestimoni from './pages/admin/web/AdminFaqTestimoni';
 
 import AdminDashboard from './pages/admin/Dashboard';
@@ -146,6 +147,8 @@ export default function App() {
         <Route path="/panel/beranda" element={<ProtectedRoute requiredRole="superadmin"><AdminBeranda /></ProtectedRoute>} />
         <Route path="/panel/profil-sekolah" element={<ProtectedRoute requiredRole="superadmin"><AdminProfilSekolah /></ProtectedRoute>} />
         <Route path="/panel/prestasi" element={<ProtectedRoute requiredRole="superadmin"><AdminPrestasiList /></ProtectedRoute>} />
+        <Route path="/panel/prestasi/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminPrestasiForm /></ProtectedRoute>} />
+        <Route path="/panel/prestasi/edit/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminPrestasiForm /></ProtectedRoute>} />
         <Route path="/panel/faq-testimoni" element={<ProtectedRoute requiredRole="superadmin"><AdminFaqTestimoni /></ProtectedRoute>} />
         <Route path="/panel/berita" element={<ProtectedRoute requiredRole="superadmin"><AdminBeritaList /></ProtectedRoute>} />
         <Route path="/panel/berita/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminBeritaForm /></ProtectedRoute>} />

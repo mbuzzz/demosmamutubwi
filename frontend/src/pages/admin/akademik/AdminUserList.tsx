@@ -49,24 +49,15 @@ export default function AdminUserList() {
   };
 
   const handleExportExcel = () => {
-    if (users.length === 0) {
-      toast.error('Tidak ada data untuk diekspor');
-      return;
-    }
-    const reportData = users.map(u => ({
-      'Nama Lengkap': u.name,
-      'Username': u.email.split('@')[0], // simplified fallback
-      'Email': u.email,
-      'NIP / NISN': u.nip_nisn || '—',
-      'Peran (Role)': u.role.toUpperCase(),
-      'Keterangan / Info': u.kelas ? `Kelas ${u.kelas}` : u.jabatan || '—'
-    }));
+    const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const rootURL = apiURL.replace(/\/api\/?$/, '');
+    window.open(`${rootURL}/api/users/export/xlsx?role=${activeTab}`, '_blank');
+  };
 
-    const ws = XLSX.utils.json_to_sheet(reportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Daftar Pengguna');
-    XLSX.writeFile(wb, `Daftar_Pengguna_SIT_${new Date().toISOString().split('T')[0]}.xlsx`);
-    toast.success('Daftar pengguna berhasil diekspor ke Excel');
+  const handleExportPdf = () => {
+    const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const rootURL = apiURL.replace(/\/api\/?$/, '');
+    window.open(`${rootURL}/api/users/export/pdf?role=${activeTab}`, '_blank');
   };
 
   const handleDownloadTemplate = () => {
@@ -95,81 +86,36 @@ export default function AdminUserList() {
     XLSX.writeFile(wb, `Template_Impor_User.xlsx`);
   };
 
-  const handleProcessImport = () => {
-    if (!selectedFile) {
-      toast.error('Pilih file Excel terlebih dahulu');
-      return;
-    }
-
-    setIsImporting(true);
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const dataArr = evt.target?.result;
-        if (!dataArr) return;
-        const workbook = XLSX.read(dataArr, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json<any>(worksheet);
-
-        if (json.length === 0) {
-          toast.error('Berkas Excel kosong');
-          setIsImporting(false);
-          return;
-        }
-
-        let importedCount = 0;
-
-        for (let i = 0; i < json.length; i++) {
-          const row = json[i];
-          const name = row['Nama Lengkap'] || row['Nama'] || row['nama'];
-          const username = row['Username'] || row['username'] || `user_${Date.now()}_${i}`;
-          const email = row['Email'] || row['email'] || `${username}@smasmuh1.sch.id`;
-          const nip_nisn = String(row['NIP / NISN'] || row['NIP'] || row['NISN'] || row['nip'] || row['nisn'] || '');
-          const rawRole = String(row['Peran (Role)'] || row['Role'] || row['role'] || 'siswa').toLowerCase();
-          const info = row['Keterangan / Info'] || row['Info'] || row['info'] || '';
-
-          let role: UserRecord['role'] = 'siswa';
-          if (rawRole.includes('guru')) role = 'guru';
-          else if (rawRole.includes('wali')) role = 'walikelas';
-          else if (rawRole.includes('kepsek')) role = 'kepala_sekolah';
-          else if (rawRole.includes('kuri')) role = 'kurikulum';
-          else if (rawRole.includes('benda')) role = 'bendahara';
-          else if (rawRole.includes('super')) role = 'superadmin';
-          else if (rawRole.includes('admin')) role = 'admin';
-
-          if (name) {
-            try {
-              await createUserMutation.mutateAsync({
-                name,
-                username,
-                email,
-                password: '1234', // default password for imported accounts
-                role,
-                nip_nisn: nip_nisn || null,
-                kelas: role === 'siswa' ? info : null,
-                jabatan: role !== 'siswa' ? info : null,
-                is_active: true
-              });
-              importedCount++;
-            } catch (e) {
-              console.error('Row failed', row, e);
-            }
-          }
-        }
-
-        toast.success(`Berhasil mengimpor ${importedCount} pengguna baru!`);
-        setShowImportModal(false);
-        setSelectedFile(null);
-      } catch (err) {
-        console.error(err);
-        toast.error('Gagal membaca berkas Excel. Pastikan format kolom sesuai template.');
-      } finally {
-        setIsImporting(false);
-      }
-    };
-    reader.readAsArrayBuffer(selectedFile);
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
   };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const uploadToast = toast.loading('Mengimpor pengguna...');
+
+    try {
+      const { api } = await import('../../../lib/api');
+      const res = await api.post('/users/import/xlsx', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.dismiss(uploadToast);
+      toast.success(res.data.message || 'Pengguna berhasil diimpor!');
+      const { queryClient } = await import('../../../lib/queryClient');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    } catch (err: any) {
+      toast.dismiss(uploadToast);
+      toast.error(err.response?.data?.message || 'Gagal mengimpor data pengguna.');
+    }
+    e.target.value = '';
+    setShowImportModal(false);
+  };
+
 
   return (
     <AdminLayout title="Manajemen Pengguna (Users)">
@@ -193,14 +139,26 @@ export default function AdminUserList() {
             ))}
           </div>
           <div className="flex gap-2 p-3 sm:p-0 sm:pr-4 bg-white dark:bg-slate-900 dark:bg-transparent">
+            <button onClick={handleExportPdf} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm active:scale-95">
+              <Download className="w-4 h-4" /> Export PDF
+            </button>
             <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm active:scale-95">
               <Download className="w-4 h-4" /> Export Excel
             </button>
-            <button onClick={() => setShowImportModal(true)} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-xl transition-colors border border-indigo-200 dark:border-indigo-500/30 shadow-sm active:scale-95">
+            <button onClick={handleImportClick} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 rounded-xl transition-colors border border-indigo-200 dark:border-indigo-500/30 shadow-sm active:scale-95">
               <Upload className="w-4 h-4" /> Import Excel
             </button>
           </div>
         </div>
+
+        {/* Hidden file input */}
+        <input 
+          type="file" 
+          accept=".xlsx, .xls"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleImportExcel} 
+        />
 
         {/* Toolbar */}
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

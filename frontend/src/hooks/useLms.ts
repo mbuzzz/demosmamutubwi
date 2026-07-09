@@ -77,7 +77,7 @@ export function useMateriDetail(id?: string) {
     queryKey: ['materi', id],
     queryFn: async () => {
       if (!id) return null;
-      const res = await api.get<Materi>(`/lms/materi/${id}`);
+      const res = await api.get<{ data: Materi }>(`/lms/materi/${id}`);
       const item: any = res.data.data || res.data;
       return { ...item, deskripsi: item.konten || item.deskripsi };
     },
@@ -176,7 +176,7 @@ export function useTugasDetail(id?: string) {
     queryKey: ['tugas', id],
     queryFn: async () => {
       if (!id) return null;
-      const res = await api.get<Tugas>(`/lms/tugas/${id}`);
+      const res = await api.get<{ data: Tugas }>(`/lms/tugas/${id}`);
       const item: any = res.data.data || res.data;
       return { ...item, deskripsi: item.instruksi || item.deskripsi };
     },

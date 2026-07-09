@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
             'name' => 'Admin SMAS Muh 1',
             'username' => 'admin',
             'email' => 'admin@sit.sch.id',
-            'password' => Hash::make('1234'),
+            'password' => Hash::make('@SMAM1bwi'),
             'role' => 'superadmin',
             'nip_nisn' => '197501012000031001',
             'is_active' => true,
