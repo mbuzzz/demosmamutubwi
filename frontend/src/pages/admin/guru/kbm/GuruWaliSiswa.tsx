@@ -7,18 +7,14 @@ import { useUsers } from '../../../../hooks/useUsers';
 import { useAbsensiList, useManualAbsensi } from '../../../../hooks/useAbsensi';
 import { useEkskulList } from '../../../../hooks/useEkskul';
 import { useRaporList, useSaveNilaiEkskul, useDeleteNilaiEkskul } from '../../../../hooks/useRapor';
+import { useSistemKonfigurasi } from '../../../../hooks/useSistemKonfigurasi';
 import { toast } from 'sonner';
-
-const MOCK_WALI_KELAS = {
-  kelas: 'Kelas X-1',
-  waliKelas: 'Ahmad Fauzi, S.Pd',
-  periode: '2025/2026',
-};
 
 export default function GuruWaliSiswa() {
   const { user } = useAuth();
   const kelasBinaan = user?.kelas || 'X-1';
   const todayStr = new Date().toISOString().split('T')[0];
+  const { data: config } = useSistemKonfigurasi();
 
   const [activeTab, setActiveTab] = useState<'siswa' | 'perizinan' | 'ekskul'>('siswa');
   const [search, setSearch] = useState('');
@@ -96,8 +92,8 @@ export default function GuruWaliSiswa() {
             <GraduationCap className="w-7 h-7" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800 dark:text-white">{MOCK_WALI_KELAS.kelas}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Wali Kelas: {MOCK_WALI_KELAS.waliKelas} • {MOCK_WALI_KELAS.periode}</p>
+            <h3 className="font-bold text-slate-800 dark:text-white">Kelas {kelasBinaan}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Wali Kelas: {user?.name || '-'} • {config?.tahun_ajaran_aktif || 'Tahun Ajaran Berjalan'}</p>
           </div>
         </div>
         <div className="relative max-w-xs w-full sm:w-64">

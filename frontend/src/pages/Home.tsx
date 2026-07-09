@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Award, BookOpen, GraduationCap, ArrowRight, Quote } from 'lucide-react';
 import { usePublicBeritaList, usePublicProfil } from '../hooks/useCms';
 import { usePrestasiList } from '../hooks/usePrestasi';
+import { useGaleriList } from '../hooks/useGaleri';
 import DOMPurify from 'dompurify';
 import { getFileUrl } from '../lib/api';
 import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
+
 
 export default function Home() {
   const navigate = useNavigate();
@@ -14,8 +16,24 @@ export default function Home() {
   const { data: profil } = usePublicProfil();
   const { data: config } = useSistemKonfigurasi();
   const { data: prestasiList } = usePrestasiList();
+  const { data: galeriList = [] } = useGaleriList();
 
   const latestNews = beritaList.slice(0, 6);
+  
+  // Fallback gallery items when no CMS data exists
+  const FALLBACK_GALERI = [
+    { judul: 'Laboratorium Komputer', image_url: 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&auto=format&fit=crop&q=80' },
+    { judul: 'Perpustakaan Digital', image_url: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80' },
+    { judul: 'Laboratorium IPA', image_url: 'https://images.unsplash.com/photo-1518152006812-cdff28906ec8?w=600&auto=format&fit=crop&q=80' },
+    { judul: 'Ruang Kelas Nyaman', image_url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop&q=80' },
+    { judul: 'Lapangan Olahraga', image_url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80' },
+    { judul: 'Masjid Sekolah', image_url: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=600&auto=format&fit=crop&q=80' },
+  ];
+  // Use real galeri images (only image type), fallback if empty
+  const displayGaleri = galeriList.filter(g => g.tipe === 'image').slice(0, 6);
+  const galeriItems = displayGaleri.length > 0
+    ? displayGaleri.map(g => ({ judul: g.judul, image_url: getFileUrl(g.file_url) }))
+    : FALLBACK_GALERI;
 
   return (
     <div className="space-y-0">
@@ -266,18 +284,11 @@ export default function Home() {
           <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Dukungan infrastruktur belajar mengajar yang lengkap dan representatif untuk kenyamanan siswa.</p>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {[
-            { title: 'Laboratorium Komputer', img: 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&auto=format&fit=crop&q=80' },
-            { title: 'Perpustakaan Digital', img: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80' },
-            { title: 'Laboratorium IPA', img: 'https://images.unsplash.com/photo-1518152006812-cdff28906ec8?w=600&auto=format&fit=crop&q=80' },
-            { title: 'Ruang Kelas Nyaman', img: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop&q=80' },
-            { title: 'Lapangan Olahraga', img: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80' },
-            { title: 'Masjid Sekolah', img: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=600&auto=format&fit=crop&q=80' }
-          ].map((item, idx) => (
+          {galeriItems.map((item, idx) => (
             <div key={idx} className="group relative rounded-2xl overflow-hidden shadow-card dark:shadow-none hover:shadow-card dark:shadow-none-hover aspect-[4/3] bg-slate-200 dark:bg-slate-700">
-              <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <img src={item.image_url} alt={item.judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-blueDark/90 via-black/20 to-transparent flex items-end p-6">
-                <span className="text-white font-semibold text-lg">{item.title}</span>
+                <span className="text-white font-semibold text-lg">{item.judul}</span>
               </div>
             </div>
           ))}

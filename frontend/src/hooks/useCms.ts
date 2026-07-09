@@ -116,3 +116,23 @@ export function usePublicFaq() {
     },
   });
 }
+
+export interface PublicStrukturalItem {
+  id: number;
+  jabatan: string | null;
+  role_akses: string;
+  nama: string | null;
+  nip: string | null;
+  foto: string | null;
+}
+
+export function usePublicStruktural() {
+  return useQuery({
+    queryKey: ['public-struktural'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const res = await api.get<PublicStrukturalItem[]>('/public/struktural');
+      return res.data;
+    },
+  });
+}

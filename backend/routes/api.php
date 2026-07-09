@@ -53,8 +53,11 @@ Route::prefix('public')->group(function () {
     Route::get("/prestasi", [PrestasiController::class, "index"]);
     Route::get('/testimoni', [TestimoniController::class, 'index']);
     
-    // Public Guru Directory
+    // Public Guru Directory (detail lengkap dengan mata pelajaran)
     Route::get('/guru', [App\Http\Controllers\UserController::class, 'publicDirectory']);
+
+    // Public Struktur Organisasi Sekolah
+    Route::get('/struktural', [App\Http\Controllers\PenugasanStrukturalController::class, 'publicStruktural']);
 });
 
 // Public RFID Tap Routes

@@ -29,6 +29,45 @@ class PenugasanStrukturalController extends Controller
         return response()->json($query->orderBy('id', 'desc')->get());
     }
 
+    /**
+     * Public endpoint: Struktur Organisasi Sekolah (no auth required)
+     */
+    public function publicStruktural()
+    {
+        $config = SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+
+        $struktural = PenugasanStruktural::with('user')
+            ->where('tahun_ajaran', $tahunAjaran)
+            ->get();
+
+        $result = $struktural->map(function ($item) {
+            return [
+                'id'         => $item->id,
+                'jabatan'    => $item->jabatan,
+                'role_akses' => $item->role_akses,
+                'nama'       => $item->user?->name,
+                'nip'        => $item->user?->nip_nisn,
+                'foto'       => $item->user?->foto,
+            ];
+        });
+
+        // Sort by role importance
+        $roleOrder = [
+            'kepala_sekolah' => 1,
+            'superadmin'     => 2,
+            'kurikulum'      => 3,
+            'walikelas'      => 4,
+            'bendahara'      => 5,
+            'admin'          => 6,
+            'guru'           => 7,
+        ];
+
+        $sorted = $result->sortBy(fn($item) => $roleOrder[$item['role_akses']] ?? 99)->values();
+
+        return response()->json($sorted);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
