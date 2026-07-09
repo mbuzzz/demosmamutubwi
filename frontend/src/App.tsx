@@ -133,10 +133,13 @@ export default function App() {
         <Route path="/login/siswa" element={<LoginSiswa />} />
         <Route path="/login/guru" element={<LoginGuru />} />
         <Route path="/login/orang-tua" element={<LoginOrangTua />} />
+        {/* Permalink staf (sengaja tidak ditampilkan di hub /login) */}
+        <Route path="/loginadmin" element={<LoginAdmin />} />
+        <Route path="/bendahara" element={<LoginBendahara />} />
+        {/* Alias lama — tetap jalan biar link lama tidak putus */}
         <Route path="/login/admin" element={<LoginAdmin />} />
         <Route path="/login/bendahara" element={<LoginBendahara />} />
         <Route path="/adminlogin" element={<LoginAdmin />} />
-        <Route path="/bendahara" element={<LoginBendahara />} />
         <Route path="/tap/absensi" element={<TapAbsensi />} />
         <Route path="/tap/pembayaran" element={<TapPembayaran />} />
         <Route path="/tap/bendahara" element={<TapPembayaran />} />
