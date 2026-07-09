@@ -24,7 +24,7 @@ class Absensi extends Model
         'created_by'
     ];
 
-    protected $appends = ['user_id', 'tipe', 'waktu_masuk', 'waktu_pulang'];
+    protected $appends = ['user_id', 'tipe', 'waktu_masuk', 'waktu_pulang', 'keterangan'];
 
     public function siswa()
     {
@@ -54,6 +54,11 @@ class Absensi extends Model
     public function getWaktuPulangAttribute()
     {
         return $this->jam_pulang;
+    }
+
+    public function getKeteranganAttribute()
+    {
+        return $this->catatan;
     }
 
     public function admin()

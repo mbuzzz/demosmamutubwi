@@ -141,13 +141,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // 5. ABSENSI & RFID MANAGEMENT
-    Route::middleware('role:superadmin,admin,guru,siswa,orang_tua')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah,siswa,orang_tua')->group(function () {
         Route::get('/absensi', [AbsensiController::class, 'index']);
         Route::get('/absensi/rekap', [AbsensiController::class, 'rekap']);
         Route::get('/absensi/siswa/{id}', [AbsensiController::class, 'rekapSiswa']);
     });
 
-    Route::middleware('role:superadmin,admin,guru')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,walikelas')->group(function () {
         Route::post('/absensi', [AbsensiController::class, 'store']);
         Route::put('/absensi/{id}', [AbsensiController::class, 'update']);
     });

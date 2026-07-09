@@ -9,15 +9,22 @@ import { toast } from 'sonner';
 export default function AdminRekapAbsensi() {
   const [search, setSearch] = useState('');
   const [filterKelas, setFilterKelas] = useState('');
+  const now = new Date();
+  const [bulan, setBulan] = useState(String(now.getMonth() + 1));
+  const [tahun, setTahun] = useState(String(now.getFullYear()));
 
-  const { data: rawRekapRfid = [], isLoading } = useAbsensiRekap({ role: 'siswa' });
+  const { data: rawRekapRfid = [], isLoading, isError, refetch } = useAbsensiRekap({
+    role: 'siswa',
+    bulan,
+    tahun,
+  });
   const { data: allSiswa = [] } = useUsers('siswa');
 
   const kelasList = [...new Set(allSiswa.map(s => s.kelas).filter(Boolean))] as string[];
 
   const filteredRfid = rawRekapRfid.filter(r => {
     if (filterKelas && r.kelas !== filterKelas) return false;
-    if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !(r.name || '').toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -103,9 +110,19 @@ export default function AdminRekapAbsensi() {
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
             <BarChart3 className="w-4 h-4 text-indigo-500" />
-            Semester Ganjil 2025/2026 (RFID Gerbang)
+            Rekap RFID Gerbang · {bulan}/{tahun}
           </div>
           <div className="flex-1" />
+          <select value={bulan} onChange={e => setBulan(e.target.value)} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600 dark:text-slate-300">
+            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+              <option key={m} value={String(m)}>{new Date(2000, m - 1, 1).toLocaleString('id-ID', { month: 'long' })}</option>
+            ))}
+          </select>
+          <select value={tahun} onChange={e => setTahun(e.target.value)} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600 dark:text-slate-300">
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
+              <option key={y} value={String(y)}>{y}</option>
+            ))}
+          </select>
           <select value={filterKelas} onChange={e => setFilterKelas(e.target.value)} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600 dark:text-slate-300">
             <option value="">Semua Kelas</option>
             {kelasList.map(k => <option key={k} value={k}>{k}</option>)}
@@ -123,6 +140,15 @@ export default function AdminRekapAbsensi() {
           <div className="overflow-x-auto">
             {isLoading ? (
               <div className="p-8 text-center text-slate-500">Memuat rekap absensi...</div>
+            ) : isError ? (
+              <div className="p-8 text-center space-y-2">
+                <p className="text-red-500 font-bold text-sm">Gagal memuat rekap absensi</p>
+                <button type="button" onClick={() => refetch()} className="text-indigo-600 text-xs font-bold hover:underline">Coba lagi</button>
+              </div>
+            ) : filteredRfid.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 text-sm font-semibold">
+                Belum ada data absensi gerbang untuk periode ini.
+              </div>
             ) : (
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-200 dark:border-slate-700">

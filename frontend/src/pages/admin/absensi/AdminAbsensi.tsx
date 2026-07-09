@@ -13,23 +13,25 @@ export default function AdminAbsensi() {
   
   const today = new Date().toISOString().split('T')[0];
   
-  const { data: absensi = [], isLoading } = useAbsensiList({ start_date: today, end_date: today, role: 'siswa' });
+  const { data: absensi = [], isLoading } = useAbsensiList({ tanggal: today, role: 'siswa' });
   const { data: allSiswa = [] } = useUsers('siswa');
   const manualAbsen = useManualAbsensi();
 
-  const hadir = absensi.filter(a => a.tipe === 'hadir').length;
+  const hadir = absensi.filter(a => a.tipe === 'hadir' || a.tipe === 'terlambat').length;
   const terlambat = absensi.filter(a => a.tipe === 'terlambat').length;
   const alpha = absensi.filter(a => a.tipe === 'alpha').length;
 
   const filtered = absensi.filter(a => {
     if (filterKelas && a.user?.kelas !== filterKelas) return false;
     if (filterStatus && a.tipe !== filterStatus) return false;
-    if (search && !a.user?.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !a.user?.name?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
   const kelasList = [...new Set(allSiswa.map(s => s.kelas).filter(Boolean))] as string[];
-  const siswaTanpaAbsen = allSiswa.filter(s => !absensi.find(a => a.user_id === parseInt(s.id)));
+  const siswaTanpaAbsen = allSiswa.filter(
+    (s) => !absensi.find((a) => String(a.user_id ?? a.siswa_id) === String(s.id))
+  );
 
   const handleMarkManual = (siswaId: string, status: StatusAbsensi) => {
     const siswa = allSiswa.find(s => s.id === siswaId);
