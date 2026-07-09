@@ -31,8 +31,8 @@ export default function Login() {
           </p>
         </div>
 
-        {/* 5 Portal Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 xl:gap-5 max-w-7xl mx-auto">
+        {/* Portal publik: Siswa, Orang Tua, Guru (Admin & Bendahara disembunyikan — akses lewat URL langsung) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 xl:gap-6 max-w-5xl mx-auto">
           
           {/* Card 1: Siswa */}
           <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-emerald-300 dark:hover:border-emerald-800 transition-all flex flex-col justify-between group min-h-[340px]">
@@ -73,7 +73,7 @@ export default function Login() {
           </div>
 
           {/* Card 3: Guru & Staf */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-800 transition-all flex flex-col justify-between group min-h-[340px]">
+          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-800 transition-all flex flex-col justify-between group min-h-[340px] sm:col-span-2 lg:col-span-1">
             <div>
               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-5">
                 <Users className="w-6 h-6" />
@@ -88,44 +88,6 @@ export default function Login() {
               className="mt-auto w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
             >
               Masuk Portal Guru <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Card 4: Administrator */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-800 transition-all flex flex-col justify-between group min-h-[340px]">
-            <div>
-              <div className="w-12 h-12 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-5">
-                <Users className="w-6 h-6" />
-              </div>
-              <h3 className="font-black text-slate-800 dark:text-white text-lg mb-2">Portal Administrator</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Kelola pengguna, penugasan, kurikulum, SPMB, dan konfigurasi sistem sekolah.
-              </p>
-            </div>
-            <Link 
-              to="/login/admin" 
-              className="mt-auto w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
-            >
-              Masuk Portal Admin <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Card 5: Bendahara */}
-          <div className="bg-white/90 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-amber-300 dark:hover:border-amber-800 transition-all flex flex-col justify-between group min-h-[340px]">
-            <div>
-              <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-5">
-                <Users className="w-6 h-6" />
-              </div>
-              <h3 className="font-black text-slate-800 dark:text-white text-lg mb-2">Portal Bendahara</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Kelola jenis pembayaran, tagihan siswa, transaksi, dan laporan keuangan.
-              </p>
-            </div>
-            <Link 
-              to="/login/bendahara" 
-              className="mt-auto w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all active:scale-95 shadow-sm"
-            >
-              Masuk Portal Bendahara <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
