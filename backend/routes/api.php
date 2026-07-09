@@ -79,12 +79,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // Jurnal Mengajar
     Route::apiResource('jurnal', JurnalController::class);
 
-    // 1. USER MANAGEMENT (Only Superadmin & Admin)
+    // 1. USER MANAGEMENT
+    // Kurikulum may list users (e.g. guru picker for jadwal) but cannot mutate.
+    Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
+        Route::get('/users', [UserController::class, 'index']);
+    });
+
     Route::middleware('role:superadmin,admin')->group(function () {
         Route::get('/users/export/pdf', [UserController::class, 'exportPdf']);
         Route::get('/users/export/xlsx', [UserController::class, 'exportXlsx']);
         Route::post('/users/import/xlsx', [UserController::class, 'importXlsx']);
-        Route::apiResource('users', UserController::class);
+        Route::apiResource('users', UserController::class)->except(['index']);
         
         // Penugasan & Tugas Struktural
         Route::apiResource('penugasan-struktural', PenugasanStrukturalController::class)->except(['show']);

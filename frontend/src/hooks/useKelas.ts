@@ -17,13 +17,19 @@ export interface KelasRecord {
 
 export function useKelasList(search?: string) {
   return useQuery({
-    queryKey: ['kelas', search],
+    queryKey: ['kelas', search ?? ''],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const res = await api.get<KelasRecord[]>('/kelas', {
-        params: { search },
+      const res = await api.get('/kelas', {
+        params: search ? { search } : undefined,
       });
-      return res.data;
+      const raw = res.data;
+      // Normalize: plain array or Laravel-wrapped { data: [...] }
+      if (Array.isArray(raw)) return raw as KelasRecord[];
+      if (raw && Array.isArray((raw as { data?: unknown }).data)) {
+        return (raw as { data: KelasRecord[] }).data;
+      }
+      return [] as KelasRecord[];
     },
   });
 }

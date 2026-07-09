@@ -164,7 +164,7 @@ export default function App() {
         <Route path="/panel/users/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminUserForm /></ProtectedRoute>} />
         <Route path="/panel/users/edit/:id" element={<ProtectedRoute requiredRole="superadmin"><AdminUserForm /></ProtectedRoute>} />
         <Route path="/panel/penugasan" element={<ProtectedRoute requiredRole="superadmin"><AdminPenugasanList /></ProtectedRoute>} />
-        <Route path="/panel/jadwal" element={<ProtectedRoute requiredRole="superadmin"><AdminJadwalPelajaran /></ProtectedRoute>} />
+        <Route path="/panel/jadwal" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminJadwalPelajaran /></ProtectedRoute>} />
         <Route path="/panel/kehadiran" element={<ProtectedRoute requiredRole="superadmin"><AdminKehadiranSiswa /></ProtectedRoute>} />
         <Route path="/panel/kurikulum" element={<ProtectedRoute requiredRole="superadmin"><AdminKurikulumList /></ProtectedRoute>} />
         <Route path="/panel/kurikulum/tambah" element={<ProtectedRoute requiredRole="superadmin"><AdminKurikulumForm /></ProtectedRoute>} />
@@ -211,7 +211,7 @@ export default function App() {
         <Route path="/panel/guru/absensi/rekap" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas']}><AdminRekapAbsensi /></ProtectedRoute>} />
         <Route path="/panel/guru/rapor" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas', 'guru', 'kurikulum']}><AdminRaporList /></ProtectedRoute>} />
         <Route path="/panel/guru/rapor/cetak/:id" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas']}><AdminCetakRaporDetail /></ProtectedRoute>} />
-        <Route path="/panel/guru/jadwal" element={<ProtectedRoute requiredRole={['kurikulum', 'guru', 'walikelas']}><AdminJadwalPelajaran /></ProtectedRoute>} />
+        <Route path="/panel/guru/jadwal" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminJadwalPelajaran /></ProtectedRoute>} />
         <Route path="/panel/guru/mapel" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminMapelList /></ProtectedRoute>} />
         <Route path="/panel/guru/kelas" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminKelasList /></ProtectedRoute>} />
         <Route path="/panel/guru/kurikulum/rumus" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminKurikulumList /></ProtectedRoute>} />

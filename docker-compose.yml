@@ -54,7 +54,7 @@ services:
       CACHE_STORE: file
       QUEUE_CONNECTION: database
       FRONTEND_URL: https://demolms.rayan.web.id
-      SANCTUM_STATEFUL_DOMAINS: demolms.rayan.web.id,localhost:1999,localhost,127.0.0.1
+      SANCTUM_STATEFUL_DOMAINS: smamuhammadiyah1banyuwangi.sch.id,www.smamuhammadiyah1banyuwangi.sch.id,demolms.rayan.web.id,localhost:1999,localhost:3002,localhost,127.0.0.1,127.0.0.1:3002
       SESSION_DOMAIN: ""
     volumes:
       - backend_storage:/var/www/html/storage/app
