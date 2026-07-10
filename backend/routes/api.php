@@ -41,6 +41,7 @@ use App\Http\Controllers\GaleriController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\TestimoniController;
 use App\Http\Controllers\PrestasiController;
+use App\Http\Controllers\DownloadController;
 
 // Public CMS Routes
 Route::prefix('public')->group(function () {
@@ -58,6 +59,10 @@ Route::prefix('public')->group(function () {
 
     // Public Struktur Organisasi Sekolah
     Route::get('/struktural', [App\Http\Controllers\PenugasanStrukturalController::class, 'publicStruktural']);
+
+    // Public Downloads
+    Route::get('/downloads', [DownloadController::class, 'publicIndex']);
+    Route::get('/downloads/{id}/file', [DownloadController::class, 'downloadFile']);
 });
 
 // Public RFID Tap Routes
@@ -174,6 +179,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource("prestasi", PrestasiController::class)->except(["index", "show"]);
         Route::apiResource('faq', FaqController::class)->except(['index', 'show']);
         Route::apiResource('testimoni', TestimoniController::class)->except(['index', 'show']);
+        Route::apiResource('downloads', DownloadController::class);
     });
 
     // 6. KURIKULUM MANAGEMENT (Superadmin, Admin, Kurikulum)

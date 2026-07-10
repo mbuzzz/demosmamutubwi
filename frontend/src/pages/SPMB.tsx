@@ -16,6 +16,17 @@ export default function SPMB() {
   const { data: gelombangData, isLoading } = usePublicGelombangAktif();
   const { data: config } = useSistemKonfigurasi();
 
+  const totalQuota = gelombangData && gelombangData.length > 0 
+    ? gelombangData.reduce((acc, gel) => acc + (gel.kuota || 0), 0) 
+    : 400; // Fallback
+  
+  const totalFilled = gelombangData && gelombangData.length > 0 
+    ? gelombangData.reduce((acc, gel) => acc + (gel.pendaftars_count || 0), 0) 
+    : 180; // Fallback (45%)
+
+  const fillPercentage = totalQuota > 0 ? Math.round((totalFilled / totalQuota) * 100) : 0;
+  const tahunAjaran = config?.tahun_ajaran_aktif || '2026/2027';
+
   return (
     <div className="bg-slate-50 dark:bg-slate-800 py-16 px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -23,7 +34,7 @@ export default function SPMB() {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-yellow/20 text-xs font-bold text-brand-blueDark dark:text-brand-yellow uppercase tracking-wider mb-4">
             <span className="w-2 h-2 rounded-full bg-brand-yellow"></span>
-            Tahun Ajaran 2026/2027
+            Tahun Ajaran {tahunAjaran}
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">Penerimaan Siswa Baru</h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
@@ -129,14 +140,14 @@ export default function SPMB() {
                   <h3 className="text-2xl font-bold mb-4 relative z-10">Info Kuota Tersedia</h3>
                   <div className="bg-white dark:bg-slate-900/10 border border-white/20 p-6 rounded-[15px] relative z-10">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-brand-yellow font-bold text-sm uppercase">Total Pagu 2026/2027</span>
+                      <span className="text-brand-yellow font-bold text-sm uppercase">Total Pagu {tahunAjaran}</span>
                       <Users className="w-5 h-5 text-brand-yellow" />
                     </div>
-                    <p className="text-5xl font-extrabold mb-4">400 <span className="text-lg font-normal text-slate-300">Siswa/Kursi</span></p>
+                    <p className="text-5xl font-extrabold mb-4">{totalQuota} <span className="text-lg font-normal text-slate-300">Siswa/Kursi</span></p>
                     <div className="w-full bg-slate-700 rounded-full h-3 mb-2">
-                      <div className="bg-brand-teal h-3 rounded-full" style={{ width: '45%' }}></div>
+                      <div className="bg-brand-teal h-3 rounded-full" style={{ width: `${Math.min(fillPercentage, 100)}%` }}></div>
                     </div>
-                    <p className="text-sm text-slate-300">Sekitar 45% kuota telah terpenuhi melalui jalur inden/prestasi.</p>
+                    <p className="text-sm text-slate-300">Sekitar {fillPercentage}% kuota telah terpenuhi melalui pendaftaran gelombang.</p>
                   </div>
                   <button 
                     onClick={() => setActiveTab('gelombang')}

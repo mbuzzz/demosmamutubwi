@@ -98,24 +98,32 @@ class PenugasanStrukturalController extends Controller
         try {
             $user = User::findOrFail($validated['user_id']);
 
-            // If user was previously walikelas in any capacity (though they shouldn't be for this year if no assignment existed, but just in case for cross-year weirdness or manual db edits)
+            // If user was previously walikelas, clear their old class
             if ($user->role === 'walikelas') {
-                Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
+                $oldKelas = Kelas::where('wali_kelas_id', $user->id)->first();
+                if ($oldKelas) {
+                    $oldKelas->update(['wali_kelas_id' => null]);
+                    \App\Services\WaliKelasSyncService::cleanupUserWaliRole($user->id, $oldKelas->id, $tahunAjaran);
+                }
             }
 
             if ($validated['role_akses'] === 'walikelas') {
                 $kelas = Kelas::findOrFail($validated['kelas_id']);
                 
-                Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
-                
-                $kelas->update(['wali_kelas_id' => $user->id]);
+                // Clear any user currently assigned to this class
+                if ($kelas->wali_kelas_id) {
+                    \App\Services\WaliKelasSyncService::cleanupUserWaliRole($kelas->wali_kelas_id, $kelas->id, $tahunAjaran);
+                }
 
-                $user->update([
-                    'role' => 'walikelas',
-                    'kelas' => $kelas->nama,
-                    'jabatan' => 'Wali Kelas ' . $kelas->nama,
-                ]);
-                $validated['jabatan'] = 'Wali Kelas ' . $kelas->nama;
+                $kelas->update(['wali_kelas_id' => $user->id]);
+                
+                // Sync uses updateOrCreate for PenugasanStruktural and sets role/kelas/jabatan on User
+                \App\Services\WaliKelasSyncService::syncKelas($kelas);
+
+                // Fetch the created penugasan
+                $penugasan = PenugasanStruktural::where('user_id', $user->id)
+                    ->where('tahun_ajaran', $tahunAjaran)
+                    ->first();
             } else {
                 $user->update([
                     'role' => $validated['role_akses'],
@@ -123,9 +131,8 @@ class PenugasanStrukturalController extends Controller
                     'jabatan' => $validated['jabatan'],
                 ]);
                 $validated['kelas_id'] = null; // Clear kelas_id if not walikelas
+                $penugasan = PenugasanStruktural::create($validated);
             }
-
-            $penugasan = PenugasanStruktural::create($validated);
 
             DB::commit();
 
@@ -171,12 +178,18 @@ class PenugasanStrukturalController extends Controller
 
         try {
             $user = User::findOrFail($validated['user_id']);
-            $oldUser = User::findOrFail($penugasan->user_id); // In case user_id changes, which is rare but possible
+            $oldUser = User::findOrFail($penugasan->user_id);
 
-            if ($oldUser->id !== $user->id) {
-                if ($oldUser->role === 'walikelas') {
-                    Kelas::where('wali_kelas_id', $oldUser->id)->update(['wali_kelas_id' => null]);
+            // 1. Clean up old user's assignment if user changed or if the role changed
+            if ($oldUser->id !== $user->id || $penugasan->role_akses !== $validated['role_akses']) {
+                if ($penugasan->role_akses === 'walikelas' && $penugasan->kelas_id) {
+                    $oldKelas = Kelas::find($penugasan->kelas_id);
+                    if ($oldKelas) {
+                        $oldKelas->update(['wali_kelas_id' => null]);
+                    }
                 }
+                
+                // Revert old user's role to guru if they have no other structural role
                 $otherPenugasans = PenugasanStruktural::where('user_id', $oldUser->id)
                     ->where('id', '!=', $penugasan->id)->count();
                 if ($otherPenugasans === 0) {
@@ -188,24 +201,27 @@ class PenugasanStrukturalController extends Controller
                 }
             }
 
-            // Clear old walikelas assignment for the CURRENT user in context
-            if ($user->role === 'walikelas') {
+            // 2. Clean up current user's role if they were previously assigned to another class
+            if ($user->role === 'walikelas' && ($validated['role_akses'] !== 'walikelas' || $validated['kelas_id'] != $penugasan->kelas_id)) {
                 Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
             }
 
+            // 3. Apply new assignment
             if ($validated['role_akses'] === 'walikelas') {
                 $kelas = Kelas::findOrFail($validated['kelas_id']);
                 
-                Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
-                
-                $kelas->update(['wali_kelas_id' => $user->id]);
+                // Clear any user currently assigned to this class
+                if ($kelas->wali_kelas_id && $kelas->wali_kelas_id != $user->id) {
+                    \App\Services\WaliKelasSyncService::cleanupUserWaliRole($kelas->wali_kelas_id, $kelas->id, $tahunAjaran);
+                }
 
-                $user->update([
-                    'role' => 'walikelas',
-                    'kelas' => $kelas->nama,
-                    'jabatan' => 'Wali Kelas ' . $kelas->nama,
-                ]);
-                $validated['jabatan'] = 'Wali Kelas ' . $kelas->nama;
+                $kelas->update(['wali_kelas_id' => $user->id]);
+                
+                // Sync uses updateOrCreate for PenugasanStruktural and sets role/kelas/jabatan on User
+                \App\Services\WaliKelasSyncService::syncKelas($kelas);
+                
+                // Refresh the assignment in-memory to match updated state
+                $penugasan->refresh();
             } else {
                 $user->update([
                     'role' => $validated['role_akses'],
@@ -213,9 +229,8 @@ class PenugasanStrukturalController extends Controller
                     'jabatan' => $validated['jabatan'],
                 ]);
                 $validated['kelas_id'] = null;
+                $penugasan->update($validated);
             }
-
-            $penugasan->update($validated);
 
             DB::commit();
 
@@ -241,8 +256,11 @@ class PenugasanStrukturalController extends Controller
             $user = User::find($penugasan->user_id);
 
             if ($user) {
-                if ($user->role === 'walikelas') {
-                    Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
+                if ($penugasan->role_akses === 'walikelas' && $penugasan->kelas_id) {
+                    $kelas = Kelas::find($penugasan->kelas_id);
+                    if ($kelas) {
+                        $kelas->update(['wali_kelas_id' => null]);
+                    }
                 }
 
                 $otherPenugasans = PenugasanStruktural::where('user_id', $user->id)
@@ -253,6 +271,16 @@ class PenugasanStrukturalController extends Controller
                         'kelas' => null,
                         'jabatan' => null,
                     ]);
+                } else {
+                    $other = PenugasanStruktural::where('user_id', $user->id)
+                        ->where('id', '!=', $penugasan->id)->first();
+                    if ($other) {
+                        $user->update([
+                            'role' => $other->role_akses,
+                            'kelas' => $other->kelas_id ? (Kelas::find($other->kelas_id)?->nama ?? null) : null,
+                            'jabatan' => $other->jabatan,
+                        ]);
+                    }
                 }
             }
 

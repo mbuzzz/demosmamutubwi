@@ -35,6 +35,9 @@ class KelasController extends Controller
 
         $kelas = Kelas::create($validated);
 
+        // Sync walikelas role and structural assignment
+        \App\Services\WaliKelasSyncService::syncKelas($kelas);
+
         return response()->json([
             'message' => 'Kelas berhasil dibuat',
             'kelas' => $kelas->load('waliKelas'),
@@ -62,7 +65,11 @@ class KelasController extends Controller
             'wali_kelas_id' => 'nullable|exists:users,id',
         ]);
 
+        $oldWaliId = $kelas->wali_kelas_id;
         $kelas->update($validated);
+
+        // Sync walikelas role and structural assignment
+        \App\Services\WaliKelasSyncService::syncKelas($kelas, $oldWaliId);
 
         return response()->json([
             'message' => 'Kelas berhasil diperbarui',
@@ -73,6 +80,10 @@ class KelasController extends Controller
     public function destroy($id)
     {
         $kelas = Kelas::findOrFail($id);
+
+        // Sync before deletion to revert roles/assignments
+        \App\Services\WaliKelasSyncService::syncKelasDelete($kelas);
+
         $kelas->delete();
 
         return response()->json([
