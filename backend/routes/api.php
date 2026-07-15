@@ -170,6 +170,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // CMS Management
         Route::put('/profil-sekolah', [ProfilSekolahController::class, 'update']);
+        Route::post('/profil-sekolah', [ProfilSekolahController::class, 'update']); // For file uploads via FormData + _method=PUT
         Route::get('/berita', [BeritaController::class, 'index']);
         Route::get('/berita/{id}', [BeritaController::class, 'show']);
         Route::apiResource('berita', BeritaController::class)->except(['index', 'show']);
