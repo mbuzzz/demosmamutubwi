@@ -176,9 +176,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('berita', BeritaController::class)->except(['index', 'show']);
         Route::get('/kategori-berita', [KategoriBeritaController::class, 'index']);
         Route::apiResource('kategori-berita', KategoriBeritaController::class)->except(['index', 'show']);
+        Route::get('/galeri', [GaleriController::class, 'index']);
         Route::apiResource('galeri', GaleriController::class)->except(['index', 'show']);
+        Route::get('/prestasi', [PrestasiController::class, 'index']);
         Route::apiResource("prestasi", PrestasiController::class)->except(["index", "show"]);
+        Route::get('/faq', [FaqController::class, 'index']);
         Route::apiResource('faq', FaqController::class)->except(['index', 'show']);
+        Route::get('/testimoni', [TestimoniController::class, 'index']);
         Route::apiResource('testimoni', TestimoniController::class)->except(['index', 'show']);
         Route::apiResource('downloads', DownloadController::class);
     });

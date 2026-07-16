@@ -78,7 +78,9 @@ import GuruJurnalDetail from './pages/admin/guru/kbm/GuruJurnalDetail';
 import GuruBukuNilai from './pages/admin/guru/kbm/GuruBukuNilai';
 import GuruNilaiDetail from './pages/admin/guru/kbm/GuruNilaiDetail';
 import GuruBankMateri from './pages/admin/guru/kbm/GuruMateri';
+import GuruMateriDetail from './pages/admin/guru/kbm/GuruMateriDetail';
 import GuruTugas from './pages/admin/guru/kbm/GuruTugas';
+import GuruTugasDetail from './pages/admin/guru/kbm/GuruTugasDetail';
 import GuruBankSoalEditor from './pages/admin/guru/cbt/GuruBankSoalEditor';
 import GuruUjianList from './pages/admin/guru/cbt/GuruUjianList';
 import GuruWaliSiswa from './pages/admin/guru/kbm/GuruWaliSiswa';
@@ -203,7 +205,9 @@ export default function App() {
         <Route path="/panel/guru/nilai" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruBukuNilai /></ProtectedRoute>} />
         <Route path="/panel/guru/nilai/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruNilaiDetail /></ProtectedRoute>} />
         <Route path="/panel/guru/materi" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruBankMateri /></ProtectedRoute>} />
+        <Route path="/panel/guru/materi/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruMateriDetail /></ProtectedRoute>} />
         <Route path="/panel/guru/tugas" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruTugas /></ProtectedRoute>} />
+        <Route path="/panel/guru/tugas/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruTugasDetail /></ProtectedRoute>} />
         <Route path="/panel/guru/soal" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruBankSoalEditor /></ProtectedRoute>} />
         <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruUjianList /></ProtectedRoute>} />
         <Route path="/panel/guru/wali-siswa" element={<ProtectedRoute requiredRole={['walikelas']}><GuruWaliSiswa /></ProtectedRoute>} />
