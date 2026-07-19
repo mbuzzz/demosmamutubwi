@@ -167,6 +167,7 @@ class RaporController extends Controller
 
     public function store(Request $request)
     {
+        $user = $request->user();
         $validated = $request->validate([
             'siswa_id' => 'required|exists:users,id',
             'tahun_ajaran' => 'required|string',
@@ -178,6 +179,10 @@ class RaporController extends Controller
             'terlambat' => 'integer|min:0',
             'status' => 'string|in:draft,published',
         ]);
+
+        if ($user) {
+            $user->ensureAccessToSiswaId((int) $validated['siswa_id']);
+        }
 
         // Avoid duplicate rapor for same student + year + semester
         $existing = Rapor::where('siswa_id', $validated['siswa_id'])
@@ -208,7 +213,8 @@ class RaporController extends Controller
 
     public function update(Request $request, $id)
     {
-        $rapor = Rapor::findOrFail($id);
+        $rapor = Rapor::with('siswa')->findOrFail($id);
+        $this->authorizeRaporAccess($request->user(), $rapor);
 
         $validated = $request->validate([
             'catatan_wali_kelas' => 'nullable|string',
@@ -227,9 +233,10 @@ class RaporController extends Controller
         ]);
     }
 
-    public function publish($id)
+    public function publish(Request $request, $id)
     {
-        $rapor = Rapor::findOrFail($id);
+        $rapor = Rapor::with('siswa')->findOrFail($id);
+        $this->authorizeRaporAccess($request->user(), $rapor);
         $rapor->update(['status' => 'published']);
 
         return response()->json([

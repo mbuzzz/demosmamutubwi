@@ -132,7 +132,8 @@ class PenugasanController extends Controller
 
     public function guruClasses(Request $request)
     {
-        $guruId = $request->user()->id;
+        $user = $request->user();
+        $guruId = $user->id;
 
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
@@ -147,6 +148,7 @@ class PenugasanController extends Controller
         $classesGrouped = $penugasans->groupBy('kelas_id');
 
         $result = [];
+        $seenKelasIds = [];
         foreach ($classesGrouped as $kelasId => $group) {
             $first = $group->first();
             if (!$first || !$first->kelas) {
@@ -164,7 +166,27 @@ class PenugasanController extends Controller
                 'tingkat' => $first->kelas->tingkat,
                 'jurusan' => $first->kelas->jurusan,
                 'mapels' => $mapels,
+                'is_wali' => (int) $first->kelas->wali_kelas_id === (int) $guruId,
             ];
+            $seenKelasIds[] = (int) $kelasId;
+        }
+
+        // Multi-role: kelas binaan wali (meski belum ada penugasan mapel di kelas itu)
+        if ($user->hasRole(['walikelas'])) {
+            $binaan = \App\Models\Kelas::where('wali_kelas_id', $guruId)->get();
+            foreach ($binaan as $k) {
+                if (in_array((int) $k->id, $seenKelasIds, true)) {
+                    continue;
+                }
+                $result[] = [
+                    'id' => (string) $k->id,
+                    'nama' => $k->nama,
+                    'tingkat' => $k->tingkat,
+                    'jurusan' => $k->jurusan,
+                    'mapels' => [],
+                    'is_wali' => true,
+                ];
+            }
         }
 
         return response()->json($result);

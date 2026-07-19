@@ -9,8 +9,6 @@ import { toast } from 'sonner';
 
 export default function GuruAbsensi() {
   const today = new Date().toISOString().split('T')[0];
-  const { data: absensiList = [], isLoading } = useAbsensiList({ start_date: today, end_date: today, role: 'siswa' });
-  const { data: allSiswa = [] } = useUsers('siswa');
   const { data: guruClasses = [] } = useGuruClasses();
   const manualAbsen = useManualAbsensi();
 
@@ -24,10 +22,20 @@ export default function GuruAbsensi() {
   }, [guruClasses, selectedKelasId]);
 
   const targetKelasObj = guruClasses.find(c => String(c.id) === selectedKelasId);
-  const targetKelas = targetKelasObj ? targetKelasObj.nama : ''; 
+  const targetKelas = targetKelasObj ? targetKelasObj.nama : '';
 
-  const absensi = absensiList.filter(a => a.user?.kelas === targetKelas);
-  const siswaKelas = allSiswa.filter(s => s.kelas === targetKelas);
+  // Scope ke kelas penugasan (backend juga membatasi multi-role/mapel)
+  const { data: absensiList = [], isLoading } = useAbsensiList({
+    start_date: today,
+    end_date: today,
+    role: 'siswa',
+    kelas: targetKelas || undefined,
+    kelas_id: selectedKelasId || undefined,
+  });
+  const { data: allSiswa = [] } = useUsers('siswa', undefined, targetKelas || undefined);
+
+  const absensi = absensiList.filter(a => !targetKelas || a.user?.kelas === targetKelas);
+  const siswaKelas = allSiswa.filter(s => !targetKelas || s.kelas === targetKelas);
   
   // Combine absensi with all students in the class
   const classRoster = siswaKelas.map(siswa => {
@@ -93,8 +101,16 @@ export default function GuruAbsensi() {
             {guruClasses.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
           </select>
         </div>
-        {isLoading ? (
+        {!targetKelas ? (
+          <div className="p-8 text-center text-slate-500 text-sm">
+            Pilih kelas ajar dari penugasan Anda, atau pastikan admin sudah menugaskan mapel/kelas.
+          </div>
+        ) : isLoading ? (
           <div className="p-8 text-center text-slate-500">Memuat data absensi...</div>
+        ) : classRoster.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 text-sm">
+            Tidak ada siswa di kelas {targetKelas}.
+          </div>
         ) : (
         <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
           {classRoster.map(item => {

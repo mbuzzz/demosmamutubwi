@@ -175,6 +175,74 @@ class User extends Authenticatable
     }
 
     /**
+     * Nama kelas yang boleh diakses staf (penugasan mapel + kelas binaan wali).
+     * Admin/oversight: array kosong = tidak dibatasi.
+     */
+    public function accessibleKelasNames(?string $tahunAjaran = null): array
+    {
+        if ($this->isAcademicOversight()) {
+            return [];
+        }
+
+        $tahun = $tahunAjaran ?? $this->activeTahunAjaran();
+        $names = [];
+
+        $fromPenugasan = Penugasan::with('kelas')
+            ->where('guru_id', $this->id)
+            ->where('tahun_ajaran', $tahun)
+            ->get()
+            ->pluck('kelas.nama')
+            ->filter()
+            ->all();
+        $names = array_merge($names, $fromPenugasan);
+
+        if ($this->kelas) {
+            $names[] = $this->kelas;
+        }
+
+        $wali = Kelas::where('wali_kelas_id', $this->id)->pluck('nama')->all();
+        $names = array_merge($names, $wali);
+
+        return array_values(array_unique(array_filter($names)));
+    }
+
+    /** Staf pengajar/wali yang datanya harus di-scope ke kelas tertentu. */
+    public function shouldScopeByKelas(): bool
+    {
+        if ($this->isAcademicOversight()) {
+            return false;
+        }
+
+        return $this->hasRole(['guru', 'walikelas']);
+    }
+
+    public function ensureAccessToKelasName(?string $kelasNama): void
+    {
+        if (!$this->shouldScopeByKelas() || !$kelasNama) {
+            return;
+        }
+
+        $allowed = $this->accessibleKelasNames();
+        if (empty($allowed) || !in_array($kelasNama, $allowed, true)) {
+            abort(403, 'Anda tidak ditugaskan / menjadi wali di kelas tersebut.');
+        }
+    }
+
+    public function ensureAccessToSiswaId(int $siswaId): void
+    {
+        if (!$this->shouldScopeByKelas()) {
+            return;
+        }
+
+        $siswa = static::find($siswaId);
+        if (!$siswa || !$siswa->isSiswa()) {
+            abort(403, 'Data siswa tidak valid.');
+        }
+
+        $this->ensureAccessToKelasName($siswa->kelas);
+    }
+
+    /**
      * Mendapatkan semua list role yang dimiliki user (primary + tambahan).
      */
     public function getAllRolesAttribute(): array

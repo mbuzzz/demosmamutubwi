@@ -44,20 +44,35 @@ class AbsensiController extends Controller
             } else {
                 // Filter by class name (users.kelas is a string column)
                 $kelas = $request->query('kelas') ?: $request->query('kelas_id');
+                $kelasName = null;
                 if ($kelas) {
-                    // Support both kelas name string and numeric kelas id
                     if (is_numeric($kelas)) {
                         $kelasModel = \App\Models\Kelas::find($kelas);
-                        if ($kelasModel) {
-                            $query->whereHas('user', function ($q) use ($kelasModel) {
-                                $q->where('kelas', $kelasModel->nama);
-                            });
-                        }
+                        $kelasName = $kelasModel?->nama;
                     } else {
-                        $query->whereHas('user', function ($q) use ($kelas) {
-                            $q->where('kelas', $kelas);
+                        $kelasName = $kelas;
+                    }
+                }
+
+                // Multi-role: guru/wali hanya absensi kelas penugasan/binaan
+                if ($user->shouldScopeByKelas()) {
+                    $allowed = $user->accessibleKelasNames();
+                    if (empty($allowed)) {
+                        $query->whereRaw('1 = 0');
+                    } elseif ($kelasName) {
+                        $user->ensureAccessToKelasName($kelasName);
+                        $query->whereHas('user', function ($q) use ($kelasName) {
+                            $q->where('kelas', $kelasName);
+                        });
+                    } else {
+                        $query->whereHas('user', function ($q) use ($allowed) {
+                            $q->whereIn('kelas', $allowed);
                         });
                     }
+                } elseif ($kelasName) {
+                    $query->whereHas('user', function ($q) use ($kelasName) {
+                        $q->where('kelas', $kelasName);
+                    });
                 }
 
                 $role = $request->query('role');
@@ -123,6 +138,8 @@ class AbsensiController extends Controller
             ];
         });
 
+        $authUser = $request->user();
+
         if ($kelasFilter) {
             $kelasName = $kelasFilter;
             if (is_numeric($kelasFilter)) {
@@ -130,8 +147,16 @@ class AbsensiController extends Controller
                 $kelasName = $kelasModel?->nama;
             }
             if ($kelasName) {
+                if ($authUser && $authUser->shouldScopeByKelas()) {
+                    $authUser->ensureAccessToKelasName($kelasName);
+                }
                 $result = $result->filter(fn ($r) => $r['kelas'] === $kelasName)->values();
             }
+        } elseif ($authUser && $authUser->shouldScopeByKelas()) {
+            $allowed = $authUser->accessibleKelasNames();
+            $result = empty($allowed)
+                ? collect()
+                : $result->filter(fn ($r) => in_array($r['kelas'], $allowed, true))->values();
         }
 
         $role = $request->query('role');
@@ -218,7 +243,12 @@ class AbsensiController extends Controller
             $validated['jam_pulang'] .= ':00';
         }
 
-        $validated['created_by'] = $request->user()?->id;
+        $actor = $request->user();
+        if ($actor) {
+            $actor->ensureAccessToSiswaId((int) $validated['siswa_id']);
+        }
+
+        $validated['created_by'] = $actor?->id;
 
         // Upsert per siswa + tanggal (hindari duplikat)
         $absensi = Absensi::updateOrCreate(
@@ -235,6 +265,10 @@ class AbsensiController extends Controller
     public function update(Request $request, $id)
     {
         $absensi = Absensi::findOrFail($id);
+        $actor = $request->user();
+        if ($actor && $absensi->siswa_id) {
+            $actor->ensureAccessToSiswaId((int) $absensi->siswa_id);
+        }
 
         $payload = $request->all();
         if (!empty($payload['tipe']) && empty($payload['status_masuk'])) {
