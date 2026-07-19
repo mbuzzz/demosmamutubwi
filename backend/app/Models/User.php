@@ -186,6 +186,41 @@ class User extends Authenticatable
         }
     }
 
+    /** ID kelas aktif siswa (string nama → id), fallback riwayat. */
+    public function resolveSiswaKelasId(): ?int
+    {
+        if ($this->isOrangTua() && $this->siswa) {
+            return $this->siswa->resolveSiswaKelasId();
+        }
+
+        if ($this->kelas) {
+            $kelas = Kelas::where('nama', $this->kelas)->first();
+            if ($kelas) {
+                return (int) $kelas->id;
+            }
+        }
+
+        $riwayat = $this->riwayatKelas()->latest('id')->first();
+
+        return $riwayat?->kelas_id ? (int) $riwayat->kelas_id : null;
+    }
+
+    /**
+     * Pastikan siswa/ortu boleh akses materi/tugas/sesi untuk kelas tertentu.
+     * Staf/oversight lolos.
+     */
+    public function ensureSiswaCanAccessKelasIds(array $kelasIds): void
+    {
+        if (!$this->isSiswa() && !$this->isOrangTua()) {
+            return;
+        }
+
+        $myKelasId = $this->resolveSiswaKelasId();
+        if (!$myKelasId || !in_array((int) $myKelasId, array_map('intval', $kelasIds), true)) {
+            abort(403, 'Anda tidak memiliki akses ke konten kelas ini.');
+        }
+    }
+
     /**
      * Nama kelas yang boleh diakses staf (penugasan mapel + kelas binaan wali).
      * Admin/oversight: array kosong = tidak dibatasi.

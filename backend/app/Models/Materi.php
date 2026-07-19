@@ -17,6 +17,7 @@ class Materi extends Model
         'judul',
         'tipe_file',
         'konten',
+        'file_url',
         'lampiran_url',
         'status',
     ];

@@ -17,19 +17,9 @@ class CbtUjianController extends Controller
     public function getSesiAktif(Request $request)
     {
         $user = $request->user();
-        
-        // Assuming user has a relation or we can determine their class.
-        // For simplicity, let's assume we pass it or they have one primary active class.
-        // We'll need a way to get the student's class_id.
-        // Let's assume there's a riwayat_kelas or similar that tells us their current class.
-        // I will use a hypothetical scope or way. Assuming they send it or we get it from their profile.
-        // For now, let's get sessions where is_aktif = true and waktu_selesai is in the future.
-        
-        // This query might need adjustment based on how student's class is determined.
-        // Assuming we have it available in $user->kelas_id or via relation. Let's just fetch all active for now
-        // and let frontend filter or if we can get it from user:
-        
-        $kelasId = $user->riwayatKelas()->latest()->first()?->kelas_id; // Using riwayat_kelas assuming that's how it's linked
+
+        // Kelas aktif: string users.kelas → id, fallback riwayat
+        $kelasId = $user->resolveSiswaKelasId();
 
         $query = SesiUjian::with(['bankSoal.mapel', 'template'])
             ->where('is_aktif', true)
@@ -37,6 +27,9 @@ class CbtUjianController extends Controller
 
         if ($kelasId) {
             $query->where('kelas_id', $kelasId);
+        } else {
+            // Tanpa kelas: jangan expose semua sesi aktif
+            $query->whereRaw('1 = 0');
         }
 
         $sesi = $query->get();
@@ -67,6 +60,12 @@ class CbtUjianController extends Controller
         }
 
         $user = $request->user();
+
+        // Pastikan siswa hanya ujian di kelasnya
+        $kelasId = $user->resolveSiswaKelasId();
+        if (!$kelasId || (int) $sesi->kelas_id !== (int) $kelasId) {
+            return response()->json(['message' => 'Sesi ujian tidak untuk kelas Anda'], 403);
+        }
 
         // Check if already started
         $hasil = HasilUjian::firstOrCreate(

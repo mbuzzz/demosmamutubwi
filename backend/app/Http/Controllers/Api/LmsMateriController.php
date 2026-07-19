@@ -119,7 +119,7 @@ class LmsMateriController extends Controller
         ], 201);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $materi = Materi::with(['guru', 'mapel', 'kelas', 'komentarLms.user'])->find($id);
 
@@ -128,6 +128,15 @@ class LmsMateriController extends Controller
                 'status' => 'error',
                 'message' => 'Materi tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user) {
+            if ($user->shouldScopeAsGuru()) {
+                $user->ensureOwnsResource($materi->guru_id);
+            } elseif ($user->isSiswa() || $user->isOrangTua()) {
+                $user->ensureSiswaCanAccessKelasIds($materi->kelas->pluck('id')->all());
+            }
         }
 
         return response()->json([
@@ -145,6 +154,11 @@ class LmsMateriController extends Controller
                 'status' => 'error',
                 'message' => 'Materi tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($materi->guru_id);
         }
 
         $validator = Validator::make($request->all(), [
@@ -166,6 +180,17 @@ class LmsMateriController extends Controller
 
         $data = $request->except(['file_url', 'kelas_ids']);
 
+        // Jangan biarkan ganti owner lewat request
+        unset($data['guru_id']);
+
+        if ($user && $user->shouldScopeAsGuru()) {
+            $mapelId = (int) ($request->input('mapel_id') ?: $materi->mapel_id);
+            $kelasIds = $request->input('kelas_ids', $materi->kelas->pluck('id')->all());
+            foreach ($kelasIds as $kelasId) {
+                $user->ensurePenugasanMapel($mapelId, (int) $kelasId);
+            }
+        }
+
         if ($request->hasFile('file_url')) {
             // Hapus file lama jika ada
             if ($materi->file_url) {
@@ -186,11 +211,11 @@ class LmsMateriController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Materi berhasil diupdate',
-            'data' => $materi
+            'data' => $materi->load(['guru', 'mapel', 'kelas'])
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $materi = Materi::find($id);
 
@@ -199,6 +224,11 @@ class LmsMateriController extends Controller
                 'status' => 'error',
                 'message' => 'Materi tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($materi->guru_id);
         }
 
         if ($materi->file_url) {
@@ -216,13 +246,20 @@ class LmsMateriController extends Controller
 
     public function addKomentar(Request $request, $id)
     {
-        $materi = Materi::find($id);
+        $materi = Materi::with('kelas')->find($id);
 
         if (!$materi) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Materi tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user && ($user->isSiswa() || $user->isOrangTua())) {
+            $user->ensureSiswaCanAccessKelasIds($materi->kelas->pluck('id')->all());
+        } elseif ($user && $user->shouldScopeAsGuru()) {
+            $user->ensureOwnsResource($materi->guru_id);
         }
 
         $validator = Validator::make($request->all(), [

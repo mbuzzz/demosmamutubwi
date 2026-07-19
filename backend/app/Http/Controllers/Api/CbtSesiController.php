@@ -85,8 +85,13 @@ class CbtSesiController extends Controller
     {
         $user = $request->user();
         $sesiUjian->load(['bankSoal.mapel', 'kelas', 'hasilUjians.siswa', 'pengawas', 'template']);
-        if ($user && $sesiUjian->bankSoal) {
-            $user->ensureOwnsResource($sesiUjian->bankSoal->guru_id);
+        if ($user && $sesiUjian->bankSoal && $user->shouldScopeAsGuru()) {
+            // Pemilik bank soal ATAU pengawas sesi
+            $isOwner = (int) $sesiUjian->bankSoal->guru_id === (int) $user->id;
+            $isPengawas = $sesiUjian->pengawas->contains('id', $user->id);
+            if (!$isOwner && !$isPengawas) {
+                abort(403, 'Anda tidak memiliki akses ke sesi ujian ini.');
+            }
         }
         return response()->json($sesiUjian);
     }

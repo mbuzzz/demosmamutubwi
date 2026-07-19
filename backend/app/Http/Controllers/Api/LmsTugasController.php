@@ -126,7 +126,7 @@ class LmsTugasController extends Controller
         ], 201);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $tugas = Tugas::with(['guru', 'mapel', 'kelas', 'komentarLms.user'])->find($id);
 
@@ -137,6 +137,15 @@ class LmsTugasController extends Controller
             ], 404);
         }
 
+        $user = $request->user();
+        if ($user) {
+            if ($user->shouldScopeAsGuru()) {
+                $user->ensureOwnsResource($tugas->guru_id);
+            } elseif ($user->isSiswa() || $user->isOrangTua()) {
+                $user->ensureSiswaCanAccessKelasIds($tugas->kelas->pluck('id')->all());
+            }
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => $tugas
@@ -145,13 +154,18 @@ class LmsTugasController extends Controller
 
     public function update(Request $request, $id)
     {
-        $tugas = Tugas::find($id);
+        $tugas = Tugas::with('kelas')->find($id);
 
         if (!$tugas) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Tugas tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($tugas->guru_id);
         }
 
         $validator = Validator::make($request->all(), [
@@ -173,6 +187,15 @@ class LmsTugasController extends Controller
         }
 
         $data = $request->except(['lampiran_url', 'kelas_ids']);
+        unset($data['guru_id']);
+
+        if ($user && $user->shouldScopeAsGuru()) {
+            $mapelId = (int) ($request->input('mapel_id') ?: $tugas->mapel_id);
+            $kelasIds = $request->input('kelas_ids', $tugas->kelas->pluck('id')->all());
+            foreach ($kelasIds as $kelasId) {
+                $user->ensurePenugasanMapel($mapelId, (int) $kelasId);
+            }
+        }
 
         if ($request->hasFile('lampiran_url')) {
             // Hapus file lama jika ada
@@ -194,11 +217,11 @@ class LmsTugasController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Tugas berhasil diupdate',
-            'data' => $tugas
+            'data' => $tugas->load(['guru', 'mapel', 'kelas'])
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $tugas = Tugas::find($id);
 
@@ -207,6 +230,11 @@ class LmsTugasController extends Controller
                 'status' => 'error',
                 'message' => 'Tugas tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($tugas->guru_id);
         }
 
         if ($tugas->lampiran_url) {
@@ -224,13 +252,20 @@ class LmsTugasController extends Controller
 
     public function addKomentar(Request $request, $id)
     {
-        $tugas = Tugas::find($id);
+        $tugas = Tugas::with('kelas')->find($id);
 
         if (!$tugas) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Tugas tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user && ($user->isSiswa() || $user->isOrangTua())) {
+            $user->ensureSiswaCanAccessKelasIds($tugas->kelas->pluck('id')->all());
+        } elseif ($user && $user->shouldScopeAsGuru()) {
+            $user->ensureOwnsResource($tugas->guru_id);
         }
 
         $validator = Validator::make($request->all(), [
@@ -257,9 +292,9 @@ class LmsTugasController extends Controller
         ], 201);
     }
 
-    public function getSubmissions($id)
+    public function getSubmissions(Request $request, $id)
     {
-        $tugas = Tugas::find($id);
+        $tugas = Tugas::with('kelas')->find($id);
 
         if (!$tugas) {
             return response()->json([
@@ -268,9 +303,14 @@ class LmsTugasController extends Controller
             ], 404);
         }
 
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($tugas->guru_id);
+        }
+
         $kelasNames = $tugas->kelas->pluck('nama')->toArray();
 
-        $query = User::where('role', 'siswa');
+        $query = User::whereHasAnyRole(['siswa']);
         if (!empty($kelasNames)) {
             $query->whereIn('kelas', $kelasNames);
         }
@@ -299,7 +339,7 @@ class LmsTugasController extends Controller
 
     public function submitTugas(Request $request, $id)
     {
-        $tugas = Tugas::find($id);
+        $tugas = Tugas::with('kelas')->find($id);
 
         if (!$tugas) {
             return response()->json([
@@ -307,6 +347,15 @@ class LmsTugasController extends Controller
                 'message' => 'Tugas tidak ditemukan'
             ], 404);
         }
+
+        $user = $request->user();
+        if (!$user || !$user->isSiswa()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hanya siswa yang dapat mengumpulkan tugas',
+            ], 403);
+        }
+        $user->ensureSiswaCanAccessKelasIds($tugas->kelas->pluck('id')->all());
 
         $validator = Validator::make($request->all(), [
             'file_jawaban_url' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
@@ -320,7 +369,7 @@ class LmsTugasController extends Controller
             ], 422);
         }
 
-        $siswa_id = $request->user()->id;
+        $siswa_id = $user->id;
 
         // Cek apakah sudah pernah submit
         $pengumpulan = PengumpulanTugas::where('tugas_id', $id)->where('siswa_id', $siswa_id)->first();
@@ -364,6 +413,11 @@ class LmsTugasController extends Controller
                 'status' => 'error',
                 'message' => 'Tugas tidak ditemukan'
             ], 404);
+        }
+
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($tugas->guru_id);
         }
 
         $validator = Validator::make($request->all(), [
