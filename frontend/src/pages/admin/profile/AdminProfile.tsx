@@ -14,6 +14,7 @@ const ROLE_LABELS: Record<string, string> = {
   bendahara: 'Bendahara',
   siswa: 'Siswa',
   admin: 'Staf Admin',
+  orang_tua: 'Orang Tua',
 };
 
 export default function AdminProfile() {

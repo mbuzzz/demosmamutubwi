@@ -14,6 +14,31 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class RaporController extends Controller
 {
+    /**
+     * Otorisasi akses rapor (siswa/ortu/wali kelas).
+     */
+    private function authorizeRaporAccess(?User $user, Rapor $rapor): void
+    {
+        if (!$user) {
+            return;
+        }
+
+        if ($user->isSiswa() && (int) $rapor->siswa_id !== (int) $user->id) {
+            abort(403, 'Unauthorized');
+        }
+        if ($user->isOrangTua() && (int) $rapor->siswa_id !== (int) $user->siswa_id) {
+            abort(403, 'Unauthorized');
+        }
+        if ($user->hasRole(['walikelas']) && !$user->isAcademicOversight()) {
+            $kelasBinaan = $user->kelas
+                ?: Kelas::where('wali_kelas_id', $user->id)->value('nama');
+            $siswaKelas = $rapor->siswa?->kelas;
+            if ($kelasBinaan && $siswaKelas && $siswaKelas !== $kelasBinaan) {
+                abort(403, 'Rapor di luar kelas binaan Anda.');
+            }
+        }
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -24,6 +49,35 @@ class RaporController extends Controller
                 $query->where('siswa_id', $user->id);
             } elseif ($user->isOrangTua()) {
                 $query->where('siswa_id', $user->siswa_id);
+            } elseif ($user->hasRole(['walikelas']) && !$user->isAcademicOversight()) {
+                // Wali kelas: hanya rapor siswa kelas binaan
+                $kelasBinaan = $user->kelas
+                    ?: \App\Models\Kelas::where('wali_kelas_id', $user->id)->value('nama');
+                if ($kelasBinaan) {
+                    $query->whereHas('siswa', function ($q) use ($kelasBinaan) {
+                        $q->where('kelas', $kelasBinaan);
+                    });
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            } elseif ($user->shouldScopeAsGuru()) {
+                // Guru mapel tanpa oversight: batasi rapor siswa di kelas penugasannya
+                $kelasNames = \App\Models\Penugasan::with('kelas')
+                    ->where('guru_id', $user->id)
+                    ->where('tahun_ajaran', $user->activeTahunAjaran())
+                    ->get()
+                    ->pluck('kelas.nama')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+                if (!empty($kelasNames)) {
+                    $query->whereHas('siswa', function ($q) use ($kelasNames) {
+                        $q->whereIn('kelas', $kelasNames);
+                    });
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
             }
         }
 
@@ -56,15 +110,7 @@ class RaporController extends Controller
             }
         }
 
-        $user = auth()->user();
-        if ($user) {
-            if ($user->isSiswa() && $rapor->siswa_id != $user->id) {
-                abort(403, 'Unauthorized');
-            }
-            if ($user->isOrangTua() && $rapor->siswa_id != $user->siswa_id) {
-                abort(403, 'Unauthorized');
-            }
-        }
+        $this->authorizeRaporAccess(auth()->user(), $rapor);
 
         $siswa = $rapor->siswa;
         if (!$siswa) {
@@ -196,15 +242,7 @@ class RaporController extends Controller
     public function exportPdf($id)
     {
         $rapor = Rapor::with('siswa')->findOrFail($id);
-        $user = auth()->user();
-        if ($user) {
-            if ($user->isSiswa() && $rapor->siswa_id != $user->id) {
-                abort(403, 'Unauthorized');
-            }
-            if ($user->isOrangTua() && $rapor->siswa_id != $user->siswa_id) {
-                abort(403, 'Unauthorized');
-            }
-        }
+        $this->authorizeRaporAccess(auth()->user(), $rapor);
         $siswa = $rapor->siswa;
 
         // Get class info for this student

@@ -65,6 +65,12 @@ class PenugasanController extends Controller
         $validated['tahun_ajaran'] = $tahunAjaran;
         $penugasan = Penugasan::create($validated);
 
+        // Core multi-role: pastikan user punya role guru agar lolos middleware KBM/CBT/LMS
+        $guru = User::find($validated['guru_id']);
+        if ($guru) {
+            $guru->grantRole('guru');
+        }
+
         return response()->json([
             'message' => 'Penugasan mengajar berhasil ditambahkan',
             'penugasan' => $penugasan->load(['guru', 'mapel', 'kelas']),
@@ -101,6 +107,11 @@ class PenugasanController extends Controller
         }
 
         $penugasan->update($validated);
+
+        $guru = User::find($validated['guru_id']);
+        if ($guru) {
+            $guru->grantRole('guru');
+        }
 
         return response()->json([
             'message' => 'Penugasan mengajar berhasil diperbarui',

@@ -185,7 +185,8 @@ export default function App() {
         <Route path="/panel/settings/rfid" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminSettingsRfid /></ProtectedRoute>} />
         <Route path="/panel/settings/bank" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminSettingsBank /></ProtectedRoute>} />
         <Route path="/panel/ekskul" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminEkstrakurikuler /></ProtectedRoute>} />
-        <Route path="/panel/profile" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminProfile /></ProtectedRoute>} />
+        {/* Profil: semua role yang masuk panel (guru, bendahara, siswa, dll.) */}
+        <Route path="/panel/profile" element={<ProtectedRoute requiredRole={['superadmin', 'admin', 'guru', 'walikelas', 'kepala_sekolah', 'kurikulum', 'bendahara', 'siswa', 'orang_tua']}><AdminProfile /></ProtectedRoute>} />
         <Route path="/panel/absensi" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminAbsensi /></ProtectedRoute>} />
         <Route path="/panel/absensi/rekap" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminRekapAbsensi /></ProtectedRoute>} />
         <Route path="/panel/absensi/rfid" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminRfidCards /></ProtectedRoute>} />

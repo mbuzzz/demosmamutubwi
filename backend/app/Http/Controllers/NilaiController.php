@@ -21,6 +21,21 @@ class NilaiController extends Controller
             $query->where('siswa_id', $user->id);
         } elseif ($user->isOrangTua()) {
             $query->where('siswa_id', $user->siswa_id);
+        } elseif ($user->shouldScopeAsGuru()) {
+            // Multi-mapel: hanya nilai mapel penugasan guru ini
+            $mapelIds = $user->penugasanMapelIds();
+            $query->where('guru_id', $user->id);
+            if (!empty($mapelIds)) {
+                $query->whereIn('mapel_id', $mapelIds);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+            if ($request->has('siswa_id')) {
+                $query->where('siswa_id', $request->siswa_id);
+            }
+            if ($request->has('mapel_id')) {
+                $query->where('mapel_id', $request->mapel_id);
+            }
         } else {
             if ($request->has('siswa_id')) {
                 $query->where('siswa_id', $request->siswa_id);

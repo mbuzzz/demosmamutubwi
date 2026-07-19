@@ -81,8 +81,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     
-    // Jurnal Mengajar
-    Route::apiResource('jurnal', JurnalController::class);
+    // Jurnal Mengajar — hanya staf pendidik/oversight (bukan siswa/ortu)
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah')->group(function () {
+        Route::apiResource('jurnal', JurnalController::class);
+    });
 
     // 1. USER MANAGEMENT
     // Kurikulum may list users (e.g. guru picker for jadwal) but cannot mutate.
@@ -116,7 +118,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/jadwal/bulk', [JadwalController::class, 'storeBulk']);
     });
 
-    Route::middleware('role:superadmin,admin,kurikulum,guru,siswa,orang_tua')->group(function () {
+    Route::middleware('role:superadmin,admin,kurikulum,guru,walikelas,kepala_sekolah,siswa,orang_tua')->group(function () {
         Route::get('/jadwal', [JadwalController::class, 'index']);
     });
 
@@ -128,7 +130,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('mapels', MapelController::class)->except(['index', 'show']);
     });
 
-    Route::middleware('role:superadmin,admin,kurikulum,guru')->group(function () {
+    // Mapel list: walikelas sering merangkap guru multi-mapel
+    Route::middleware('role:superadmin,admin,kurikulum,guru,walikelas,kepala_sekolah')->group(function () {
         Route::get('/mapels', [MapelController::class, 'index']);
         Route::get('/mapels/{mapel}', [MapelController::class, 'show']);
     });
@@ -209,8 +212,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('kurikulum/{kurikulum}', [KurikulumController::class, 'show']);
     });
 
-    // 7. TUJUAN PEMBELAJARAN (Superadmin, Admin, Guru, Kurikulum)
-    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+    // 7. TUJUAN PEMBELAJARAN (termasuk walikelas multi-role mengajar)
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum')->group(function () {
         Route::get('/tujuan-pembelajaran', [TujuanPembelajaranController::class, 'index']);
         Route::post('/tujuan-pembelajaran', [TujuanPembelajaranController::class, 'store']);
         Route::get('/tujuan-pembelajaran/{id}', [TujuanPembelajaranController::class, 'show']);
@@ -218,8 +221,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/tujuan-pembelajaran/{id}', [TujuanPembelajaranController::class, 'destroy']);
     });
 
-    // 8. NILAI TP (Superadmin, Admin, Guru, Kurikulum)
-    Route::middleware('role:superadmin,admin,guru,kurikulum')->group(function () {
+    // 8. NILAI TP
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum')->group(function () {
         Route::get('/nilai-tp/siswa', [NilaiTpController::class, 'getSiswaNilai']);
         Route::post('/nilai-tp', [NilaiTpController::class, 'store']);
     });
@@ -290,8 +293,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // 12. CBT (Computer Based Test)
-    // Bank Soal & Sesi Management (Superadmin, Admin, Guru)
-    Route::middleware('role:superadmin,admin,guru')->group(function () {
+    // Bank Soal & Sesi — walikelas multi-role juga bisa (asalkan hasRole guru/walikelas)
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum')->group(function () {
         Route::apiResource('cbt/bank-soal', CbtBankSoalController::class);
         Route::post('cbt/bank-soal/{bankSoal}/soals', [CbtBankSoalController::class, 'storeSoal']);
         Route::put('cbt/bank-soal/{bankSoal}/soals/{soal}', [CbtBankSoalController::class, 'updateSoal']);
@@ -303,7 +306,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // LMS Shared Endpoints
-    Route::middleware('role:superadmin,admin,guru,siswa,orang_tua')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,siswa,orang_tua')->group(function () {
         Route::get('lms/materi', [LmsMateriController::class, 'index']);
         Route::get('lms/materi/{id}', [LmsMateriController::class, 'show']);
         Route::post('lms/materi/{id}/komentar', [LmsMateriController::class, 'addKomentar']);
@@ -326,7 +329,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     
     // LMS Admin/Guru Management
-    Route::middleware('role:superadmin,admin,guru')->group(function () {
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum')->group(function () {
         Route::apiResource('lms/materi', LmsMateriController::class)->except(['index', 'show']);
         Route::apiResource('lms/tugas', LmsTugasController::class)->except(['index', 'show']);
         

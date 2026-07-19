@@ -15,6 +15,11 @@ class JurnalController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        // Defense-in-depth: non-pendidik tidak boleh list jurnal
+        if ($user && !$user->hasRole(['superadmin', 'admin', 'guru', 'walikelas', 'kurikulum', 'kepala_sekolah'])) {
+            abort(403, 'Anda tidak memiliki akses jurnal mengajar.');
+        }
+
         $query = Jurnal::with(['kelas', 'mapel', 'guru']);
 
         if ($user->shouldScopeAsGuru()) {
