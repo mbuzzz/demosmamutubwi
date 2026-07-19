@@ -15,7 +15,23 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   bendahara: { label: 'Bendahara', color: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400' },
   siswa: { label: 'Siswa', color: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400' },
   admin: { label: 'Admin', color: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400' },
+  orang_tua: { label: 'Orang Tua', color: 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-500/10 dark:text-pink-400' },
 };
+
+function getDisplayRoles(u: any): string[] {
+  if (Array.isArray(u.all_roles) && u.all_roles.length) return u.all_roles;
+  const list = Array.isArray(u.roles) ? [...u.roles] : [];
+  if (u.role && !list.includes(u.role)) list.push(u.role);
+  return list.length ? list : (u.role ? [u.role] : []);
+}
+
+function getMapelSummary(u: any): string {
+  if (!Array.isArray(u.penugasans) || u.penugasans.length === 0) return '';
+  const names = u.penugasans
+    .map((p: any) => p.mapel?.nama)
+    .filter(Boolean);
+  return [...new Set(names)].join(', ');
+}
 
 export default function AdminUserList() {
   const [activeTab, setActiveTab] = useState<string>('semua');
@@ -136,7 +152,8 @@ export default function AdminUserList() {
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((u: any) => {
                     const initial = u.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-                    const roleStyle = ROLE_LABELS[u.role] || { label: u.role, color: 'bg-slate-100 text-slate-700 border-slate-200' };
+                    const displayRoles = getDisplayRoles(u);
+                    const mapelSummary = getMapelSummary(u);
                     
                     return (
                       <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
@@ -157,12 +174,26 @@ export default function AdminUserList() {
                         </td>
                         <td className="px-6 py-4 font-mono text-xs text-slate-750 dark:text-slate-355">{u.nip_nisn || '—'}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${roleStyle.color}`}>
-                            {roleStyle.label}
-                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {displayRoles.map((r) => {
+                              const roleStyle = ROLE_LABELS[r] || { label: r, color: 'bg-slate-100 text-slate-700 border-slate-200' };
+                              return (
+                                <span key={r} className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold border ${roleStyle.color}`}>
+                                  {roleStyle.label}
+                                </span>
+                              );
+                            })}
+                          </div>
                         </td>
                         <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-300">
-                          {u.kelas ? `Kelas ${u.kelas}` : u.jabatan || '—'}
+                          <div className="flex flex-col gap-0.5">
+                            <span>{u.kelas ? `Kelas ${u.kelas}` : u.jabatan || '—'}</span>
+                            {mapelSummary && (
+                              <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold" title={mapelSummary}>
+                                Mapel: {mapelSummary.length > 48 ? mapelSummary.slice(0, 48) + '…' : mapelSummary}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

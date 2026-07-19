@@ -7,6 +7,12 @@ use App\Models\User;
 use App\Models\PenugasanStruktural;
 use App\Models\SistemKonfigurasi;
 
+/**
+ * Sinkronisasi wali kelas ↔ users.roles (multi-role) ↔ penugasan_strukturals.
+ *
+ * Jabatan = label tampilan saja (bukan hak akses).
+ * Hak akses = role + roles[] multi-role.
+ */
 class WaliKelasSyncService
 {
     /**
@@ -40,12 +46,12 @@ class WaliKelasSyncService
                     ->where('id', '!=', $kelas->id)
                     ->update(['wali_kelas_id' => null]);
 
-                // Update User details
-                $user->update([
-                    'role' => 'walikelas',
-                    'kelas' => $kelas->nama,
-                    'jabatan' => 'Wali Kelas ' . $kelas->nama,
-                ]);
+                // Multi-role: tambah walikelas, jangan hapus guru/bendahara/dll
+                $jabatanLabel = 'Wali Kelas ' . $kelas->nama;
+                $user->grantRole('walikelas', $jabatanLabel, $kelas->nama);
+
+                // Pastikan role guru tetap ada jika dia juga mengajar (atau biarkan multi-role staf lain)
+                // (grantRole tidak menghapus role lain)
 
                 // Update or create PenugasanStruktural
                 PenugasanStruktural::updateOrCreate(
@@ -56,9 +62,11 @@ class WaliKelasSyncService
                     [
                         'role_akses' => 'walikelas',
                         'kelas_id' => $kelas->id,
-                        'jabatan' => 'Wali Kelas ' . $kelas->nama,
+                        'jabatan' => $jabatanLabel,
                     ]
                 );
+
+                $user->rebuildJabatanLabel($jabatanLabel);
             }
         }
     }
@@ -94,26 +102,83 @@ class WaliKelasSyncService
         $stillWali = Kelas::where('wali_kelas_id', $userId)->exists();
         if (!$stillWali) {
             $user = User::find($userId);
-            if ($user) {
-                // Check if they have another structural role
-                $otherStruktural = PenugasanStruktural::where('user_id', $userId)
-                    ->where('tahun_ajaran', $tahunAjaran)
-                    ->first();
-
-                if ($otherStruktural) {
-                    $user->update([
-                        'role' => $otherStruktural->role_akses,
-                        'kelas' => $otherStruktural->kelas_id ? (Kelas::find($otherStruktural->kelas_id)?->nama ?? null) : null,
-                        'jabatan' => $otherStruktural->jabatan,
-                    ]);
-                } else {
-                    $user->update([
-                        'role' => 'guru',
-                        'kelas' => null,
-                        'jabatan' => null,
-                    ]);
-                }
+            if (!$user) {
+                return;
             }
+
+            // Cabut role walikelas dari multi-role (role lain tetap)
+            $user->revokeRole('walikelas', false, true);
+
+            // Rebuild jabatan dari sisa penugasan struktural / mapel
+            $otherStruktural = PenugasanStruktural::where('user_id', $userId)
+                ->where('tahun_ajaran', $tahunAjaran)
+                ->first();
+
+            if ($otherStruktural) {
+                $user->grantRole(
+                    $otherStruktural->role_akses,
+                    $otherStruktural->jabatan,
+                    $otherStruktural->kelas_id
+                        ? (Kelas::find($otherStruktural->kelas_id)?->nama)
+                        : null
+                );
+                $user->rebuildJabatanLabel($otherStruktural->jabatan);
+            } else {
+                $user->rebuildJabatanLabel();
+            }
+        }
+    }
+
+    /**
+     * Terapkan penugasan struktural non-wali ke user (multi-role safe).
+     */
+    public static function applyStrukturalRole(User $user, string $roleAkses, ?string $jabatan): void
+    {
+        $user->grantRole($roleAkses, $jabatan, null);
+
+        // Non-wali: clear kelas binaan di user jika sebelumnya hanya untuk wali
+        if ($roleAkses !== 'walikelas' && $user->role !== 'walikelas' && !$user->hasRole(['walikelas'])) {
+            $user->update(['kelas' => null]);
+        }
+
+        $user->rebuildJabatanLabel($jabatan);
+    }
+
+    /**
+     * Cabut penugasan struktural dan sinkron multi-role.
+     *
+     * @param  int|null  $excludePenugasanId  ID penugasan yang sedang dihapus/diganti (abaikan saat cari sisa)
+     */
+    public static function removeStrukturalRole(
+        User $user,
+        string $roleAkses,
+        string $tahunAjaran,
+        $excludePenugasanId = null
+    ): void {
+        $user->revokeRole(
+            $roleAkses,
+            false,
+            $roleAkses === 'walikelas'
+        );
+
+        $query = PenugasanStruktural::where('user_id', $user->id)
+            ->where('tahun_ajaran', $tahunAjaran);
+
+        if ($excludePenugasanId) {
+            $query->where('id', '!=', $excludePenugasanId);
+        }
+
+        $other = $query->first();
+
+        if ($other) {
+            $user->grantRole(
+                $other->role_akses,
+                $other->jabatan,
+                $other->kelas_id ? (Kelas::find($other->kelas_id)?->nama) : null
+            );
+            $user->rebuildJabatanLabel($other->jabatan);
+        } else {
+            $user->rebuildJabatanLabel();
         }
     }
 }

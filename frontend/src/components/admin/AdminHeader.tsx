@@ -2,7 +2,9 @@ import { Search, LogOut, ChevronDown, User, Moon, Sun } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../ThemeProvider';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth, getUserRoles } from '../auth/AuthContext';
+import { useRoleSimulator } from '../simulator/RoleContext';
+import RoleSimulator from '../simulator/RoleSimulator';
 import NotificationDropdown from './NotificationDropdown';
 import { getFileUrl } from '../../lib/api';
 
@@ -15,6 +17,7 @@ const ROLE_LABELS: Record<string, string> = {
   bendahara: 'Bendahara',
   siswa: 'Siswa',
   admin: 'Staf Admin',
+  orang_tua: 'Orang Tua',
 };
 
 export default function AdminHeader({ 
@@ -30,9 +33,16 @@ export default function AdminHeader({
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { simulatedRole } = useRoleSimulator();
 
   const userName = user?.name || 'Pengguna';
-  const userRole = user?.role ? (ROLE_LABELS[user.role] || user.role) : 'Tamu';
+  const userRoles = getUserRoles(user);
+  // Tampilkan role aktif (mode akses), bukan hanya primary
+  const userRole = ROLE_LABELS[simulatedRole] || ROLE_LABELS[user?.role || ''] || 'Tamu';
+  const multiRoleHint =
+    userRoles.length > 1
+      ? userRoles.map((r) => ROLE_LABELS[r] || r).join(' · ')
+      : null;
   const userInitials = userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   useEffect(() => {
@@ -91,7 +101,9 @@ export default function AdminHeader({
       </div>
 
       <div className="flex items-center gap-3 sm:gap-5">
-        
+        {/* Multi-role / View-as switcher */}
+        {!isMobile && <RoleSimulator />}
+
         {/* Theme Toggle Button */}
         <button 
           onClick={toggleTheme}
@@ -122,9 +134,11 @@ export default function AdminHeader({
                 {userInitials}
               </div>
             )}
-            <div className="hidden sm:flex flex-col text-left">
-              <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200 leading-none mb-1">{userName}</span>
-              <span className="text-[10px] font-semibold text-slate-450 dark:text-slate-400 leading-none">{userRole}</span>
+            <div className="hidden sm:flex flex-col text-left max-w-[140px]">
+              <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 dark:text-slate-200 leading-none mb-1 truncate">{userName}</span>
+              <span className="text-[10px] font-semibold text-slate-450 dark:text-slate-400 leading-none truncate" title={multiRoleHint || userRole}>
+                {userRole}{userRoles.length > 1 ? ` (+${userRoles.length - 1})` : ''}
+              </span>
             </div>
             <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''} hidden sm:block`} />
           </button>

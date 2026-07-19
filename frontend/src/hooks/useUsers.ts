@@ -2,13 +2,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
 
+export interface PenugasanSummary {
+  id: number | string;
+  mapel_id?: number;
+  kelas_id?: number;
+  total_jam?: number;
+  mapel?: { id: number; nama: string; kode?: string } | null;
+  kelas?: { id: number; nama: string } | null;
+}
+
 export interface UserRecord {
   id: string;
   name: string;
   username: string;
   email: string;
   nip_nisn: string;
-  role: 'superadmin' | 'guru' | 'siswa' | 'admin' | 'walikelas' | 'kepala_sekolah' | 'kurikulum' | 'bendahara';
+  role: 'superadmin' | 'guru' | 'siswa' | 'admin' | 'walikelas' | 'kepala_sekolah' | 'kurikulum' | 'bendahara' | 'orang_tua';
   kelas?: string | null;
   jabatan?: string | null;
   phone?: string | null;
@@ -16,7 +25,12 @@ export interface UserRecord {
   is_active?: boolean;
   siswa_id?: number | null;
   foto?: string | null;
+  /** Multi-role tambahan (disimpan di DB) */
   roles?: string[] | null;
+  /** Primary + roles (computed backend) */
+  all_roles?: string[];
+  /** Multi-mapel via penugasan mengajar */
+  penugasans?: PenugasanSummary[];
 }
 
 export function useUsers(role?: string, search?: string, kelas?: string) {

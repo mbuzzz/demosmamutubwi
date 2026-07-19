@@ -13,14 +13,71 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class UserController extends Controller
 {
+    /**
+     * Filter user berdasarkan role utama ATAU multi-role JSON.
+     */
+    private function applyRoleFilter($query, string $role)
+    {
+        if ($role === 'semua' || $role === '') {
+            return $query;
+        }
+
+        if ($role === 'guru') {
+            $targets = ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'];
+        } elseif ($role === 'admin') {
+            $targets = ['admin', 'superadmin', 'bendahara'];
+        } else {
+            $targets = [$role];
+        }
+
+        return $query->where(function ($q) use ($targets) {
+            $q->whereIn('role', $targets);
+            foreach ($targets as $target) {
+                $q->orWhereJsonContains('roles', $target);
+            }
+        });
+    }
+
+    private function syncSiswaRiwayat(User $user): void
+    {
+        if ($user->role !== 'siswa' || !$user->kelas) {
+            return;
+        }
+
+        $config = \App\Models\SistemKonfigurasi::first();
+        $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+
+        $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
+        if ($kelasObj) {
+            \App\Models\RiwayatKelas::updateOrCreate(
+                [
+                    'siswa_id' => $user->id,
+                    'tahun_ajaran' => $tahunAjaran,
+                ],
+                [
+                    'kelas_id' => $kelasObj->id,
+                    'status' => 'aktif',
+                ]
+            );
+        }
+    }
+
     public function publicDirectory()
     {
-        $gurus = User::whereIn('role', ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'])
-            ->with(['penugasans.mapel'])
+        // Multi-role: guru bisa punya role utama lain tapi tetap staf pengajar
+        $gurus = User::query()
+            ->where(function ($q) {
+                $targets = ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'];
+                $q->whereIn('role', $targets);
+                foreach ($targets as $target) {
+                    $q->orWhereJsonContains('roles', $target);
+                }
+            })
+            ->with(['penugasans.mapel', 'penugasans.kelas'])
             ->get();
 
         $result = $gurus->map(function ($guru) {
-            $mapels = $guru->penugasans->map(fn($p) => $p->mapel->nama)->filter()->unique()->values()->implode(', ');
+            $mapels = $guru->penugasans->map(fn ($p) => $p->mapel?->nama)->filter()->unique()->values()->implode(', ');
             return [
                 'id' => $guru->id,
                 'name' => $guru->name,
@@ -28,6 +85,8 @@ class UserController extends Controller
                 'jabatan' => $guru->jabatan,
                 'foto' => $guru->foto,
                 'subject' => $mapels ?: ($guru->jabatan ?: 'Tenaga Pendidik'),
+                'mapels' => $guru->penugasans->map(fn ($p) => $p->mapel?->nama)->filter()->unique()->values(),
+                'roles' => $guru->all_roles,
             ];
         });
 
@@ -36,16 +95,10 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::query()->with(['penugasans.mapel', 'penugasans.kelas']);
 
         if ($request->has('role') && $request->role !== 'semua') {
-            if ($request->role === 'guru') {
-                $query->whereIn('role', ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum']);
-            } elseif ($request->role === 'admin') {
-                $query->whereIn('role', ['admin', 'superadmin', 'bendahara']);
-            } else {
-                $query->where('role', $request->role);
-            }
+            $this->applyRoleFilter($query, $request->role);
         }
 
         if ($request->has('kelas') && $request->kelas) {
@@ -81,30 +134,16 @@ class UserController extends Controller
             'jabatan' => 'nullable|string',
             'phone' => 'nullable|string',
             'is_active' => 'boolean',
+            'siswa_id' => 'nullable|exists:users,id',
         ]);
 
+        $validated = User::normalizeRolesPayload($validated);
         $validated['password'] = Hash::make($validated['password']);
         $user = User::create($validated);
 
-        // Handle student class history (Kenaikan Kelas / Riwayat Kelas)
-        if ($user->role === 'siswa' && $user->kelas) {
-            $config = \App\Models\SistemKonfigurasi::first();
-            $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
-            
-            $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
-            if ($kelasObj) {
-                \App\Models\RiwayatKelas::updateOrCreate(
-                    [
-                        'siswa_id' => $user->id,
-                        'tahun_ajaran' => $tahunAjaran,
-                    ],
-                    [
-                        'kelas_id' => $kelasObj->id,
-                        'status' => 'aktif',
-                    ]
-                );
-            }
-        }
+        $this->syncSiswaRiwayat($user);
+
+        $user->load(['penugasans.mapel', 'penugasans.kelas']);
 
         return response()->json([
             'message' => 'User berhasil dibuat',
@@ -114,7 +153,7 @@ class UserController extends Controller
 
     public function show($id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with(['penugasans.mapel', 'penugasans.kelas', 'siswa'])->findOrFail($id);
         return response()->json($user);
     }
 
@@ -155,7 +194,10 @@ class UserController extends Controller
             'jabatan' => 'nullable|string',
             'phone' => 'nullable|string',
             'is_active' => 'boolean',
+            'siswa_id' => 'nullable|exists:users,id',
         ]);
+
+        $validated = User::normalizeRolesPayload($validated);
 
         if (isset($validated['password']) && $validated['password']) {
             $validated['password'] = Hash::make($validated['password']);
@@ -164,26 +206,9 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        $this->syncSiswaRiwayat($user->fresh());
 
-        // Handle student class history (Kenaikan Kelas / Riwayat Kelas)
-        if ($user->role === 'siswa' && $user->kelas) {
-            $config = \App\Models\SistemKonfigurasi::first();
-            $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
-            
-            $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
-            if ($kelasObj) {
-                \App\Models\RiwayatKelas::updateOrCreate(
-                    [
-                        'siswa_id' => $user->id,
-                        'tahun_ajaran' => $tahunAjaran,
-                    ],
-                    [
-                        'kelas_id' => $kelasObj->id,
-                        'status' => 'aktif',
-                    ]
-                );
-            }
-        }
+        $user->load(['penugasans.mapel', 'penugasans.kelas', 'siswa']);
 
         return response()->json([
             'message' => 'User berhasil diperbarui',
@@ -207,13 +232,7 @@ class UserController extends Controller
         $query = User::query();
 
         if ($request->has('role') && $request->role !== 'semua') {
-            if ($request->role === 'guru') {
-                $query->whereIn('role', ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum']);
-            } elseif ($request->role === 'admin') {
-                $query->whereIn('role', ['admin', 'superadmin', 'bendahara']);
-            } else {
-                $query->where('role', $request->role);
-            }
+            $this->applyRoleFilter($query, $request->role);
         }
 
         $users = $query->orderBy('name')->get();
@@ -225,16 +244,10 @@ class UserController extends Controller
     // Export XLSX
     public function exportXlsx(Request $request)
     {
-        $query = User::query();
+        $query = User::query()->with(['penugasans.mapel']);
 
         if ($request->has('role') && $request->role !== 'semua') {
-            if ($request->role === 'guru') {
-                $query->whereIn('role', ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum']);
-            } elseif ($request->role === 'admin') {
-                $query->whereIn('role', ['admin', 'superadmin', 'bendahara']);
-            } else {
-                $query->where('role', $request->role);
-            }
+            $this->applyRoleFilter($query, $request->role);
         }
 
         $users = $query->orderBy('name')->get();
@@ -243,8 +256,8 @@ class UserController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Pengguna');
 
-        // Set Headers: Added Username
-        $headers = ['No', 'Nama Lengkap', 'Username', 'Email', 'NIP / NISN', 'Peran (Role)', 'Info Tambahan'];
+        // Set Headers: Added Username + multi-role
+        $headers = ['No', 'Nama Lengkap', 'Username', 'Email', 'NIP / NISN', 'Peran Utama', 'Multi-Role', 'Info / Mapel'];
         foreach ($headers as $colIndex => $header) {
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
             $sheet->setCellValue($colLetter . '1', $header);
@@ -254,13 +267,21 @@ class UserController extends Controller
         // Fill Data
         foreach ($users as $rowIndex => $user) {
             $rowNum = $rowIndex + 2;
+            $mapels = $user->penugasans
+                ? $user->penugasans->map(fn ($p) => $p->mapel?->nama)->filter()->unique()->implode(', ')
+                : '';
+            $info = $user->kelas
+                ? 'Kelas ' . $user->kelas
+                : ($mapels ?: ($user->jabatan ?: '—'));
+
             $sheet->setCellValue('A' . $rowNum, $rowIndex + 1);
             $sheet->setCellValue('B' . $rowNum, $user->name);
             $sheet->setCellValue('C' . $rowNum, $user->username);
             $sheet->setCellValue('D' . $rowNum, $user->email);
             $sheet->setCellValue('E' . $rowNum, $user->nip_nisn ?: '—');
             $sheet->setCellValue('F' . $rowNum, strtoupper($user->role));
-            $sheet->setCellValue('G' . $rowNum, $user->kelas ? 'Kelas ' . $user->kelas : ($user->jabatan ?: '—'));
+            $sheet->setCellValue('G' . $rowNum, implode(', ', array_map('strtoupper', $user->all_roles)));
+            $sheet->setCellValue('H' . $rowNum, $info);
         }
 
         // Auto-fit Column Widths

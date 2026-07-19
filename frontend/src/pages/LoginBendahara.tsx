@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Wallet, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../components/auth/AuthContext';
+import { useAuth, userHasRole } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
 import { toast } from 'sonner';
 
 export default function LoginBendahara() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const { setSimulatedRole } = useRoleSimulator();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -29,8 +29,10 @@ export default function LoginBendahara() {
     setError(null);
     try {
       const user = await login(username, password);
-      
-      if (user.role !== 'bendahara') {
+
+      // Multi-role: guru yang juga bendahara boleh lewat portal ini
+      if (!userHasRole(user, 'bendahara')) {
+        await logout();
         throw new Error('Akun Anda bukan akun Bendahara. Silakan gunakan portal yang sesuai.');
       }
 
@@ -40,8 +42,8 @@ export default function LoginBendahara() {
       } else {
         localStorage.removeItem('remember_bendahara_username');
       }
-      
-      setSimulatedRole(user.role as Role);
+
+      setSimulatedRole('bendahara' as Role);
       navigate('/panel/bendahara');
       toast.success(`Selamat datang di Portal Keuangan, ${user.name}!`);
     } catch (err: any) {

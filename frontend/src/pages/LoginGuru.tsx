@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Users, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../components/auth/AuthContext';
+import { useAuth, getUserRoles, userHasRole } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
 import { toast } from 'sonner';
 
+const PORTAL_ROLES = ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'] as const;
+
 export default function LoginGuru() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const { setSimulatedRole } = useRoleSimulator();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -29,9 +31,10 @@ export default function LoginGuru() {
     setError(null);
     try {
       const user = await login(username, password);
-      
-      const allowedRoles = ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'];
-      if (!allowedRoles.includes(user.role)) {
+
+      // Multi-role aware: boleh masuk jika punya salah satu role portal guru
+      if (!userHasRole(user, [...PORTAL_ROLES])) {
+        await logout();
         throw new Error('Akun Anda bukan akun Pendidik / Staf. Silakan gunakan portal yang sesuai.');
       }
 
@@ -41,8 +44,14 @@ export default function LoginGuru() {
       } else {
         localStorage.removeItem('remember_guru_username');
       }
-      
-      setSimulatedRole(user.role as Role);
+
+      const roles = getUserRoles(user);
+      const active =
+        PORTAL_ROLES.includes(user.role as (typeof PORTAL_ROLES)[number])
+          ? user.role
+          : roles.find((r) => (PORTAL_ROLES as readonly string[]).includes(r)) || user.role;
+
+      setSimulatedRole(active as Role);
       navigate('/panel/guru');
       toast.success(`Selamat datang di Portal Guru & Staf, ${user.name}!`);
     } catch (err: any) {

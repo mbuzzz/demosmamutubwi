@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ShieldAlert, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../components/auth/AuthContext';
+import { useAuth, userHasRole } from '../components/auth/AuthContext';
 import { useRoleSimulator, type Role } from '../components/simulator/RoleContext';
 import { toast } from 'sonner';
 import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
@@ -9,7 +9,7 @@ import { getFileUrl } from '../lib/api';
 
 export default function LoginAdmin() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const { setSimulatedRole } = useRoleSimulator();
   const { data: config } = useSistemKonfigurasi();
 
@@ -33,9 +33,9 @@ export default function LoginAdmin() {
     setError(null);
     try {
       const user = await login(username, password);
-      
-      const allowedRoles = ['superadmin', 'admin'];
-      if (!allowedRoles.includes(user.role)) {
+
+      if (!userHasRole(user, ['superadmin', 'admin'])) {
+        await logout();
         throw new Error('Akun Anda bukan akun Administrator. Silakan gunakan portal yang sesuai.');
       }
 
@@ -45,8 +45,9 @@ export default function LoginAdmin() {
       } else {
         localStorage.removeItem('remember_admin_username');
       }
-      
-      setSimulatedRole(user.role as Role);
+
+      const active = userHasRole(user, 'superadmin') ? 'superadmin' : 'admin';
+      setSimulatedRole(active as Role);
       navigate('/panel');
       toast.success(`Selamat datang di Portal Admin, ${user.name}!`);
     } catch (err: any) {

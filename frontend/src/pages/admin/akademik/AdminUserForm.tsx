@@ -1,10 +1,19 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Save, User as UserIcon, Camera, ArrowLeft, Building, Lock, Mail, Phone, ScanLine, Shield } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Save, User as UserIcon, Camera, ArrowLeft, Building, Lock, Mail, Phone, ScanLine, Shield, BookOpen, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useUser, useCreateUser, useUpdateUser, useUsers } from '../../../hooks/useUsers';
 import { useKelasList } from '../../../hooks/useKelas';
 import { toast } from 'sonner';
+
+const MULTI_ROLE_OPTIONS = [
+  { val: 'guru', name: 'Guru / Pendidik' },
+  { val: 'walikelas', name: 'Wali Kelas' },
+  { val: 'kepala_sekolah', name: 'Kepala Sekolah' },
+  { val: 'kurikulum', name: 'Kurikulum' },
+  { val: 'bendahara', name: 'Bendahara' },
+  { val: 'admin', name: 'Admin / Staff TU' },
+];
 
 export default function AdminUserForm() {
   const { id } = useParams<{ id: string }>();
@@ -38,7 +47,12 @@ export default function AdminUserForm() {
       setEmail(user.email);
       setUsername(user.username);
       setRole(user.role);
-      setRoles(user.roles || []);
+      // Prefer all_roles, fallback roles array
+      const loaded =
+        (Array.isArray(user.all_roles) && user.all_roles.length
+          ? user.all_roles
+          : user.roles) || [];
+      setRoles(loaded.filter((r) => r !== user.role));
       setNipNisn(user.nip_nisn || '');
       setKelas(user.kelas || '');
       setJabatan(user.jabatan || '');
@@ -49,11 +63,17 @@ export default function AdminUserForm() {
     }
   }, [isEdit, user]);
 
+  const penugasanList = useMemo(() => user?.penugasans || [], [user]);
+  const isStaffRole = role !== 'siswa' && role !== 'orang_tua';
+  const canHaveMapel = ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(role)
+    || roles.some((r) => ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(r));
+
   const randomUid = () => {
     return 'RF:' + Array.from({length: 4}, () => Math.floor(Math.random()*256).toString(16).padStart(2, '0').toUpperCase()).join(':');
   };
 
   const handleRoleCheckboxChange = (r: string) => {
+    if (r === role) return; // primary always checked
     if (roles.includes(r)) {
       setRoles(roles.filter(x => x !== r));
     } else {
@@ -68,16 +88,24 @@ export default function AdminUserForm() {
       return;
     }
 
+    // Multi-role: kirim roles (primary digabung di backend), pastikan unique
+    const multiRoles = isStaffRole
+      ? Array.from(new Set([role, ...roles.filter((r) => r !== role)]))
+      : null;
+
+    // Wali kelas (primary atau multi) butuh kelas binaan
+    const needsKelas = role === 'siswa' || role === 'walikelas' || multiRoles?.includes('walikelas');
+
     const userData: any = {
       name,
       username,
       email,
       role,
-      roles: role !== 'siswa' && role !== 'orang_tua' ? roles : null,
+      roles: multiRoles,
       nip_nisn: nipNisn || null,
       uid_rfid: rfidUid || null,
-      kelas: role === 'siswa' || role === 'walikelas' ? kelas : null,
-      jabatan: role !== 'siswa' && role !== 'orang_tua' ? jabatan : null,
+      kelas: needsKelas ? (kelas || null) : null,
+      jabatan: isStaffRole ? jabatan : null,
       phone: phone || null,
       is_active: isActive,
       siswa_id: role === 'orang_tua' ? (siswaId ? parseInt(siswaId) : null) : null,
@@ -100,7 +128,13 @@ export default function AdminUserForm() {
       }
       navigate('/panel/users');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Gagal menyimpan data pengguna. Periksa kembali input Anda.');
+      const msg =
+        err.response?.data?.message ||
+        (err.response?.data?.errors
+          ? Object.values(err.response.data.errors).flat().join(', ')
+          : null) ||
+        'Gagal menyimpan data pengguna. Periksa kembali input Anda.';
+      toast.error(msg);
     }
   };
 
@@ -162,17 +196,17 @@ export default function AdminUserForm() {
                 </select>
               </div>
 
-              {role !== 'siswa' && role !== 'orang_tua' && (
+              {isStaffRole && (
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Peran Tambahan (Multi-Role)</label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                    {[
-                      { val: 'guru', name: 'Guru / Pendidik' },
-                      { val: 'walikelas', name: 'Wali Kelas' },
-                      { val: 'kurikulum', name: 'Kurikulum' },
-                      { val: 'bendahara', name: 'Bendahara' },
-                      { val: 'admin', name: 'Admin / Staff TU' }
-                    ].map(item => (
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Peran Tambahan (Multi-Role)
+                  </label>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
+                    Satu akun bisa punya beberapa peran, mis. <strong>Guru + Wali Kelas + Bendahara</strong>.
+                    Menu panel mengikuti mode akses yang dipilih saat login.
+                  </p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {MULTI_ROLE_OPTIONS.map(item => (
                       <label key={item.val} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-750 dark:text-slate-300">
                         <input
                           type="checkbox"
@@ -181,7 +215,12 @@ export default function AdminUserForm() {
                           onChange={() => handleRoleCheckboxChange(item.val)}
                           className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded border-slate-300"
                         />
-                        <span>{item.name}</span>
+                        <span>
+                          {item.name}
+                          {role === item.val && (
+                            <span className="ml-1 text-[10px] text-indigo-500 font-bold">(utama)</span>
+                          )}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -349,14 +388,28 @@ export default function AdminUserForm() {
                     </button>
                   </div>
                 </div>
-                {['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(role) && (
+                {isStaffRole && (
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">Jabatan / Spesialisasi Mapel</label>
-                    <input type="text" value={jabatan} onChange={e => setJabatan(e.target.value)} placeholder="Contoh: Guru Matematika / Wali Kelas X-1" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                    <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">
+                      Jabatan (Label Tampilan)
+                    </label>
+                    <input
+                      type="text"
+                      value={jabatan}
+                      onChange={e => setJabatan(e.target.value)}
+                      placeholder="Contoh: Waka Kurikulum / Guru Matematika / Wali Kelas X-1"
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                    />
+                    <div className="mt-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 px-3 py-2 text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed space-y-1">
+                      <p><strong>Jabatan ≠ hak akses.</strong> Ini hanya teks yang tampil di direktori guru, absensi, dan daftar user.</p>
+                      <p>• Hak akses sistem → centang <strong>Multi-Role</strong> di kiri / lewat penugasan struktural.</p>
+                      <p>• Mapel resmi multi-mapel → menu <strong>Penugasan → Mengajar</strong>.</p>
+                      <p>• Jabatan resmi di bagan organisasi → menu <strong>Penugasan → Struktural</strong> (otomatis mengisi label ini).</p>
+                    </div>
                   </div>
                 )}
-                {role === 'walikelas' && (
-                  <div>
+                {(role === 'walikelas' || roles.includes('walikelas')) && (
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">Wali Kelas dari Kelas</label>
                     <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                       <option value="">-- Pilih Kelas Binaan --</option>
@@ -369,6 +422,60 @@ export default function AdminUserForm() {
               </div>
             )}
           </div>
+
+          {/* Multi-mapel via penugasan (read-only summary) */}
+          {isEdit && canHaveMapel && (
+            <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800 border-l-4 border-l-emerald-500">
+              <div className="flex items-start justify-between gap-3 mb-4 pb-2 border-b border-emerald-100 dark:border-emerald-900/40">
+                <h3 className="font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-emerald-600" />
+                  Multi-Mapel (Penugasan Mengajar)
+                </h3>
+                <Link
+                  to="/panel/penugasan"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                >
+                  Kelola di Penugasan <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                Satu guru bisa mengajar banyak mapel di banyak kelas. Setiap baris = 1 penugasan (Guru × Mapel × Kelas).
+              </p>
+              {penugasanList.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-200 dark:border-slate-700 px-4 py-6 text-center">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Belum ada penugasan mapel</p>
+                  <p className="text-xs text-slate-400 mt-1">Tambahkan di menu Akademik → Penugasan</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-[11px] uppercase tracking-wider text-slate-400 font-extrabold">
+                        <th className="pb-2 pr-3">Mata Pelajaran</th>
+                        <th className="pb-2 pr-3">Kelas</th>
+                        <th className="pb-2">Jam/minggu</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {penugasanList.map((p) => (
+                        <tr key={String(p.id)}>
+                          <td className="py-2.5 pr-3 font-semibold text-slate-800 dark:text-slate-100">
+                            {p.mapel?.nama || '—'}
+                          </td>
+                          <td className="py-2.5 pr-3 text-slate-600 dark:text-slate-300">
+                            {p.kelas?.nama || '—'}
+                          </td>
+                          <td className="py-2.5 text-slate-600 dark:text-slate-300">
+                            {p.total_jam ?? '—'} jp
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
             <button type="submit" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-sm font-bold transition-colors shadow-md hover:shadow-lg active:scale-95">

@@ -6,8 +6,10 @@ use App\Models\PenugasanStruktural;
 use App\Models\User;
 use App\Models\Kelas;
 use App\Models\SistemKonfigurasi;
+use App\Services\WaliKelasSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PenugasanStrukturalController extends Controller
 {
@@ -63,7 +65,7 @@ class PenugasanStrukturalController extends Controller
             'guru'           => 7,
         ];
 
-        $sorted = $result->sortBy(fn($item) => $roleOrder[$item['role_akses']] ?? 99)->values();
+        $sorted = $result->sortBy(fn ($item) => $roleOrder[$item['role_akses']] ?? 99)->values();
 
         return response()->json($sorted);
     }
@@ -80,14 +82,14 @@ class PenugasanStrukturalController extends Controller
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        // Check if user already has a structural assignment for this academic year
+        // Satu penugasan struktural per user per tahun ajaran (untuk bagan organisasi)
         $exists = PenugasanStruktural::where('user_id', $validated['user_id'])
             ->where('tahun_ajaran', $tahunAjaran)
             ->exists();
 
         if ($exists) {
             return response()->json([
-                'message' => 'User ini sudah memiliki penugasan struktural pada tahun ajaran aktif.'
+                'message' => 'User ini sudah memiliki penugasan struktural pada tahun ajaran aktif. Edit yang ada, atau atur multi-role tambahan di form User.',
             ], 422);
         }
 
@@ -98,39 +100,35 @@ class PenugasanStrukturalController extends Controller
         try {
             $user = User::findOrFail($validated['user_id']);
 
-            // If user was previously walikelas, clear their old class
-            if ($user->role === 'walikelas') {
+            // Jika user sebelumnya wali di kelas lain, bersihkan
+            if ($user->hasRole(['walikelas'])) {
                 $oldKelas = Kelas::where('wali_kelas_id', $user->id)->first();
-                if ($oldKelas) {
+                if ($oldKelas && ($validated['role_akses'] !== 'walikelas' || (int) $validated['kelas_id'] !== (int) $oldKelas->id)) {
                     $oldKelas->update(['wali_kelas_id' => null]);
-                    \App\Services\WaliKelasSyncService::cleanupUserWaliRole($user->id, $oldKelas->id, $tahunAjaran);
+                    WaliKelasSyncService::cleanupUserWaliRole($user->id, $oldKelas->id, $tahunAjaran);
+                    $user->refresh();
                 }
             }
 
             if ($validated['role_akses'] === 'walikelas') {
                 $kelas = Kelas::findOrFail($validated['kelas_id']);
-                
-                // Clear any user currently assigned to this class
-                if ($kelas->wali_kelas_id) {
-                    \App\Services\WaliKelasSyncService::cleanupUserWaliRole($kelas->wali_kelas_id, $kelas->id, $tahunAjaran);
+
+                if ($kelas->wali_kelas_id && (int) $kelas->wali_kelas_id !== (int) $user->id) {
+                    WaliKelasSyncService::cleanupUserWaliRole($kelas->wali_kelas_id, $kelas->id, $tahunAjaran);
                 }
 
                 $kelas->update(['wali_kelas_id' => $user->id]);
-                
-                // Sync uses updateOrCreate for PenugasanStruktural and sets role/kelas/jabatan on User
-                \App\Services\WaliKelasSyncService::syncKelas($kelas);
+                WaliKelasSyncService::syncKelas($kelas);
 
-                // Fetch the created penugasan
                 $penugasan = PenugasanStruktural::where('user_id', $user->id)
                     ->where('tahun_ajaran', $tahunAjaran)
                     ->first();
             } else {
-                $user->update([
-                    'role' => $validated['role_akses'],
-                    'kelas' => null,
-                    'jabatan' => $validated['jabatan'],
-                ]);
-                $validated['kelas_id'] = null; // Clear kelas_id if not walikelas
+                // Multi-role safe: tambah role + set label jabatan
+                $jabatanLabel = $validated['jabatan'];
+                WaliKelasSyncService::applyStrukturalRole($user, $validated['role_akses'], $jabatanLabel);
+
+                $validated['kelas_id'] = null;
                 $penugasan = PenugasanStruktural::create($validated);
             }
 
@@ -138,12 +136,11 @@ class PenugasanStrukturalController extends Controller
 
             return response()->json([
                 'message' => 'Penugasan struktural berhasil ditambahkan',
-                'penugasan' => $penugasan->load(['user', 'kelas']),
+                'penugasan' => $penugasan?->load(['user', 'kelas']),
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Gagal menambahkan penugasan: ' . $e->getMessage());
+            Log::error('Gagal menambahkan penugasan: ' . $e->getMessage());
             return response()->json(['message' => 'Gagal menambahkan penugasan.'], 500);
         }
     }
@@ -162,7 +159,6 @@ class PenugasanStrukturalController extends Controller
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        // Check if user already has a structural assignment for this academic year (excluding current)
         $exists = PenugasanStruktural::where('user_id', $validated['user_id'])
             ->where('tahun_ajaran', $tahunAjaran)
             ->where('id', '!=', $penugasan->id)
@@ -170,7 +166,7 @@ class PenugasanStrukturalController extends Controller
 
         if ($exists) {
             return response()->json([
-                'message' => 'User ini sudah memiliki penugasan struktural lain pada tahun ajaran aktif.'
+                'message' => 'User ini sudah memiliki penugasan struktural lain pada tahun ajaran aktif.',
             ], 422);
         }
 
@@ -180,7 +176,7 @@ class PenugasanStrukturalController extends Controller
             $user = User::findOrFail($validated['user_id']);
             $oldUser = User::findOrFail($penugasan->user_id);
 
-            // 1. Clean up old user's assignment if user changed or if the role changed
+            // 1. Clean up old assignment
             if ($oldUser->id !== $user->id || $penugasan->role_akses !== $validated['role_akses']) {
                 if ($penugasan->role_akses === 'walikelas' && $penugasan->kelas_id) {
                     $oldKelas = Kelas::find($penugasan->kelas_id);
@@ -188,46 +184,34 @@ class PenugasanStrukturalController extends Controller
                         $oldKelas->update(['wali_kelas_id' => null]);
                     }
                 }
-                
-                // Revert old user's role to guru if they have no other structural role
-                $otherPenugasans = PenugasanStruktural::where('user_id', $oldUser->id)
-                    ->where('id', '!=', $penugasan->id)->count();
-                if ($otherPenugasans === 0) {
-                    $oldUser->update([
-                        'role' => 'guru',
-                        'kelas' => null,
-                        'jabatan' => null,
-                    ]);
-                }
+
+                // Cabut role lama dari multi-role (role lain tetap); exclude record yang sedang diedit
+                WaliKelasSyncService::removeStrukturalRole(
+                    $oldUser,
+                    $penugasan->role_akses,
+                    $tahunAjaran,
+                    $penugasan->id
+                );
             }
 
-            // 2. Clean up current user's role if they were previously assigned to another class
-            if ($user->role === 'walikelas' && ($validated['role_akses'] !== 'walikelas' || $validated['kelas_id'] != $penugasan->kelas_id)) {
+            // 2. Clean current user if leaving wali role
+            if ($user->hasRole(['walikelas']) && ($validated['role_akses'] !== 'walikelas' || (int) $validated['kelas_id'] !== (int) $penugasan->kelas_id)) {
                 Kelas::where('wali_kelas_id', $user->id)->update(['wali_kelas_id' => null]);
             }
 
             // 3. Apply new assignment
             if ($validated['role_akses'] === 'walikelas') {
                 $kelas = Kelas::findOrFail($validated['kelas_id']);
-                
-                // Clear any user currently assigned to this class
-                if ($kelas->wali_kelas_id && $kelas->wali_kelas_id != $user->id) {
-                    \App\Services\WaliKelasSyncService::cleanupUserWaliRole($kelas->wali_kelas_id, $kelas->id, $tahunAjaran);
+
+                if ($kelas->wali_kelas_id && (int) $kelas->wali_kelas_id !== (int) $user->id) {
+                    WaliKelasSyncService::cleanupUserWaliRole($kelas->wali_kelas_id, $kelas->id, $tahunAjaran);
                 }
 
                 $kelas->update(['wali_kelas_id' => $user->id]);
-                
-                // Sync uses updateOrCreate for PenugasanStruktural and sets role/kelas/jabatan on User
-                \App\Services\WaliKelasSyncService::syncKelas($kelas);
-                
-                // Refresh the assignment in-memory to match updated state
+                WaliKelasSyncService::syncKelas($kelas);
                 $penugasan->refresh();
             } else {
-                $user->update([
-                    'role' => $validated['role_akses'],
-                    'kelas' => null,
-                    'jabatan' => $validated['jabatan'],
-                ]);
+                WaliKelasSyncService::applyStrukturalRole($user, $validated['role_akses'], $validated['jabatan']);
                 $validated['kelas_id'] = null;
                 $penugasan->update($validated);
             }
@@ -236,12 +220,11 @@ class PenugasanStrukturalController extends Controller
 
             return response()->json([
                 'message' => 'Penugasan struktural berhasil diperbarui',
-                'penugasan' => $penugasan->load(['user', 'kelas']),
+                'penugasan' => $penugasan->fresh(['user', 'kelas']),
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Gagal memperbarui penugasan: ' . $e->getMessage());
+            Log::error('Gagal memperbarui penugasan: ' . $e->getMessage());
             return response()->json(['message' => 'Gagal memperbarui penugasan.'], 500);
         }
     }
@@ -254,6 +237,8 @@ class PenugasanStrukturalController extends Controller
 
         try {
             $user = User::find($penugasan->user_id);
+            $config = SistemKonfigurasi::first();
+            $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
             if ($user) {
                 if ($penugasan->role_akses === 'walikelas' && $penugasan->kelas_id) {
@@ -263,38 +248,22 @@ class PenugasanStrukturalController extends Controller
                     }
                 }
 
-                $otherPenugasans = PenugasanStruktural::where('user_id', $user->id)
-                    ->where('id', '!=', $penugasan->id)->count();
-                if ($otherPenugasans === 0) {
-                    $user->update([
-                        'role' => 'guru',
-                        'kelas' => null,
-                        'jabatan' => null,
-                    ]);
-                } else {
-                    $other = PenugasanStruktural::where('user_id', $user->id)
-                        ->where('id', '!=', $penugasan->id)->first();
-                    if ($other) {
-                        $user->update([
-                            'role' => $other->role_akses,
-                            'kelas' => $other->kelas_id ? (Kelas::find($other->kelas_id)?->nama ?? null) : null,
-                            'jabatan' => $other->jabatan,
-                        ]);
-                    }
-                }
+                // Hapus dulu record, lalu cabut role multi-role
+                $roleAkses = $penugasan->role_akses;
+                $penugasan->delete();
+                WaliKelasSyncService::removeStrukturalRole($user, $roleAkses, $tahunAjaran);
+            } else {
+                $penugasan->delete();
             }
-
-            $penugasan->delete();
 
             DB::commit();
 
             return response()->json([
                 'message' => 'Penugasan struktural berhasil dihapus',
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Gagal menghapus penugasan: ' . $e->getMessage());
+            Log::error('Gagal menghapus penugasan: ' . $e->getMessage());
             return response()->json(['message' => 'Gagal menghapus penugasan.'], 500);
         }
     }
