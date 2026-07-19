@@ -73,6 +73,8 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,siswa,admin,orang_tua',
+            'roles' => 'nullable|array',
+            'roles.*' => 'string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,admin',
             'nip_nisn' => 'nullable|string|unique:users',
             'uid_rfid' => 'nullable|string|unique:users',
             'kelas' => 'nullable|string',
@@ -137,6 +139,8 @@ class UserController extends Controller
             ],
             'password' => 'nullable|string|min:6',
             'role' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,siswa,admin,orang_tua',
+            'roles' => 'nullable|array',
+            'roles.*' => 'string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,admin',
             'nip_nisn' => [
                 'nullable',
                 'string',

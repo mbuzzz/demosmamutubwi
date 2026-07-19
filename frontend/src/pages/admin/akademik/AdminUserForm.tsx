@@ -22,6 +22,7 @@ export default function AdminUserForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('siswa');
+  const [roles, setRoles] = useState<string[]>([]);
   
   const [nipNisn, setNipNisn] = useState('');
   const [kelas, setKelas] = useState('');
@@ -37,6 +38,7 @@ export default function AdminUserForm() {
       setEmail(user.email);
       setUsername(user.username);
       setRole(user.role);
+      setRoles(user.roles || []);
       setNipNisn(user.nip_nisn || '');
       setKelas(user.kelas || '');
       setJabatan(user.jabatan || '');
@@ -51,6 +53,14 @@ export default function AdminUserForm() {
     return 'RF:' + Array.from({length: 4}, () => Math.floor(Math.random()*256).toString(16).padStart(2, '0').toUpperCase()).join(':');
   };
 
+  const handleRoleCheckboxChange = (r: string) => {
+    if (roles.includes(r)) {
+      setRoles(roles.filter(x => x !== r));
+    } else {
+      setRoles([...roles, r]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !username) {
@@ -63,6 +73,7 @@ export default function AdminUserForm() {
       username,
       email,
       role,
+      roles: role !== 'siswa' && role !== 'orang_tua' ? roles : null,
       nip_nisn: nipNisn || null,
       uid_rfid: rfidUid || null,
       kelas: role === 'siswa' || role === 'walikelas' ? kelas : null,
@@ -129,11 +140,11 @@ export default function AdminUserForm() {
 
           <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-indigo-500" /> Hak Akses (Role)
+              <Shield className="w-4 h-4 text-indigo-500" /> Hak Akses (Role Utama)
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Pilih Peran Pengguna</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Pilih Peran Utama</label>
                 <select 
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
@@ -150,6 +161,33 @@ export default function AdminUserForm() {
                   <option value="orang_tua">Orang Tua / Wali Murid</option>
                 </select>
               </div>
+
+              {role !== 'siswa' && role !== 'orang_tua' && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Peran Tambahan (Multi-Role)</label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {[
+                      { val: 'guru', name: 'Guru / Pendidik' },
+                      { val: 'walikelas', name: 'Wali Kelas' },
+                      { val: 'kurikulum', name: 'Kurikulum' },
+                      { val: 'bendahara', name: 'Bendahara' },
+                      { val: 'admin', name: 'Admin / Staff TU' }
+                    ].map(item => (
+                      <label key={item.val} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-750 dark:text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={roles.includes(item.val) || role === item.val}
+                          disabled={role === item.val}
+                          onChange={() => handleRoleCheckboxChange(item.val)}
+                          className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded border-slate-300"
+                        />
+                        <span>{item.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Status Akun</label>
                 <div className="flex gap-4">
@@ -159,7 +197,7 @@ export default function AdminUserForm() {
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="radio" name="status" checked={!isActive} onChange={() => setIsActive(false)} className="w-4 h-4 text-red-500 focus:ring-red-500" />
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nonaktif (Suspend)</span>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nonaktif</span>
                   </label>
                 </div>
               </div>

@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'username', 'email', 'password', 'role', 'nip_nisn', 'uid_rfid', 'kelas', 'jabatan', 'phone', 'foto', 'is_active', 'siswa_id'])]
+#[Fillable(['name', 'username', 'email', 'password', 'role', 'roles', 'nip_nisn', 'uid_rfid', 'kelas', 'jabatan', 'phone', 'foto', 'is_active', 'siswa_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,7 +29,43 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'roles' => 'array',
         ];
+    }
+
+    /**
+     * Mengecek apakah user memiliki minimal salah satu role dari list.
+     * Mendukung backward compatibility dengan kolom 'role' tunggal jika array 'roles' kosong.
+     */
+    public function hasRole(array $allowedRoles): bool
+    {
+        // 1. Cek dari single role (default)
+        if (in_array($this->role, $allowedRoles)) {
+            return true;
+        }
+
+        // 2. Cek dari multi role (jika didefinisikan)
+        if (is_array($this->roles)) {
+            foreach ($this->roles as $r) {
+                if (in_array($r, $allowedRoles)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Mendapatkan semua list role yang dimiliki user.
+     */
+    public function getAllRolesAttribute(): array
+    {
+        $all = is_array($this->roles) ? $this->roles : [];
+        if ($this->role && !in_array($this->role, $all)) {
+            $all[] = $this->role;
+        }
+        return $all;
     }
 
     // --- Relations ---

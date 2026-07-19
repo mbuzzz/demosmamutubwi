@@ -24,7 +24,7 @@ class CheckRole
             ], 401);
         }
 
-        if (!in_array($user->role, $roles)) {
+        if (!$user->hasRole($roles)) {
             return response()->json([
                 'message' => 'Anda tidak memiliki hak akses untuk tindakan ini.'
             ], 403);
