@@ -101,8 +101,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('penugasan', PenugasanController::class);
     });
 
-    // Guru Dashboard / Panel
-    Route::middleware('role:superadmin,admin,guru')->group(function () {
+    // Guru Dashboard / Panel — semua role pendidik (termasuk kurikulum merangkap guru)
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah')->group(function () {
         Route::get('/guru/classes', [PenugasanController::class, 'guruClasses']);
     });
 
@@ -152,7 +152,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/absensi/siswa/{id}', [AbsensiController::class, 'rekapSiswa']);
     });
 
-    Route::middleware('role:superadmin,admin,guru,walikelas')->group(function () {
+    // Absensi Guru (RFID & manual) — semua staf pengajar bisa lihat, admin bisa edit
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah')->group(function () {
+        Route::get('/absensi-guru', [AbsensiController::class, 'indexGuru']);
+        Route::get('/absensi-guru/rekap', [AbsensiController::class, 'rekapGuru']);
+    });
+    Route::middleware('role:superadmin,admin,kepala_sekolah')->group(function () {
+        Route::post('/absensi-guru', [AbsensiController::class, 'storeGuru']);
+    });
+
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah')->group(function () {
         Route::post('/absensi', [AbsensiController::class, 'store']);
         Route::put('/absensi/{id}', [AbsensiController::class, 'update']);
     });
@@ -187,9 +196,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('downloads', DownloadController::class);
     });
 
-    // 6. KURIKULUM MANAGEMENT (Superadmin, Admin, Kurikulum)
+    // 6. KURIKULUM MANAGEMENT
+    // superadmin/admin/kurikulum: full CRUD
+    // guru/walikelas/kepala_sekolah: read-only (lihat kurikulum aktif untuk KBM)
     Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
-        Route::apiResource('kurikulum', KurikulumController::class);
+        Route::post('kurikulum', [KurikulumController::class, 'store']);
+        Route::put('kurikulum/{kurikulum}', [KurikulumController::class, 'update']);
+        Route::delete('kurikulum/{kurikulum}', [KurikulumController::class, 'destroy']);
+    });
+    Route::middleware('role:superadmin,admin,kurikulum,guru,walikelas,kepala_sekolah,siswa,orang_tua')->group(function () {
+        Route::get('kurikulum', [KurikulumController::class, 'index']);
+        Route::get('kurikulum/{kurikulum}', [KurikulumController::class, 'show']);
     });
 
     // 7. TUJUAN PEMBELAJARAN (Superadmin, Admin, Guru, Kurikulum)

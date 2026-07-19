@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Absensi;
+use App\Models\AbsensiGuru;
 use App\Models\KartuRfid;
 use App\Models\KonfigurasiAbsensi;
 use App\Models\User;
@@ -280,7 +281,7 @@ class AbsensiController extends Controller
             'uid' => 'required|string',
         ]);
 
-        $kartu = KartuRfid::where('uid', $validated['uid'])->with('user')->first();
+        $kartu = KartuRfid::where('uid', $validated['uid'])->first();
 
         if (!$kartu) {
             return response()->json(['message' => 'Kartu tidak terdaftar'], 404);
@@ -295,11 +296,77 @@ class AbsensiController extends Controller
             return response()->json(['message' => 'Konfigurasi absensi belum diatur'], 500);
         }
 
+        // Resolve: apakah kartu milik guru (user_id) atau siswa (siswa_id)?
+        $isGuru = !is_null($kartu->user_id);
+        $ownerId = $isGuru ? $kartu->user_id : $kartu->siswa_id;
+
+        // Load user info
+        $kartu->load('user');
+
         $now = Carbon::now();
         $tanggalHariIni = $now->toDateString();
         $jamSekarang = $now->format('H:i:s');
 
-        $absensiHariIni = Absensi::where('siswa_id', $kartu->siswa_id)
+        if ($isGuru) {
+            // ── GURU / STAFF absensi ──────────────────────────────────────────
+            $absensiHariIni = AbsensiGuru::where('user_id', $ownerId)
+                ->where('tanggal', $tanggalHariIni)
+                ->first();
+
+            if (!$absensiHariIni) {
+                $statusMasuk = 'hadir';
+                $toleransiTerlambat = Carbon::createFromFormat('H:i:s', $config->jam_masuk)
+                    ->addMinutes((int) $config->toleransi_terlambat);
+
+                if ($now->format('H:i:s') > $config->batas_alpha) {
+                    $statusMasuk = 'alpha';
+                } elseif ($now->format('H:i:s') > $toleransiTerlambat->format('H:i:s')) {
+                    $statusMasuk = 'terlambat';
+                }
+
+                AbsensiGuru::create([
+                    'user_id'     => $ownerId,
+                    'tanggal'     => $tanggalHariIni,
+                    'jam_masuk'   => $jamSekarang,
+                    'status_masuk'=> $statusMasuk,
+                    'metode'      => 'rfid',
+                    'uid_rfid'    => $kartu->uid,
+                ]);
+
+                return response()->json([
+                    'message' => 'Absen masuk berhasil',
+                    'status'  => $statusMasuk,
+                    'tipe'    => 'guru',
+                    'user'    => $kartu->user,
+                    'jam'     => $jamSekarang,
+                ]);
+            }
+
+            if ($absensiHariIni->jam_pulang) {
+                return response()->json([
+                    'message' => 'Sudah melakukan absen pulang hari ini',
+                    'tipe'    => 'guru',
+                    'user'    => $kartu->user,
+                ], 400);
+            }
+
+            $statusPulang = $now->format('H:i:s') < $config->jam_pulang ? 'pulang_awal' : 'hadir';
+            $absensiHariIni->update([
+                'jam_pulang'   => $jamSekarang,
+                'status_pulang'=> $statusPulang,
+            ]);
+
+            return response()->json([
+                'message' => 'Absen pulang berhasil',
+                'status'  => $statusPulang,
+                'tipe'    => 'guru',
+                'user'    => $kartu->user,
+                'jam'     => $jamSekarang,
+            ]);
+        }
+
+        // ── SISWA absensi (logic lama, tidak berubah) ─────────────────────────
+        $absensiHariIni = Absensi::where('siswa_id', $ownerId)
             ->where('tanggal', $tanggalHariIni)
             ->first();
 
@@ -316,26 +383,27 @@ class AbsensiController extends Controller
             }
 
             Absensi::create([
-                'siswa_id' => $kartu->siswa_id,
-                'tanggal' => $tanggalHariIni,
-                'jam_masuk' => $jamSekarang,
-                'status_masuk' => $statusMasuk,
-                'metode' => 'rfid',
-                'uid_rfid' => $kartu->uid,
+                'siswa_id'    => $ownerId,
+                'tanggal'     => $tanggalHariIni,
+                'jam_masuk'   => $jamSekarang,
+                'status_masuk'=> $statusMasuk,
+                'metode'      => 'rfid',
+                'uid_rfid'    => $kartu->uid,
             ]);
 
             return response()->json([
                 'message' => 'Absen masuk berhasil',
-                'status' => $statusMasuk,
-                'user' => $kartu->user,
-                'jam' => $jamSekarang,
+                'status'  => $statusMasuk,
+                'tipe'    => 'siswa',
+                'user'    => $kartu->user,
+                'jam'     => $jamSekarang,
             ]);
         }
 
         if ($absensiHariIni->jam_pulang) {
             return response()->json([
                 'message' => 'Sudah melakukan absen pulang hari ini',
-                'user' => $kartu->user,
+                'user'    => $kartu->user,
             ], 400);
         }
 
@@ -345,16 +413,127 @@ class AbsensiController extends Controller
         }
 
         $absensiHariIni->update([
-            'jam_pulang' => $jamSekarang,
-            'status_pulang' => $statusPulang,
+            'jam_pulang'   => $jamSekarang,
+            'status_pulang'=> $statusPulang,
         ]);
 
         return response()->json([
             'message' => 'Absen pulang berhasil',
-            'status' => $statusPulang,
-            'user' => $kartu->user,
-            'jam' => $jamSekarang,
+            'status'  => $statusPulang,
+            'tipe'    => 'siswa',
+            'user'    => $kartu->user,
+            'jam'     => $jamSekarang,
         ]);
+    }
+
+    // ── GURU ATTENDANCE ENDPOINTS ──────────────────────────────────────────────
+
+    /**
+     * List absensi guru — harian atau rentang tanggal.
+     */
+    public function indexGuru(Request $request)
+    {
+        $query = AbsensiGuru::with('user');
+
+        $tanggal   = $request->query('tanggal');
+        $startDate = $request->query('start_date');
+        $endDate   = $request->query('end_date');
+
+        if ($tanggal) {
+            $query->whereDate('tanggal', $tanggal);
+        } elseif ($startDate || $endDate) {
+            if ($startDate) $query->whereDate('tanggal', '>=', $startDate);
+            if ($endDate)   $query->whereDate('tanggal', '<=', $endDate);
+        } else {
+            $query->whereDate('tanggal', Carbon::today()->toDateString());
+        }
+
+        $search = $request->query('search');
+        if ($search) {
+            $query->whereHas('user', fn ($q) =>
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nip_nisn', 'like', "%{$search}%")
+            );
+        }
+
+        return response()->json($query->orderByDesc('tanggal')->orderBy('jam_masuk')->get());
+    }
+
+    /**
+     * Rekap bulanan absensi guru.
+     */
+    public function rekapGuru(Request $request)
+    {
+        $bulan = (int) $request->query('bulan', Carbon::now()->month);
+        $tahun = (int) $request->query('tahun', Carbon::now()->year);
+
+        $rows = AbsensiGuru::query()
+            ->select(
+                'user_id',
+                DB::raw("COUNT(CASE WHEN status_masuk = 'hadir' THEN 1 END) as hadir"),
+                DB::raw("COUNT(CASE WHEN status_masuk = 'sakit' THEN 1 END) as sakit"),
+                DB::raw("COUNT(CASE WHEN status_masuk = 'izin' THEN 1 END) as izin"),
+                DB::raw("COUNT(CASE WHEN status_masuk = 'alpha' THEN 1 END) as alpha"),
+                DB::raw("COUNT(CASE WHEN status_masuk = 'terlambat' THEN 1 END) as terlambat")
+            )
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->groupBy('user_id')
+            ->get();
+
+        $userIds = $rows->pluck('user_id')->filter()->unique()->values();
+        $users   = User::whereIn('id', $userIds)->get()->keyBy('id');
+
+        $result = $rows->map(function ($row) use ($users) {
+            $u = $users->get($row->user_id);
+            return [
+                'user_id'         => (int) $row->user_id,
+                'name'            => $u?->name ?? '—',
+                'nip_nisn'        => $u?->nip_nisn ?? '',
+                'role'            => $u?->role ?? '',
+                'jabatan'         => $u?->jabatan ?? '',
+                'total_hadir'     => (int) $row->hadir,
+                'total_izin'      => (int) $row->izin,
+                'total_sakit'     => (int) $row->sakit,
+                'total_alpha'     => (int) $row->alpha,
+                'total_terlambat' => (int) $row->terlambat,
+            ];
+        });
+
+        return response()->json($result->values());
+    }
+
+    /**
+     * Manual store absensi guru (oleh admin/kepala sekolah).
+     */
+    public function storeGuru(Request $request)
+    {
+        $payload = $request->all();
+        if (!empty($payload['tipe']) && empty($payload['status_masuk'])) {
+            $payload['status_masuk'] = $payload['tipe'];
+        }
+        $request->merge($payload);
+
+        $validated = $request->validate([
+            'user_id'     => 'required|exists:users,id',
+            'tanggal'     => 'required|date',
+            'jam_masuk'   => 'nullable|date_format:H:i,H:i:s',
+            'status_masuk'=> 'required|in:hadir,izin,sakit,alpha,terlambat',
+            'catatan'     => 'nullable|string',
+        ]);
+
+        if (!empty($validated['jam_masuk']) && strlen($validated['jam_masuk']) === 5) {
+            $validated['jam_masuk'] .= ':00';
+        }
+        $validated['metode']     = 'manual';
+        $validated['created_by'] = $request->user()?->id;
+
+        $absensi = AbsensiGuru::updateOrCreate(
+            ['user_id' => $validated['user_id'], 'tanggal' => $validated['tanggal']],
+            $validated
+        );
+
+        return response()->json($absensi->load('user'), $absensi->wasRecentlyCreated ? 201 : 200);
     }
 
     private function normalizeTime(?string $value): ?string

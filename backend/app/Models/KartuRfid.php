@@ -12,15 +12,27 @@ class KartuRfid extends Model
     protected $table = 'kartu_rfids';
 
     protected $fillable = [
-        'uid', 
-        'siswa_id', 
-        'status', 
-        'terdaftar'
+        'uid',
+        'user_id',
+        'siswa_id',
+        'status',
+        'terdaftar',
     ];
 
-    protected $appends = ['uid_rfid', 'user_id'];
+    protected $appends = ['uid_rfid', 'resolved_user_id'];
 
+    /**
+     * user() — resolves to guru/staff (user_id) OR siswa (siswa_id).
+     */
     public function user()
+    {
+        if ($this->user_id) {
+            return $this->belongsTo(User::class, 'user_id');
+        }
+        return $this->belongsTo(User::class, 'siswa_id');
+    }
+
+    public function siswa()
     {
         return $this->belongsTo(User::class, 'siswa_id');
     }
@@ -30,8 +42,11 @@ class KartuRfid extends Model
         return $this->uid;
     }
 
-    public function getUserIdAttribute()
+    /**
+     * resolved_user_id — returns whichever user owns this card.
+     */
+    public function getResolvedUserIdAttribute()
     {
-        return $this->siswa_id;
+        return $this->user_id ?? $this->siswa_id;
     }
 }

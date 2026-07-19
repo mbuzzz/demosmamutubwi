@@ -88,6 +88,7 @@ import GuruCatatanWali from './pages/admin/guru/kbm/GuruCatatanWali';
 import GuruTujuanPembelajaran from './pages/admin/guru/kbm/GuruTujuanPembelajaran';
 import GuruNilaiTp from './pages/admin/guru/kbm/GuruNilaiTp';
 import GuruAbsensi from './pages/admin/guru/kbm/GuruAbsensi';
+import GuruAbsensiGuru from './pages/admin/guru/kbm/GuruAbsensiGuru';
 import KepsekDashboard from './pages/admin/guru/kbm/KepsekDashboard';
 import KurikulumDashboard from './pages/admin/guru/kbm/KurikulumDashboard';
 
@@ -200,28 +201,29 @@ export default function App() {
         <Route path="/panel/guru" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kepala_sekolah', 'kurikulum']}><GuruDashboard /></ProtectedRoute>} />
         <Route path="/panel/guru/kepsek" element={<ProtectedRoute requiredRole={['kepala_sekolah']}><KepsekDashboard /></ProtectedRoute>} />
         <Route path="/panel/guru/kurikulum" element={<ProtectedRoute requiredRole={['kurikulum']}><KurikulumDashboard /></ProtectedRoute>} />
-        <Route path="/panel/guru/jurnal" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruJurnalPresensi /></ProtectedRoute>} />
-        <Route path="/panel/guru/jurnal/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruJurnalDetail /></ProtectedRoute>} />
+        <Route path="/panel/guru/jurnal" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruJurnalPresensi /></ProtectedRoute>} />
+        <Route path="/panel/guru/jurnal/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruJurnalDetail /></ProtectedRoute>} />
         <Route path="/panel/guru/nilai" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruBukuNilai /></ProtectedRoute>} />
         <Route path="/panel/guru/nilai/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruNilaiDetail /></ProtectedRoute>} />
-        <Route path="/panel/guru/materi" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruBankMateri /></ProtectedRoute>} />
-        <Route path="/panel/guru/materi/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruMateriDetail /></ProtectedRoute>} />
-        <Route path="/panel/guru/tugas" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruTugas /></ProtectedRoute>} />
-        <Route path="/panel/guru/tugas/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruTugasDetail /></ProtectedRoute>} />
-        <Route path="/panel/guru/soal" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruBankSoalEditor /></ProtectedRoute>} />
-        <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruUjianList /></ProtectedRoute>} />
+        <Route path="/panel/guru/materi" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruBankMateri /></ProtectedRoute>} />
+        <Route path="/panel/guru/materi/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruMateriDetail /></ProtectedRoute>} />
+        <Route path="/panel/guru/tugas" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruTugas /></ProtectedRoute>} />
+        <Route path="/panel/guru/tugas/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruTugasDetail /></ProtectedRoute>} />
+        <Route path="/panel/guru/soal" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruBankSoalEditor /></ProtectedRoute>} />
+        <Route path="/panel/guru/ujian" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruUjianList /></ProtectedRoute>} />
         <Route path="/panel/guru/wali-siswa" element={<ProtectedRoute requiredRole={['walikelas']}><GuruWaliSiswa /></ProtectedRoute>} />
         <Route path="/panel/guru/catatan-wali" element={<ProtectedRoute requiredRole={['walikelas']}><GuruCatatanWali /></ProtectedRoute>} />
-        <Route path="/panel/guru/tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruTujuanPembelajaran /></ProtectedRoute>} />
-        <Route path="/panel/guru/nilai-tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruNilaiTp /></ProtectedRoute>} />
-        <Route path="/panel/guru/absensi" element={<ProtectedRoute requiredRole={['guru', 'walikelas']}><GuruAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/guru/tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruTujuanPembelajaran /></ProtectedRoute>} />
+        <Route path="/panel/guru/nilai-tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruNilaiTp /></ProtectedRoute>} />
+        <Route path="/panel/guru/absensi" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruAbsensi /></ProtectedRoute>} />
         <Route path="/panel/guru/absensi/rekap" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas']}><AdminRekapAbsensi /></ProtectedRoute>} />
+        <Route path="/panel/guru/absensi/guru" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas']}><GuruAbsensiGuru /></ProtectedRoute>} />
         <Route path="/panel/guru/rapor" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas', 'guru', 'kurikulum']}><AdminRaporList /></ProtectedRoute>} />
-        <Route path="/panel/guru/rapor/cetak/:id" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas']}><AdminCetakRaporDetail /></ProtectedRoute>} />
-        <Route path="/panel/guru/jadwal" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminJadwalPelajaran /></ProtectedRoute>} />
+        <Route path="/panel/guru/rapor/cetak/:id" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas', 'kurikulum']}><AdminCetakRaporDetail /></ProtectedRoute>} />
+        <Route path="/panel/guru/jadwal" element={<ProtectedRoute requiredRole={['kurikulum', 'kepala_sekolah']}><AdminJadwalPelajaran /></ProtectedRoute>} />
         <Route path="/panel/guru/mapel" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminMapelList /></ProtectedRoute>} />
         <Route path="/panel/guru/kelas" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminKelasList /></ProtectedRoute>} />
-        <Route path="/panel/guru/kurikulum/rumus" element={<ProtectedRoute requiredRole={['kurikulum']}><AdminKurikulumList /></ProtectedRoute>} />
+        <Route path="/panel/guru/kurikulum/rumus" element={<ProtectedRoute requiredRole={['kurikulum', 'guru', 'walikelas', 'kepala_sekolah']}><AdminKurikulumList /></ProtectedRoute>} />
 
         {/* ========== BENDAHARA ========== */}
         <Route path="/panel/bendahara" element={<ProtectedRoute requiredRole="bendahara"><BendaharaDashboard /></ProtectedRoute>} />
