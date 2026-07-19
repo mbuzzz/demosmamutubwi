@@ -182,7 +182,9 @@ class User extends Authenticatable
 
     /**
      * Tambah role ke multi-role tanpa menghapus role lain.
-     * Primary role di-upgrade jika role baru lebih "senior" di hierarki.
+     *
+     * Primary role TIDAK diubah jika user sudah staf (agar portal login stabil).
+     * Primary hanya di-set jika role saat ini belum staf (siswa/kosong).
      * jabatan (label tampilan) di-update jika $jabatan diisi.
      */
     public function grantRole(string $newRole, ?string $jabatan = null, ?string $kelas = null): void
@@ -196,16 +198,12 @@ class User extends Authenticatable
             $roles[] = $newRole;
         }
 
-        $priority = self::primaryRolePriority();
-        $currentPri = $priority[$this->role] ?? 99;
-        $newPri = $priority[$newRole] ?? 99;
-
         $payload = [
             'roles' => array_values(array_unique($roles)),
         ];
 
-        // Upgrade primary hanya jika lebih senior; jangan turunkan (mis. kepsek → guru)
-        if ($newPri < $currentPri || !in_array($this->role, self::STAFF_ROLES, true)) {
+        // Jangan paksa primary naik ke bendahara/kepsek saat hanya menambah multi-role
+        if (!in_array($this->role, self::STAFF_ROLES, true)) {
             $payload['role'] = $newRole;
         }
 
@@ -215,8 +213,6 @@ class User extends Authenticatable
 
         if ($kelas !== null) {
             $payload['kelas'] = $kelas;
-        } elseif ($newRole !== 'walikelas' && $newRole !== 'siswa') {
-            // structural non-wali: jangan paksa clear kelas di sini (bisa di-handle caller)
         }
 
         $this->update($payload);

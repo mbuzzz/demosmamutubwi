@@ -100,14 +100,16 @@ export default function AdminHeader({
         )}
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-5">
-        {/* Multi-role / View-as switcher */}
-        {!isMobile && <RoleSimulator />}
+      <div className="flex items-center gap-2 sm:gap-5 min-w-0">
+        {/* Multi-role / View-as switcher (desktop + compact mobile) */}
+        <div className={`min-w-0 ${isMobile ? 'max-w-[46vw]' : ''}`}>
+          <RoleSimulator compact={isMobile} />
+        </div>
 
         {/* Theme Toggle Button */}
         <button 
           onClick={toggleTheme}
-          className="p-2 text-slate-400 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full"
+          className="p-2 text-slate-400 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full shrink-0"
           title="Toggle Dark Mode"
         >
           {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}

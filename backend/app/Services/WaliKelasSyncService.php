@@ -53,14 +53,14 @@ class WaliKelasSyncService
                 // Pastikan role guru tetap ada jika dia juga mengajar (atau biarkan multi-role staf lain)
                 // (grantRole tidak menghapus role lain)
 
-                // Update or create PenugasanStruktural
+                // Multi-struktural: kunci walikelas terpisah dari jabatan lain
                 PenugasanStruktural::updateOrCreate(
                     [
                         'user_id' => $user->id,
                         'tahun_ajaran' => $tahunAjaran,
+                        'role_akses' => 'walikelas',
                     ],
                     [
-                        'role_akses' => 'walikelas',
                         'kelas_id' => $kelas->id,
                         'jabatan' => $jabatanLabel,
                     ]

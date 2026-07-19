@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award } from 'lucide-react';
+import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useGuruClasses } from '../../../hooks/usePenugasan';
 import { useDashboardStats } from '../../../hooks/useDashboard';
@@ -18,10 +18,10 @@ export default function GuruDashboard() {
   const canOpenKepsek = isKepsek || userHasRole(user, 'kepala_sekolah');
 
   const fallbackStats = [
-    { label: 'Kelas Diampu', value: String(guruClasses.length), sub: 'Berdasarkan Jadwal', icon: Users, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
-    { label: 'Jam Mengajar', value: '18 Jam', sub: '/minggu', icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
-    { label: 'Tugas Belum Dinilai', value: '3', sub: '25 pengumpulan baru', icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
-    { label: 'Kehadiran Kelas Wali', value: '98.2%', sub: 'Hari ini di X-1', icon: TrendingUp, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
+    { label: 'Kelas Diampu', value: String(guruClasses.length), sub: 'Dari penugasan', icon: Users, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+    { label: 'Mapel Diampu', value: '—', sub: 'Multi-mapel', icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+    { label: 'Jam / Minggu', value: '—', sub: 'Total JP', icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+    { label: 'Menunggu Nilai', value: '—', sub: 'Pengumpulan', icon: TrendingUp, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
   ];
 
   // We map returned stats or use fallback
@@ -42,16 +42,18 @@ export default function GuruDashboard() {
     };
   }) || fallbackStats;
 
-  const pendingTasks = [
-    { id: 1, title: 'Tugas Eksponen', kelas: 'Kelas X-2', submitted: 28, total: 30, date: 'Kemarin' },
-    { id: 2, title: 'Kuis Logaritma Dasar', kelas: 'Kelas X-1', submitted: 32, total: 32, date: '2 hari lalu' },
-    { id: 3, title: 'PR Sifat Logaritma', kelas: 'Kelas X-1', submitted: 15, total: 32, date: 'Hari ini' },
-  ];
+  const pendingTasks: Array<{
+    id: number | string;
+    title: string;
+    kelas: string;
+    submitted: number;
+    total: number;
+    date: string;
+  }> = Array.isArray(stats?.pending_tugas) ? stats.pending_tugas : [];
 
-  const announcements = [
-    { tag: 'Akademik', title: 'Penginputan nilai Rapor PTS dibuka s.d 30 Oktober 2024.', date: '1 jam lalu' },
-    { tag: 'Rapat', title: 'Rapat Evaluasi Pembelajaran Semester Ganjil hari Jumat pukul 13:00 WIB.', date: 'Kemarin' },
-  ];
+  const multiRoleLabel = Array.isArray(stats?.roles)
+    ? (stats.roles as string[]).join(' · ')
+    : null;
 
   return (
     <AdminLayout title="Dashboard Ruang Guru">
@@ -60,8 +62,12 @@ export default function GuruDashboard() {
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-3xl p-6 sm:p-8 text-white mb-8 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
         <div className="relative z-10">
-          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Datang di Portal Guru!</h2>
-          <p className="text-indigo-100 font-medium mb-6">Kelola kelas, tugas, dan nilai Anda</p>
+          <h2 className="text-2xl sm:text-3xl font-black mb-1">Selamat Datang, {user?.name?.split(' ')[0] || 'Guru'}!</h2>
+          <p className="text-indigo-100 font-medium mb-1">Kelola kelas, tugas, dan nilai Anda</p>
+          {multiRoleLabel && (
+            <p className="text-indigo-200/90 text-xs font-semibold mb-6">Mode multi-role: {multiRoleLabel}</p>
+          )}
+          {!multiRoleLabel && <div className="mb-6" />}
           
           <div className="bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -160,8 +166,12 @@ export default function GuruDashboard() {
             </div>
             
             <div className="space-y-4">
-              {pendingTasks.map(t => {
-                const progress = Math.round((t.submitted / t.total) * 100);
+              {pendingTasks.length === 0 ? (
+                <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+                  Tidak ada pengumpulan tugas yang menunggu penilaian.
+                </div>
+              ) : pendingTasks.map(t => {
+                const progress = t.total > 0 ? Math.round((t.submitted / t.total) * 100) : 0;
                 return (
                   <div key={t.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50 hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-colors">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -171,7 +181,7 @@ export default function GuruDashboard() {
                         </div>
                         <div>
                           <h4 className="font-bold text-slate-800 dark:text-white text-sm leading-tight mb-1">{t.title}</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{t.kelas} • Dikumpul {t.date}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{t.kelas} • {t.date}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -181,7 +191,7 @@ export default function GuruDashboard() {
                             <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
                           </div>
                         </div>
-                        <Link to={`/panel/guru/nilai/detail/${t.id}`} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 text-center shrink-0">
+                        <Link to={`/panel/guru/tugas/detail/${t.id}`} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 text-center shrink-0">
                           Nilai
                         </Link>
                       </div>
@@ -189,23 +199,6 @@ export default function GuruDashboard() {
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Pengumuman Internal */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><Award className="w-5 h-5 text-indigo-500" /> Pengumuman Sekolah</h3>
-            
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {announcements.map((a, i) => (
-                <div key={i} className="py-4 first:pt-0 last:pb-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 sm:px-3 py-1 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-md whitespace-nowrap">{a.tag}</span>
-                    <span className="text-[10px] text-slate-400">{a.date}</span>
-                  </div>
-                  <h4 className="font-bold text-slate-800 dark:text-white text-sm leading-relaxed">{a.title}</h4>
-                </div>
-              ))}
             </div>
           </div>
 

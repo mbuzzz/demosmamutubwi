@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useRoleSimulator } from '../simulator/RoleContext';
+import RoleSimulator from '../simulator/RoleSimulator';
 
 interface NavItem {
   name: string;
@@ -275,6 +276,14 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar pb-10">
+              {/* Mode multi-role / View As di mobile */}
+              <div>
+                <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3 px-2">
+                  Mode Akses
+                </h4>
+                <RoleSimulator compact fullWidth />
+              </div>
+
               {moreMenuGroups.map((group, idx) => (
                 <div key={idx}>
                   <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3 px-2">{group.title}</h4>

@@ -241,10 +241,11 @@ export default function AdminPenugasanList() {
             <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 px-4 py-3 text-xs text-amber-900 dark:text-amber-200 leading-relaxed space-y-1">
               <p>
                 <strong>Jabatan struktural</strong> = label resmi di bagan organisasi (contoh: “Waka Kurikulum”, “Bendahara”).
-                Saat disimpan, sistem juga menambahkan <strong>role akses</strong> ke multi-role user (tanpa menghapus role guru).
+                Saat disimpan, sistem menambahkan <strong>role akses</strong> ke multi-role (tanpa mengubah primary role / menghapus guru).
               </p>
               <p>
-                Role tambahan lain (mis. guru + bendahara tanpa jabatan resmi) bisa diatur di <strong>Users → Multi-Role</strong>.
+                Satu orang boleh punya <strong>beberapa jabatan struktural</strong> (mis. Wali Kelas + Bendahara), selama role-nya berbeda.
+                Multi-role murni tanpa bagan org juga bisa di <strong>Users → Multi-Role</strong>.
               </p>
             </div>
           )}

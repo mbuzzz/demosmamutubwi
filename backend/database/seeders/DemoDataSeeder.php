@@ -33,11 +33,96 @@ class DemoDataSeeder extends Seeder
     public function run(): void
     {
         $admin = User::where('role', 'superadmin')->first();
+        if ($admin && empty($admin->roles)) {
+            $admin->update(['roles' => ['superadmin']]);
+        }
+
         $guruMtk = User::where('username', 'rina')->first() ?? User::where('role', 'guru')->first();
         $agus = User::where('username', 'agus')->first();
         $budi = User::where('username', 'budi')->first();
         $kelasX1 = Kelas::where('nama', 'X-1')->first();
+        $kelasX2 = Kelas::where('nama', 'X-2')->first();
         $mapelMtk = Mapel::where('nama', 'Matematika Wajib')->first() ?? Mapel::first();
+        $mapelFisika = Mapel::where('nama', 'like', '%Fisika%')->first();
+
+        // Multi-role + multi-mapel demo pada guru (jika ada)
+        if ($guruMtk) {
+            $roles = array_values(array_unique(array_merge(
+                is_array($guruMtk->roles) ? $guruMtk->roles : [],
+                [$guruMtk->role, 'guru', 'walikelas', 'bendahara']
+            )));
+            $guruMtk->update([
+                'roles' => $roles,
+                'jabatan' => $guruMtk->jabatan ?: 'Guru Mapel / Wali Kelas / Bendahara (demo multi-role)',
+            ]);
+
+            $tahun = \App\Models\SistemKonfigurasi::first()?->tahun_ajaran_aktif ?? '2025/2026';
+
+            if ($kelasX1 && $mapelMtk) {
+                \App\Models\Penugasan::firstOrCreate(
+                    [
+                        'guru_id' => $guruMtk->id,
+                        'mapel_id' => $mapelMtk->id,
+                        'kelas_id' => $kelasX1->id,
+                        'tahun_ajaran' => $tahun,
+                    ],
+                    ['total_jam' => 4]
+                );
+            }
+            if ($kelasX2 && $mapelMtk) {
+                \App\Models\Penugasan::firstOrCreate(
+                    [
+                        'guru_id' => $guruMtk->id,
+                        'mapel_id' => $mapelMtk->id,
+                        'kelas_id' => $kelasX2->id,
+                        'tahun_ajaran' => $tahun,
+                    ],
+                    ['total_jam' => 4]
+                );
+            }
+            if ($kelasX1 && $mapelFisika) {
+                \App\Models\Penugasan::firstOrCreate(
+                    [
+                        'guru_id' => $guruMtk->id,
+                        'mapel_id' => $mapelFisika->id,
+                        'kelas_id' => $kelasX1->id,
+                        'tahun_ajaran' => $tahun,
+                    ],
+                    ['total_jam' => 3]
+                );
+            }
+
+            // Multi struktural: wali + bendahara
+            if ($kelasX1) {
+                \App\Models\PenugasanStruktural::updateOrCreate(
+                    [
+                        'user_id' => $guruMtk->id,
+                        'tahun_ajaran' => $tahun,
+                        'role_akses' => 'walikelas',
+                    ],
+                    [
+                        'kelas_id' => $kelasX1->id,
+                        'jabatan' => 'Wali Kelas ' . $kelasX1->nama,
+                    ]
+                );
+                if (!$kelasX1->wali_kelas_id) {
+                    $kelasX1->update(['wali_kelas_id' => $guruMtk->id]);
+                }
+            }
+            \App\Models\PenugasanStruktural::updateOrCreate(
+                [
+                    'user_id' => $guruMtk->id,
+                    'tahun_ajaran' => $tahun,
+                    'role_akses' => 'bendahara',
+                ],
+                [
+                    'kelas_id' => null,
+                    'jabatan' => 'Bendahara Sekolah',
+                ]
+            );
+
+            $guruMtk->rebuildJabatanLabel();
+        }
 
         // 1. CMS Publik
         ProfilSekolah::create([

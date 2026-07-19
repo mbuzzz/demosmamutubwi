@@ -25,8 +25,17 @@ const SIMULATOR_ROLES: Role[] = ['superadmin', 'guru', 'walikelas', 'siswa'];
  * - Superadmin/admin: full "View As" simulator
  * - Multi-role staf: hanya role miliknya ("Mode Akses")
  * - Single role: disembunyikan
+ *
+ * @param compact  Mode mobile: hanya ikon, lebih rapat
+ * @param fullWidth  Stretch penuh (sheet bottom nav)
  */
-export default function RoleSimulator() {
+export default function RoleSimulator({
+  compact = false,
+  fullWidth = false,
+}: {
+  compact?: boolean;
+  fullWidth?: boolean;
+} = {}) {
   const { simulatedRole, setSimulatedRole } = useRoleSimulator();
   const { user } = useAuth();
 
@@ -35,36 +44,53 @@ export default function RoleSimulator() {
   const userRoles = getUserRoles(user);
   const isElevated = userRoles.includes('superadmin') || userRoles.includes('admin');
 
+  const renderButtons = (roles: Role[], label: string) => (
+    <div
+      className={`flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow-inner max-w-full overflow-x-auto ${
+        fullWidth ? 'w-full justify-start' : ''
+      }`}
+    >
+      {!compact && (
+        <div className="pl-3 pr-2 flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest hidden lg:flex shrink-0">
+          <Eye className="w-3.5 h-3.5" /> {label}
+        </div>
+      )}
+      {compact && (
+        <div className="pl-2 pr-1 flex items-center text-slate-400 shrink-0" title={label}>
+          <Eye className="w-3.5 h-3.5" />
+        </div>
+      )}
+      {roles.map((role) => {
+        const meta = ROLE_META[role];
+        if (!meta) return null;
+        const Icon = meta.Icon;
+        const active = simulatedRole === role;
+        return (
+          <button
+            key={role}
+            type="button"
+            onClick={() => setSimulatedRole(role)}
+            className={`flex items-center gap-1 rounded-full text-xs font-bold transition-all shrink-0 ${
+              compact ? 'px-2 py-1.5' : 'gap-1.5 px-3 py-1.5'
+            } ${
+              active
+                ? `${meta.color} text-white shadow-sm scale-100`
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 scale-95 hover:scale-100'
+            }`}
+            title={meta.label}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {!compact && <span className="hidden sm:inline">{meta.short}</span>}
+            {compact && <span className="text-[10px]">{meta.short}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   // Superadmin: simulator penuh
   if (isElevated) {
-    return (
-      <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow-inner">
-        <div className="pl-3 pr-2 flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest hidden lg:flex">
-          <Eye className="w-3.5 h-3.5" /> View As:
-        </div>
-        {SIMULATOR_ROLES.map((role) => {
-          const meta = ROLE_META[role];
-          const Icon = meta.Icon;
-          const active = simulatedRole === role;
-          return (
-            <button
-              key={role}
-              type="button"
-              onClick={() => setSimulatedRole(role)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                active
-                  ? `${meta.color} text-white shadow-sm scale-100`
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 scale-95 hover:scale-100'
-              }`}
-              title={meta.label}
-            >
-              <Icon className="w-3.5 h-3.5" />{' '}
-              <span className="hidden sm:inline">{meta.short}</span>
-            </button>
-          );
-        })}
-      </div>
-    );
+    return renderButtons(SIMULATOR_ROLES, 'View As:');
   }
 
   // Multi-role staf: switcher hanya role miliknya
@@ -73,33 +99,5 @@ export default function RoleSimulator() {
   }
 
   const switchable = userRoles.filter((r) => r in ROLE_META) as Role[];
-
-  return (
-    <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow-inner max-w-full overflow-x-auto">
-      <div className="pl-3 pr-2 flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest hidden lg:flex shrink-0">
-        <Eye className="w-3.5 h-3.5" /> Mode:
-      </div>
-      {switchable.map((role) => {
-        const meta = ROLE_META[role];
-        const Icon = meta.Icon;
-        const active = simulatedRole === role;
-        return (
-          <button
-            key={role}
-            type="button"
-            onClick={() => setSimulatedRole(role)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
-              active
-                ? `${meta.color} text-white shadow-sm scale-100`
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 scale-95 hover:scale-100'
-            }`}
-            title={meta.label}
-          >
-            <Icon className="w-3.5 h-3.5" />{' '}
-            <span className="hidden sm:inline">{meta.short}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+  return renderButtons(switchable, 'Mode:');
 }

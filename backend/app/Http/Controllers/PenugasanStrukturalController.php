@@ -82,14 +82,19 @@ class PenugasanStrukturalController extends Controller
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        // Satu penugasan struktural per user per tahun ajaran (untuk bagan organisasi)
-        $exists = PenugasanStruktural::where('user_id', $validated['user_id'])
+        // Multi jabatan: boleh beberapa struktural/user/tahun, tapi unik per role_akses
+        // (kecuali walikelas: unik per kelas)
+        $dupQuery = PenugasanStruktural::where('user_id', $validated['user_id'])
             ->where('tahun_ajaran', $tahunAjaran)
-            ->exists();
+            ->where('role_akses', $validated['role_akses']);
 
-        if ($exists) {
+        if ($validated['role_akses'] === 'walikelas' && !empty($validated['kelas_id'])) {
+            $dupQuery->where('kelas_id', $validated['kelas_id']);
+        }
+
+        if ($dupQuery->exists()) {
             return response()->json([
-                'message' => 'User ini sudah memiliki penugasan struktural pada tahun ajaran aktif. Edit yang ada, atau atur multi-role tambahan di form User.',
+                'message' => 'User ini sudah memiliki penugasan struktural dengan role/jabatan yang sama pada tahun ajaran aktif.',
             ], 422);
         }
 
@@ -159,14 +164,18 @@ class PenugasanStrukturalController extends Controller
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        $exists = PenugasanStruktural::where('user_id', $validated['user_id'])
+        $dupQuery = PenugasanStruktural::where('user_id', $validated['user_id'])
             ->where('tahun_ajaran', $tahunAjaran)
-            ->where('id', '!=', $penugasan->id)
-            ->exists();
+            ->where('role_akses', $validated['role_akses'])
+            ->where('id', '!=', $penugasan->id);
 
-        if ($exists) {
+        if ($validated['role_akses'] === 'walikelas' && !empty($validated['kelas_id'])) {
+            $dupQuery->where('kelas_id', $validated['kelas_id']);
+        }
+
+        if ($dupQuery->exists()) {
             return response()->json([
-                'message' => 'User ini sudah memiliki penugasan struktural lain pada tahun ajaran aktif.',
+                'message' => 'User ini sudah memiliki penugasan struktural dengan role/jabatan yang sama pada tahun ajaran aktif.',
             ], 422);
         }
 

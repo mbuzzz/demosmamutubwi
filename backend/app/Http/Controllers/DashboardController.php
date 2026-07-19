@@ -78,32 +78,97 @@ class DashboardController extends Controller
             
         } elseif ($user->hasRole(['guru', 'walikelas', 'kurikulum'])) {
             $guruId = $user->id;
-            
-            $stats['total_kelas_diajar'] = Penugasan::where('guru_id', $guruId)->distinct('kelas_id')->count('kelas_id');
-            // Assuming tasks might be related to penugasan or mapel
-            $stats['total_tugas'] = 0; // Replace with actual task count if you have a Tugas model
-            
+            $config = \App\Models\SistemKonfigurasi::first();
+            $tahunAjaran = $config?->tahun_ajaran_aktif ?? '2025/2026';
+
+            $penugasans = Penugasan::where('guru_id', $guruId)
+                ->where('tahun_ajaran', $tahunAjaran)
+                ->get();
+
+            $stats['total_kelas_diajar'] = $penugasans->pluck('kelas_id')->unique()->count();
+            $stats['total_mapel'] = $penugasans->pluck('mapel_id')->unique()->count();
+            $stats['total_jam_minggu'] = (int) $penugasans->sum('total_jam');
+
+            // Tugas aktif guru + menunggu penilaian
+            $tugasIds = \App\Models\Tugas::where('guru_id', $guruId)->pluck('id');
+            $stats['total_tugas'] = $tugasIds->count();
+
+            $pendingQuery = \App\Models\PengumpulanTugas::whereIn('tugas_id', $tugasIds)
+                ->where(function ($q) {
+                    $q->whereNull('nilai')
+                        ->orWhere('status', '!=', 'sudah_dinilai');
+                });
+
+            $stats['tugas_menunggu_nilai'] = (clone $pendingQuery)->count();
+
+            // Ringkas tugas pending untuk FE dashboard
+            $stats['pending_tugas'] = (clone $pendingQuery)
+                ->with(['tugas.kelas'])
+                ->latest('dikumpulkan_pada')
+                ->limit(30)
+                ->get()
+                ->groupBy('tugas_id')
+                ->map(function ($group) {
+                    $tugas = $group->first()->tugas;
+                    // Relasi tugas↔kelas = many-to-many (collection)
+                    $kelasNames = collect($tugas?->kelas ?? [])
+                        ->pluck('nama')
+                        ->filter()
+                        ->values();
+                    $kelasLabel = $kelasNames->isNotEmpty()
+                        ? 'Kelas ' . $kelasNames->implode(', ')
+                        : '—';
+
+                    $totalSiswaKelas = $kelasNames->isNotEmpty()
+                        ? User::whereHasAnyRole(['siswa'])
+                            ->whereIn('kelas', $kelasNames->all())
+                            ->count()
+                        : $group->count();
+
+                    return [
+                        'id' => $tugas?->id,
+                        'title' => $tugas?->judul ?? 'Tugas',
+                        'kelas' => $kelasLabel,
+                        'submitted' => $group->count(),
+                        'total' => max($totalSiswaKelas, $group->count()),
+                        'date' => optional($group->first()->dikumpulkan_pada)->diffForHumans() ?? 'Baru',
+                    ];
+                })
+                ->values()
+                ->take(5);
+
             $walikelasKelas = Kelas::where('wali_kelas_id', $guruId)->first();
-            $stats['is_walikelas'] = $walikelasKelas ? true : false;
-            
+            $stats['is_walikelas'] = (bool) $walikelasKelas;
+            $stats['roles'] = $user->all_roles;
+
             $stats['cards'] = [
                 [
                     'name' => 'Kelas Diajar',
                     'value' => $stats['total_kelas_diajar'],
                     'icon' => 'BookOpen',
-                    'color' => 'bg-blue-500'
+                    'color' => 'bg-blue-500',
                 ],
                 [
-                    'name' => 'Total Tugas',
-                    'value' => $stats['total_tugas'],
+                    'name' => 'Mapel Diampu',
+                    'value' => $stats['total_mapel'],
+                    'icon' => 'BookOpen',
+                    'color' => 'bg-indigo-500',
+                ],
+                [
+                    'name' => 'Jam / Minggu',
+                    'value' => $stats['total_jam_minggu'] . ' jp',
                     'icon' => 'ClipboardList',
-                    'color' => 'bg-green-500'
+                    'color' => 'bg-green-500',
+                ],
+                [
+                    'name' => 'Menunggu Nilai',
+                    'value' => $stats['tugas_menunggu_nilai'],
+                    'icon' => 'ClipboardList',
+                    'color' => 'bg-amber-500',
                 ],
             ];
-            
+
             if ($walikelasKelas) {
-                // Get attendance for wali kelas's students today
-                // Users store kelas as a string name (e.g. "X IPA 1"), matching kelas.nama
                 $today = Carbon::today()->toDateString();
                 $siswaIds = User::whereHasAnyRole(['siswa'])
                     ->where('kelas', $walikelasKelas->nama)
@@ -114,18 +179,18 @@ class DashboardController extends Controller
                     ->whereIn('status_masuk', ['hadir', 'terlambat'])
                     ->count();
                 $totalSiswa = count($siswaIds);
-                
+
                 $stats['kehadiran_kelas_binaan'] = [
                     'hadir' => $hadir,
                     'total' => $totalSiswa,
-                    'persentase' => $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0
+                    'persentase' => $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0,
                 ];
-                
+
                 $stats['cards'][] = [
                     'name' => 'Kehadiran Kelas',
                     'value' => $stats['kehadiran_kelas_binaan']['persentase'] . '%',
                     'icon' => 'UserCheck',
-                    'color' => 'bg-purple-500'
+                    'color' => 'bg-purple-500',
                 ];
             }
 
