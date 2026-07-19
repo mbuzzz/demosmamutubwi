@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Kelas;
 use App\Models\Notification;
 use App\Models\User;
 
@@ -98,6 +99,77 @@ class NotificationService
         $type = $statusMasuk === 'alpha' ? 'danger' : 'warning';
         foreach ($oversight as $u) {
             self::notify($u->id, $title, $desc, $type);
+        }
+    }
+
+    /**
+     * Notifikasi keterlambatan/alpha siswa → siswa, orang tua, wali kelas.
+     */
+    public static function notifyStudentLate(
+        User $siswa,
+        string $jamMasuk,
+        string $statusMasuk = 'terlambat'
+    ): void {
+        if (!$siswa->isSiswa()) {
+            return;
+        }
+
+        $label = $statusMasuk === 'alpha' ? 'Alpha' : 'Terlambat';
+        $jam = substr($jamMasuk, 0, 5);
+        $type = $statusMasuk === 'alpha' ? 'danger' : 'warning';
+
+        // Siswa
+        self::notify(
+            $siswa->id,
+            "Anda tercatat {$label}",
+            sprintf('Absensi gerbang: %s pukul %s. Segera hubungi wali kelas bila ada kendala.', strtolower($label), $jam),
+            $type
+        );
+
+        // Orang tua yang terhubung ke siswa ini
+        $ortuList = User::query()
+            ->where('siswa_id', $siswa->id)
+            ->where(function ($q) {
+                $q->where('role', 'orang_tua')
+                    ->orWhereJsonContains('roles', 'orang_tua');
+            })
+            ->where('is_active', true)
+            ->get(['id']);
+
+        foreach ($ortuList as $ortu) {
+            self::notify(
+                $ortu->id,
+                "Anak {$label}: {$siswa->name}",
+                sprintf(
+                    '%s (kelas %s) tercatat %s pukul %s via absensi gerbang.',
+                    $siswa->name,
+                    $siswa->kelas ?: '—',
+                    strtolower($label),
+                    $jam
+                ),
+                $type
+            );
+        }
+
+        // Wali kelas binaan
+        $kelasNama = $siswa->kelas;
+        if ($kelasNama) {
+            $kelas = Kelas::where('nama', $kelasNama)->first();
+            $waliId = $kelas?->wali_kelas_id;
+            if ($waliId) {
+                self::notify(
+                    $waliId,
+                    "Siswa binaan {$label}: {$siswa->name}",
+                    sprintf(
+                        'Siswa %s (kelas %s) tercatat %s pukul %s. Mohon ditindaklanjuti.',
+                        $siswa->name,
+                        $kelasNama,
+                        strtolower($label),
+                        $jam
+                    ),
+                    $type
+                );
+            }
         }
     }
 }

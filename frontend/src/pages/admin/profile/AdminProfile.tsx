@@ -1,9 +1,10 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Save, User, Lock, Mail, Phone, ShieldCheck, Camera, Trash2, Loader2, Upload } from 'lucide-react';
+import { Save, User, Lock, Mail, Phone, ShieldCheck, Camera, Trash2, Loader2, Upload, Bell, Smartphone } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../components/auth/AuthContext';
 import { api, getFileUrl } from '../../../lib/api';
 import { toast } from 'sonner';
+import { requestNotificationPermission, showBrowserNotification } from '../../../lib/pwa';
 
 const ROLE_LABELS: Record<string, string> = {
   superadmin: 'Superadmin',
@@ -31,6 +32,8 @@ export default function AdminProfile() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<string>('default');
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -42,6 +45,37 @@ export default function AdminProfile() {
       setAvatarVersion(Date.now());
     }
   }, [user]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ('Notification' in window) {
+      setNotifPermission(Notification.permission);
+    } else {
+      setNotifPermission('unsupported');
+    }
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    setIsStandalone(standalone);
+  }, []);
+
+  const handleEnableNotifications = async () => {
+    const result = await requestNotificationPermission();
+    setNotifPermission(result);
+    if (result === 'granted') {
+      toast.success('Notifikasi browser diaktifkan');
+      showBrowserNotification('SIT SMAM1', {
+        body: 'Notifikasi keterlambatan & info penting akan muncul di sini.',
+        tag: 'notif-test',
+      });
+    } else if (result === 'denied') {
+      toast.error('Izin ditolak. Aktifkan notifikasi lewat pengaturan browser.');
+    } else if (result === 'unsupported') {
+      toast.error('Browser ini tidak mendukung notifikasi.');
+    } else {
+      toast.message('Izin notifikasi belum diberikan');
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,6 +310,63 @@ export default function AdminProfile() {
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* PWA & Notifikasi browser */}
+          <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-1 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+              <Bell className="w-4 h-4 text-indigo-500" /> Notifikasi & Aplikasi (PWA)
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 mb-4 leading-relaxed">
+              Aktifkan notifikasi browser agar keterlambatan absensi (staf/siswa) muncul sebagai toast dan notifikasi sistem.
+              Install PWA lewat menu browser (Install app / Add to Home Screen) untuk akses seperti aplikasi native.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 px-4 py-3">
+                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Izin notifikasi</p>
+                <p className={`text-sm font-extrabold mt-1 ${
+                  notifPermission === 'granted' ? 'text-emerald-600' :
+                  notifPermission === 'denied' ? 'text-red-500' : 'text-amber-600'
+                }`}>
+                  {notifPermission === 'granted' ? 'Diizinkan' :
+                   notifPermission === 'denied' ? 'Ditolak' :
+                   notifPermission === 'unsupported' ? 'Tidak didukung' : 'Belum diminta'}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 px-4 py-3">
+                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                  <Smartphone className="w-3 h-3" /> Mode PWA
+                </p>
+                <p className={`text-sm font-extrabold mt-1 ${isStandalone ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-300'}`}>
+                  {isStandalone ? 'Terpasang (standalone)' : 'Browser biasa'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleEnableNotifications}
+                disabled={notifPermission === 'granted' || notifPermission === 'unsupported'}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95"
+              >
+                <Bell className="w-4 h-4" />
+                {notifPermission === 'granted' ? 'Notifikasi Aktif' : 'Izinkan Notifikasi'}
+              </button>
+              {notifPermission === 'granted' && (
+                <button
+                  type="button"
+                  onClick={() => showBrowserNotification('Tes notifikasi SIT', {
+                    body: 'Jika muncul, notifikasi browser berfungsi.',
+                    tag: 'notif-test-manual',
+                  })}
+                  className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
+                >
+                  Kirim tes
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

@@ -251,6 +251,10 @@ class AbsensiController extends Controller
 
         $validated['created_by'] = $actor?->id;
 
+        $wasNew = !Absensi::where('siswa_id', $validated['siswa_id'])
+            ->where('tanggal', $validated['tanggal'])
+            ->exists();
+
         // Upsert per siswa + tanggal (hindari duplikat)
         $absensi = Absensi::updateOrCreate(
             [
@@ -260,7 +264,22 @@ class AbsensiController extends Controller
             $validated
         );
 
-        return response()->json($absensi->load('user'), $absensi->wasRecentlyCreated ? 201 : 200);
+        if (
+            in_array($validated['status_masuk'], ['terlambat', 'alpha'], true)
+            && ($wasNew || $absensi->wasChanged('status_masuk'))
+        ) {
+            try {
+                $siswa = User::find($validated['siswa_id']);
+                if ($siswa) {
+                    $jam = $validated['jam_masuk'] ?? now()->format('H:i:s');
+                    NotificationService::notifyStudentLate($siswa, $jam, $validated['status_masuk']);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal notifikasi absensi siswa (manual): ' . $e->getMessage());
+            }
+        }
+
+        return response()->json($absensi->load('user'), $wasNew ? 201 : 200);
     }
 
     public function update(Request $request, $id)
@@ -434,6 +453,15 @@ class AbsensiController extends Controller
                 'metode'      => 'rfid',
                 'uid_rfid'    => $kartu->uid,
             ]);
+
+            // Notifikasi keterlambatan/alpha → siswa, ortu, wali kelas
+            if (in_array($statusMasuk, ['terlambat', 'alpha'], true) && $kartu->user) {
+                try {
+                    NotificationService::notifyStudentLate($kartu->user, $jamSekarang, $statusMasuk);
+                } catch (\Throwable $e) {
+                    \Log::warning('Gagal notifikasi absensi siswa: ' . $e->getMessage());
+                }
+            }
 
             return response()->json([
                 'message' => 'Absen masuk berhasil',
