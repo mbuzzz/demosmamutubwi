@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare } from 'lucide-react';
+import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useGuruClasses } from '../../../hooks/usePenugasan';
 import { useDashboardStats } from '../../../hooks/useDashboard';
@@ -54,6 +54,9 @@ export default function GuruDashboard() {
   const multiRoleLabel = Array.isArray(stats?.roles)
     ? (stats.roles as string[]).join(' · ')
     : null;
+
+  const announcements: Array<{ tag: string; title: string; date: string; id?: number }> =
+    Array.isArray(stats?.pengumuman) ? stats.pengumuman : [];
 
   return (
     <AdminLayout title="Dashboard Ruang Guru">
@@ -200,6 +203,32 @@ export default function GuruDashboard() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Pengumuman dari berita terbit */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
+              <Award className="w-5 h-5 text-indigo-500" /> Pengumuman Sekolah
+            </h3>
+            {announcements.length === 0 ? (
+              <div className="p-4 text-center text-sm text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+                Belum ada berita/pengumuman terbit.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {announcements.map((a, i) => (
+                  <div key={a.id ?? i} className="py-4 first:pt-0 last:pb-0">
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 sm:px-3 py-1 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-md whitespace-nowrap">
+                        {a.tag}
+                      </span>
+                      <span className="text-[10px] text-slate-400 shrink-0">{a.date}</span>
+                    </div>
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm leading-relaxed">{a.title}</h4>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>

@@ -12,7 +12,19 @@ class CbtBankSoalController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = BankSoal::with(['mapel', 'guru'])->withCount('soals');
+
+        // Multi-mapel: guru hanya lihat bank soal mapel penugasannya (milik sendiri)
+        if ($user && $user->shouldScopeAsGuru()) {
+            $mapelIds = $user->penugasanMapelIds();
+            $query->where('guru_id', $user->id);
+            if (empty($mapelIds)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('mapel_id', $mapelIds);
+            }
+        }
 
         if ($request->has('mapel_id')) {
             $query->where('mapel_id', $request->mapel_id);
@@ -29,6 +41,7 @@ class CbtBankSoalController extends Controller
 
     public function store(Request $request)
     {
+        $user = $request->user();
         $validated = $request->validate([
             'mapel_id' => 'required|exists:mapels,id',
             'tingkat' => 'required|integer',
@@ -39,7 +52,11 @@ class CbtBankSoalController extends Controller
             'status' => 'required|in:draft,published',
         ]);
 
-        $validated['guru_id'] = $request->user()->id;
+        if ($user) {
+            $user->ensurePenugasanMapel((int) $validated['mapel_id']);
+        }
+
+        $validated['guru_id'] = $user->id;
 
         $bankSoal = BankSoal::create($validated);
 
@@ -49,14 +66,27 @@ class CbtBankSoalController extends Controller
         ], 201);
     }
 
-    public function show(BankSoal $bankSoal)
+    public function show(Request $request, BankSoal $bankSoal)
     {
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($bankSoal->guru_id);
+            if ($user->shouldScopeAsGuru()) {
+                $user->ensurePenugasanMapel((int) $bankSoal->mapel_id);
+            }
+        }
+
         $bankSoal->load(['mapel', 'guru', 'soals.opsiJawabans']);
         return response()->json($bankSoal);
     }
 
     public function update(Request $request, BankSoal $bankSoal)
     {
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($bankSoal->guru_id);
+        }
+
         $validated = $request->validate([
             'mapel_id' => 'sometimes|exists:mapels,id',
             'tingkat' => 'sometimes|integer',
@@ -67,6 +97,10 @@ class CbtBankSoalController extends Controller
             'status' => 'sometimes|in:draft,published',
         ]);
 
+        if ($user && isset($validated['mapel_id'])) {
+            $user->ensurePenugasanMapel((int) $validated['mapel_id']);
+        }
+
         $bankSoal->update($validated);
 
         return response()->json([
@@ -75,8 +109,13 @@ class CbtBankSoalController extends Controller
         ]);
     }
 
-    public function destroy(BankSoal $bankSoal)
+    public function destroy(Request $request, BankSoal $bankSoal)
     {
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($bankSoal->guru_id);
+        }
+
         $bankSoal->delete();
 
         return response()->json([
@@ -88,6 +127,11 @@ class CbtBankSoalController extends Controller
 
     public function storeSoal(Request $request, BankSoal $bankSoal)
     {
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($bankSoal->guru_id);
+        }
+
         $validated = $request->validate([
             'jenis' => 'required|in:pg,essay,pg_kompleks,pgk,bs',
             'pertanyaan' => 'required|string',
@@ -121,6 +165,11 @@ class CbtBankSoalController extends Controller
 
     public function updateSoal(Request $request, BankSoal $bankSoal, Soal $soal)
     {
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($bankSoal->guru_id);
+        }
+
         if ($soal->bank_soal_id !== $bankSoal->id) {
             return response()->json(['message' => 'Soal not found in this Bank Soal'], 404);
         }
@@ -176,8 +225,13 @@ class CbtBankSoalController extends Controller
         ]);
     }
 
-    public function destroySoal(BankSoal $bankSoal, Soal $soal)
+    public function destroySoal(Request $request, BankSoal $bankSoal, Soal $soal)
     {
+        $user = $request->user();
+        if ($user) {
+            $user->ensureOwnsResource($bankSoal->guru_id);
+        }
+
         if ($soal->bank_soal_id !== $bankSoal->id) {
             return response()->json(['message' => 'Soal not found in this Bank Soal'], 404);
         }

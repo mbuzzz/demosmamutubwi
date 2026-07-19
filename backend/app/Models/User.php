@@ -115,6 +115,65 @@ class User extends Authenticatable
         });
     }
 
+    public function activeTahunAjaran(): string
+    {
+        $config = SistemKonfigurasi::first();
+
+        return $config?->tahun_ajaran_aktif ?? '2025/2026';
+    }
+
+    /** ID mapel yang diampu guru pada tahun ajaran aktif. */
+    public function penugasanMapelIds(?string $tahunAjaran = null): array
+    {
+        $tahun = $tahunAjaran ?? $this->activeTahunAjaran();
+
+        return $this->penugasans()
+            ->where('tahun_ajaran', $tahun)
+            ->pluck('mapel_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Pastikan guru ditugaskan mapel (opsional: di kelas tertentu).
+     * Oversight akademik (admin/kurikulum/kepsek) lolos.
+     */
+    public function ensurePenugasanMapel(int $mapelId, ?int $kelasId = null): void
+    {
+        if (!$this->shouldScopeAsGuru()) {
+            return;
+        }
+
+        $tahun = $this->activeTahunAjaran();
+        $query = Penugasan::where('guru_id', $this->id)
+            ->where('mapel_id', $mapelId)
+            ->where('tahun_ajaran', $tahun);
+
+        if ($kelasId) {
+            $query->where('kelas_id', $kelasId);
+        }
+
+        if (!$query->exists()) {
+            abort(403, $kelasId
+                ? 'Anda tidak ditugaskan mengajar mapel tersebut di kelas ini.'
+                : 'Anda tidak ditugaskan mengajar mapel tersebut pada tahun ajaran aktif.');
+        }
+    }
+
+    /** Pastikan resource milik guru ini (bank soal / materi / tugas). */
+    public function ensureOwnsResource(?int $ownerGuruId): void
+    {
+        if (!$this->shouldScopeAsGuru()) {
+            return;
+        }
+
+        if ((int) $ownerGuruId !== (int) $this->id) {
+            abort(403, 'Anda tidak memiliki akses ke data pengajar lain.');
+        }
+    }
+
     /**
      * Mendapatkan semua list role yang dimiliki user (primary + tambahan).
      */

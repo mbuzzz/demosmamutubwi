@@ -194,6 +194,25 @@ class DashboardController extends Controller
                 ];
             }
 
+            // Pengumuman real dari berita terbit terbaru
+            $stats['pengumuman'] = \App\Models\Berita::query()
+                ->with('kategori')
+                ->where('status', 'published')
+                ->latest('published_at')
+                ->limit(5)
+                ->get()
+                ->map(function ($b) {
+                    return [
+                        'tag' => $b->kategori?->nama ?? 'Akademik',
+                        'title' => $b->judul,
+                        'date' => optional($b->published_at)->diffForHumans()
+                            ?? optional($b->created_at)->diffForHumans()
+                            ?? '',
+                        'id' => $b->id,
+                    ];
+                })
+                ->values();
+
         } elseif ($user->isSiswa()) {
             $siswaId = $user->id;
             

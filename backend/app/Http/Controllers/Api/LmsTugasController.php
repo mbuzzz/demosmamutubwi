@@ -44,12 +44,23 @@ class LmsTugasController extends Controller
                 $query->whereHas('kelas', function($q) use ($targetKelasId) {
                     $q->where('kelas.id', $targetKelasId);
                 });
-            } elseif (in_array($user->role, ['siswa', 'orang_tua'])) {
+            } elseif ($user->isSiswa() || $user->isOrangTua()) {
                 $query->whereRaw('1 = 0');
+            }
+
+            // Multi-mapel: guru hanya tugas miliknya / mapel penugasan
+            if ($user->shouldScopeAsGuru()) {
+                $mapelIds = $user->penugasanMapelIds();
+                $query->where('guru_id', $user->id);
+                if (empty($mapelIds)) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->whereIn('mapel_id', $mapelIds);
+                }
             }
         }
 
-        if ($request->has('guru_id')) {
+        if ($request->has('guru_id') && !($user && $user->shouldScopeAsGuru())) {
             $query->where('guru_id', $request->guru_id);
         }
         
@@ -85,7 +96,17 @@ class LmsTugasController extends Controller
             ], 422);
         }
 
+        $user = $request->user();
         $data = $request->except(['lampiran_url', 'kelas_ids']);
+
+        if ($user && $user->shouldScopeAsGuru()) {
+            $data['guru_id'] = $user->id;
+            foreach ($request->input('kelas_ids', []) as $kelasId) {
+                $user->ensurePenugasanMapel((int) $request->mapel_id, (int) $kelasId);
+            }
+        } elseif ($user && !$user->isAcademicOversight()) {
+            $data['guru_id'] = $user->id;
+        }
 
         if ($request->hasFile('lampiran_url')) {
             $file = $request->file('lampiran_url');
