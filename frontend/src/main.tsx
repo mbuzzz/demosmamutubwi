@@ -8,6 +8,10 @@ import { AuthProvider } from './components/auth/AuthContext.tsx'
 import { ExamSessionProvider } from './components/exam/ExamContext.tsx'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './lib/queryClient.ts'
+import { registerPWA } from './lib/pwa.ts'
+
+// Register service worker (production build / PWA)
+registerPWA()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

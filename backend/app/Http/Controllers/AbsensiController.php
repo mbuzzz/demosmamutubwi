@@ -7,6 +7,7 @@ use App\Models\AbsensiGuru;
 use App\Models\KartuRfid;
 use App\Models\KonfigurasiAbsensi;
 use App\Models\User;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -367,6 +368,15 @@ class AbsensiController extends Controller
                     'uid_rfid'    => $kartu->uid,
                 ]);
 
+                // Notifikasi keterlambatan / alpha ke staf + oversight
+                if (in_array($statusMasuk, ['terlambat', 'alpha'], true) && $kartu->user) {
+                    try {
+                        NotificationService::notifyStaffLate($kartu->user, $jamSekarang, $statusMasuk);
+                    } catch (\Throwable $e) {
+                        \Log::warning('Gagal kirim notifikasi absensi staf: ' . $e->getMessage());
+                    }
+                }
+
                 return response()->json([
                     'message' => 'Absen masuk berhasil',
                     'status'  => $statusMasuk,
@@ -604,12 +614,29 @@ class AbsensiController extends Controller
         $validated['metode']     = 'manual';
         $validated['created_by'] = $request->user()?->id;
 
+        $wasNew = !AbsensiGuru::where('user_id', $validated['user_id'])
+            ->where('tanggal', $validated['tanggal'])
+            ->exists();
+
         $absensi = AbsensiGuru::updateOrCreate(
             ['user_id' => $validated['user_id'], 'tanggal' => $validated['tanggal']],
             $validated
         );
 
-        return response()->json($absensi->load('user'), $absensi->wasRecentlyCreated ? 201 : 200);
+        // Notifikasi jika baru / status terlambat-alpha
+        if (
+            in_array($validated['status_masuk'], ['terlambat', 'alpha'], true)
+            && ($wasNew || $absensi->wasChanged('status_masuk'))
+        ) {
+            try {
+                $jam = $validated['jam_masuk'] ?? now()->format('H:i:s');
+                NotificationService::notifyStaffLate($target, $jam, $validated['status_masuk']);
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal kirim notifikasi absensi staf (manual): ' . $e->getMessage());
+            }
+        }
+
+        return response()->json($absensi->load('user'), $wasNew ? 201 : 200);
     }
 
     private function normalizeTime(?string $value): ?string
