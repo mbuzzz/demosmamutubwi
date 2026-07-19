@@ -532,8 +532,23 @@ class AbsensiController extends Controller
         $userIds = $rows->pluck('user_id')->filter()->unique()->values();
         $users   = User::whereIn('id', $userIds)->get()->keyBy('id');
 
-        $result = $rows->map(function ($row) use ($users) {
+        // Hari kerja di bulan tersebut (Sen–Jum) untuk persen kehadiran
+        $daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth;
+        $hariKerja = 0;
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dow = Carbon::create($tahun, $bulan, $d)->dayOfWeek; // 0=Sun
+            if ($dow !== Carbon::SUNDAY && $dow !== Carbon::SATURDAY) {
+                $hariKerja++;
+            }
+        }
+
+        $result = $rows->map(function ($row) use ($users, $hariKerja) {
             $u = $users->get($row->user_id);
+            $hadirEfektif = (int) $row->hadir + (int) $row->terlambat;
+            $totalCatat = $hadirEfektif + (int) $row->izin + (int) $row->sakit + (int) $row->alpha;
+            $basis = max($hariKerja, $totalCatat, 1);
+            $persen = (int) round(($hadirEfektif / $basis) * 100);
+
             return [
                 'user_id'         => (int) $row->user_id,
                 'name'            => $u?->name ?? '—',
@@ -546,10 +561,15 @@ class AbsensiController extends Controller
                 'total_sakit'     => (int) $row->sakit,
                 'total_alpha'     => (int) $row->alpha,
                 'total_terlambat' => (int) $row->terlambat,
+                'hari_kerja'      => $hariKerja,
+                'persen_hadir'    => $persen,
             ];
         });
 
-        return response()->json($result->values());
+        // Sort: oversight → nama A-Z
+        $sorted = $result->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values();
+
+        return response()->json($sorted);
     }
 
     /**

@@ -217,8 +217,10 @@ export default function App() {
         <Route path="/panel/guru/tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruTujuanPembelajaran /></ProtectedRoute>} />
         <Route path="/panel/guru/nilai-tp" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruNilaiTp /></ProtectedRoute>} />
         <Route path="/panel/guru/absensi" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruAbsensi /></ProtectedRoute>} />
-        <Route path="/panel/guru/absensi/rekap" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas']}><AdminRekapAbsensi /></ProtectedRoute>} />
-        <Route path="/panel/guru/absensi/guru" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas']}><GuruAbsensiGuru /></ProtectedRoute>} />
+        {/* Rekap absensi SISWA (RFID gerbang) */}
+        <Route path="/panel/guru/absensi/rekap" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas', 'superadmin', 'admin']}><AdminRekapAbsensi /></ProtectedRoute>} />
+        {/* Laporan absensi GURU/STAF — RBAC data di backend (self vs all) */}
+        <Route path="/panel/guru/absensi/guru" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'kurikulum', 'guru', 'walikelas', 'bendahara', 'superadmin', 'admin']}><GuruAbsensiGuru /></ProtectedRoute>} />
         <Route path="/panel/guru/rapor" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas', 'guru', 'kurikulum']}><AdminRaporList /></ProtectedRoute>} />
         <Route path="/panel/guru/rapor/cetak/:id" element={<ProtectedRoute requiredRole={['kepala_sekolah', 'walikelas', 'kurikulum']}><AdminCetakRaporDetail /></ProtectedRoute>} />
         <Route path="/panel/guru/jadwal" element={<ProtectedRoute requiredRole={['kurikulum', 'kepala_sekolah']}><AdminJadwalPelajaran /></ProtectedRoute>} />

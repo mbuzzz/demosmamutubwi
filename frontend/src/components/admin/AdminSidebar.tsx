@@ -95,8 +95,9 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
       {
         title: "Absensi & RFID",
         items: [
-          { name: "Absensi Harian", path: "/panel/absensi", icon: UserCheck },
-          { name: "Rekap Absensi", path: "/panel/absensi/rekap", icon: ClipboardList },
+          { name: "Absensi Harian Siswa", path: "/panel/absensi", icon: UserCheck },
+          { name: "Rekap Absensi Siswa", path: "/panel/absensi/rekap", icon: ClipboardList },
+          { name: "Laporan Absensi Guru", path: "/panel/guru/absensi/guru", icon: Users },
           { name: "Kartu RFID", path: "/panel/absensi/rfid", icon: ScanLine },
         ]
       },
@@ -151,6 +152,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         title: "Menu Bendahara",
         items: [
           { name: "Dashboard", path: "/panel/bendahara", icon: LayoutDashboard },
+          { name: "Absensi Saya", path: "/panel/guru/absensi/guru", icon: UserCheck },
         ]
       },
       {
@@ -180,7 +182,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
       {
         title: "Laporan & Monitoring",
         items: [
-          { name: "Rekap Absensi", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
+          { name: "Rekap Absensi Siswa", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
+          { name: "Laporan Absensi Guru", path: "/panel/guru/absensi/guru", icon: UserCheck },
           { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
         ]
       },
@@ -207,7 +210,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
       {
         title: "Laporan",
         items: [
-          { name: "Rekap Absensi", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
+          { name: "Rekap Absensi Siswa", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
+          { name: "Laporan Absensi Guru", path: "/panel/guru/absensi/guru", icon: UserCheck },
           { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
         ]
       },
@@ -225,6 +229,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Jurnal Mengajar", path: "/panel/guru/jurnal", icon: CalendarDays },
           { name: "Absensi Siswa", path: "/panel/guru/absensi", icon: UserCheck },
+          { name: "Absensi Saya (Staf)", path: "/panel/guru/absensi/guru", icon: ClipboardList },
           { name: "Tujuan Pembelajaran (TP)", path: "/panel/guru/tp", icon: Award },
           { name: "Nilai per TP", path: "/panel/guru/nilai-tp", icon: FileText },
           { name: "Buku Nilai Harian", path: "/panel/guru/nilai", icon: FileText },
