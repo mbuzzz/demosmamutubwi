@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, Info, AlertCircle, CheckCircle, CalendarDays } from 'lucide-react';
-import { useNotifications, useMarkAllRead } from '../../hooks/useNotifications';
+import { useNotifications, useMarkAllRead, useMarkNotificationRead } from '../../hooks/useNotifications';
 
 const typeMap = {
   info: { icon: Info, iconColor: 'text-indigo-600', iconBg: 'bg-indigo-100 dark:bg-indigo-500/20' },
@@ -12,9 +13,11 @@ const typeMap = {
 export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const { data: notifications = [] } = useNotifications();
   const markAllReadMutation = useMarkAllRead();
+  const markReadMutation = useMarkNotificationRead();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -28,6 +31,16 @@ export default function NotificationDropdown() {
 
   const markAllRead = () => {
     markAllReadMutation.mutate();
+  };
+
+  const handleClickNotif = (n: (typeof notifications)[0]) => {
+    if (!n.read) {
+      markReadMutation.mutate(n.id);
+    }
+    setOpen(false);
+    if (n.link) {
+      navigate(n.link);
+    }
   };
 
   function getNotificationMeta(type: string) {
@@ -44,7 +57,7 @@ export default function NotificationDropdown() {
       const diffHours = Math.floor(diffMins / 60);
       if (diffHours < 24) return `${diffHours} jam lalu`;
       return date.toLocaleDateString('id-ID');
-    } catch (e) {
+    } catch {
       return '—';
     }
   }
@@ -58,7 +71,7 @@ export default function NotificationDropdown() {
         <Bell className="w-[18px] h-[18px]" />
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 border-2 border-white dark:border-slate-900">
-            {unreadCount}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
@@ -84,7 +97,12 @@ export default function NotificationDropdown() {
               notifications.map(n => {
                 const meta = getNotificationMeta(n.type);
                 return (
-                  <div key={n.id} className={`flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${!n.read ? 'bg-indigo-50/30 dark:bg-indigo-500/5' : ''}`}>
+                  <button
+                    type="button"
+                    key={n.id}
+                    onClick={() => handleClickNotif(n)}
+                    className={`w-full text-left flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${!n.read ? 'bg-indigo-50/30 dark:bg-indigo-500/5' : ''}`}
+                  >
                     <div className={`w-8 h-8 rounded-full ${meta.iconBg} flex items-center justify-center shrink-0 mt-0.5`}>
                       <meta.icon className={`w-4 h-4 ${meta.iconColor}`} />
                     </div>
@@ -96,7 +114,7 @@ export default function NotificationDropdown() {
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.description}</p>
                       <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-1 block">{formatTime(n.created_at)}</span>
                     </div>
-                  </div>
+                  </button>
                 );
               })
             )}

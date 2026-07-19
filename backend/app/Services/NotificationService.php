@@ -5,23 +5,38 @@ namespace App\Services;
 use App\Models\Kelas;
 use App\Models\Notification;
 use App\Models\User;
+use Carbon\Carbon;
 
 class NotificationService
 {
     /**
      * Kirim notifikasi in-app ke satu user.
+     * Skip jika notifikasi identik sudah dikirim hari ini (anti-spam).
      */
     public static function notify(
         int $userId,
         string $title,
         string $description,
-        string $type = 'info'
-    ): Notification {
+        string $type = 'info',
+        ?string $link = null,
+        bool $dedupeDaily = true
+    ): ?Notification {
+        if ($dedupeDaily) {
+            $exists = Notification::where('user_id', $userId)
+                ->where('title', $title)
+                ->whereDate('created_at', Carbon::today())
+                ->exists();
+            if ($exists) {
+                return null;
+            }
+        }
+
         return Notification::create([
             'user_id' => $userId,
             'type' => $type,
             'title' => $title,
             'description' => $description,
+            'link' => $link,
             'read' => false,
         ]);
     }
@@ -36,7 +51,8 @@ class NotificationService
         array $roles,
         string $title,
         string $description,
-        string $type = 'info'
+        string $type = 'info',
+        ?string $link = null
     ): int {
         $users = User::query()
             ->where(function ($q) use ($roles) {
@@ -50,8 +66,9 @@ class NotificationService
 
         $count = 0;
         foreach ($users as $user) {
-            self::notify($user->id, $title, $description, $type);
-            $count++;
+            if (self::notify($user->id, $title, $description, $type, $link)) {
+                $count++;
+            }
         }
 
         return $count;
@@ -74,13 +91,16 @@ class NotificationService
             strtolower($label),
             substr($jamMasuk, 0, 5)
         );
+        $link = '/panel/guru/absensi/guru';
+        $type = $statusMasuk === 'alpha' ? 'danger' : 'warning';
 
         // Staf yang terlambat
         self::notify(
             $staff->id,
             $statusMasuk === 'alpha' ? 'Anda tercatat Alpha' : 'Anda tercatat Terlambat',
             sprintf('Absensi staf Anda: %s pukul %s.', strtolower($label), substr($jamMasuk, 0, 5)),
-            'warning'
+            'warning',
+            $link
         );
 
         // Oversight: kepsek, kurikulum, admin (kecuali staf yang sama)
@@ -96,9 +116,8 @@ class NotificationService
             ->where('id', '!=', $staff->id)
             ->get(['id']);
 
-        $type = $statusMasuk === 'alpha' ? 'danger' : 'warning';
         foreach ($oversight as $u) {
-            self::notify($u->id, $title, $desc, $type);
+            self::notify($u->id, $title, $desc, $type, $link);
         }
     }
 
@@ -123,7 +142,8 @@ class NotificationService
             $siswa->id,
             "Anda tercatat {$label}",
             sprintf('Absensi gerbang: %s pukul %s. Segera hubungi wali kelas bila ada kendala.', strtolower($label), $jam),
-            $type
+            $type,
+            '/panel/siswa/absensi'
         );
 
         // Orang tua yang terhubung ke siswa ini
@@ -147,7 +167,8 @@ class NotificationService
                     strtolower($label),
                     $jam
                 ),
-                $type
+                $type,
+                '/panel/siswa/absensi'
             );
         }
 
@@ -167,7 +188,8 @@ class NotificationService
                         strtolower($label),
                         $jam
                     ),
-                    $type
+                    $type,
+                    '/panel/guru/wali-siswa'
                 );
             }
         }

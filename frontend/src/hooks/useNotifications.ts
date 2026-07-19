@@ -11,6 +11,7 @@ export interface NotificationRecord {
   type: 'info' | 'success' | 'warning' | 'danger';
   title: string;
   description: string;
+  link?: string | null;
   read: boolean;
   created_at: string;
   updated_at: string;
@@ -24,7 +25,7 @@ export function useNotifications() {
   const query = useQuery({
     queryKey: ['notifications'],
     staleTime: 15 * 1000,
-    refetchInterval: isAuthenticated ? 30 * 1000 : false, // poll 30s untuk keterlambatan realtime-ish
+    refetchInterval: isAuthenticated ? 30 * 1000 : false,
     enabled: isAuthenticated,
     queryFn: async () => {
       const res = await api.get<{ data: NotificationRecord[] }>('/notifications');
@@ -32,13 +33,11 @@ export function useNotifications() {
     },
   });
 
-  // Minta izin browser notification sekali setelah login
   useEffect(() => {
     if (!isAuthenticated) return;
     requestNotificationPermission().catch(() => {});
   }, [isAuthenticated]);
 
-  // Deteksi notifikasi baru (keterlambatan, dll.) → toast + browser notification
   useEffect(() => {
     const list = query.data;
     if (!list || list.length === 0) return;
@@ -52,7 +51,6 @@ export function useNotifications() {
     const fresh = list.filter((n) => !seenIds.current.has(n.id));
     fresh.forEach((n) => {
       seenIds.current.add(n.id);
-      // In-app toast
       if (n.type === 'danger') {
         toast.error(n.title, { description: n.description });
       } else if (n.type === 'warning') {
@@ -62,10 +60,10 @@ export function useNotifications() {
       } else {
         toast(n.title, { description: n.description });
       }
-      // OS / browser notification (PWA)
       showBrowserNotification(n.title, {
         body: n.description,
         tag: `notif-${n.id}`,
+        data: { link: n.link || '/' },
       });
     });
   }, [query.data]);
@@ -85,6 +83,19 @@ export function useMarkAllRead() {
   return useMutation({
     mutationFn: async () => {
       const res = await api.post('/notifications/read-all');
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+}
+
+export function useMarkNotificationRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await api.post(`/notifications/${id}/read`);
       return res.data;
     },
     onSuccess: () => {

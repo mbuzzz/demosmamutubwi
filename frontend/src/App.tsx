@@ -106,6 +106,7 @@ import SiswaAbsensi from './pages/admin/siswa/SiswaAbsensi';
 import SiswaPembayaran from './pages/admin/siswa/SiswaPembayaran';
 
 import { Toaster } from 'sonner';
+import PwaInstallBanner from './components/PwaInstallBanner';
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -248,6 +249,7 @@ export default function App() {
         <Route path="/panel/siswa/pembayaran" element={<ProtectedRoute requiredRole={['siswa', 'orang_tua']}><SiswaPembayaran /></ProtectedRoute>} />
       </Routes>
       <Toaster position="top-right" richColors closeButton />
+      <PwaInstallBanner />
     </Router>
   );
 }

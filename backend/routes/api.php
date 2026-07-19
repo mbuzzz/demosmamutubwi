@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     
     // Jurnal Mengajar — hanya staf pendidik/oversight (bukan siswa/ortu)
     Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah')->group(function () {

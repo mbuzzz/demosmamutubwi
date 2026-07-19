@@ -14,18 +14,36 @@ class NotificationController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $userIds = [$user->id];
-        if ($user->isOrangTua() && $user->siswa_id) {
-            $userIds[] = $user->siswa_id;
-        }
-
-        $notifications = Notification::whereIn('user_id', $userIds)
+        // Hanya notifikasi milik user login (ortu sudah dapat salinan khusus)
+        $notifications = Notification::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
+            ->limit(50)
             ->get();
 
         return response()->json([
             'status' => 'success',
-            'data' => $notifications
+            'data' => $notifications,
+            'unread_count' => $notifications->where('read', false)->count(),
+        ]);
+    }
+
+    public function markAsRead(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $notification = Notification::where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $notification->update(['read' => true]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Notifikasi ditandai dibaca',
+            'data' => $notification,
         ]);
     }
 
@@ -36,16 +54,11 @@ class NotificationController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $userIds = [$user->id];
-        if ($user->isOrangTua() && $user->siswa_id) {
-            $userIds[] = $user->siswa_id;
-        }
-
-        Notification::whereIn('user_id', $userIds)->update(['read' => true]);
+        Notification::where('user_id', $user->id)->update(['read' => true]);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Semua notifikasi ditandai dibaca'
+            'message' => 'Semua notifikasi ditandai dibaca',
         ]);
     }
 }
