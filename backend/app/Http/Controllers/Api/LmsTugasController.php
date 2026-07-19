@@ -7,6 +7,7 @@ use App\Models\Tugas;
 use App\Models\PengumpulanTugas;
 use App\Models\KomentarLms;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -115,14 +116,31 @@ class LmsTugasController extends Controller
         }
 
         $tugas = Tugas::create($data);
-        if ($request->has('kelas_ids')) {
-            $tugas->kelas()->sync($request->kelas_ids);
+        $kelasIds = $request->input('kelas_ids', []);
+        if (!empty($kelasIds)) {
+            $tugas->kelas()->sync($kelasIds);
+        }
+
+        try {
+            $guruNama = $user?->name ?? 'Guru';
+            $tenggat = $tugas->tenggat_waktu
+                ? \Carbon\Carbon::parse($tugas->tenggat_waktu)->format('d/m/Y H:i')
+                : '—';
+            NotificationService::notifyKelasSiswa(
+                $kelasIds,
+                'Tugas baru: ' . ($tugas->judul ?? 'Tanpa judul'),
+                sprintf('%s menambahkan tugas baru. Tenggat: %s.', $guruNama, $tenggat),
+                '/panel/siswa/tugas',
+                'warning'
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal notifikasi tugas baru: ' . $e->getMessage());
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Tugas berhasil ditambahkan',
-            'data' => $tugas
+            'data' => $tugas->load(['guru', 'mapel', 'kelas'])
         ], 201);
     }
 

@@ -122,6 +122,43 @@ class NotificationService
     }
 
     /**
+     * Notifikasi konten LMS baru ke siswa di kelas terkait.
+     *
+     * @param  array<int, int|string>  $kelasIds
+     */
+    public static function notifyKelasSiswa(
+        array $kelasIds,
+        string $title,
+        string $description,
+        string $link,
+        string $type = 'info'
+    ): int {
+        $kelasIds = array_filter(array_map('intval', $kelasIds));
+        if (empty($kelasIds)) {
+            return 0;
+        }
+
+        $kelasNames = Kelas::whereIn('id', $kelasIds)->pluck('nama')->filter()->all();
+        if (empty($kelasNames)) {
+            return 0;
+        }
+
+        $siswaList = User::whereHasAnyRole(['siswa'])
+            ->whereIn('kelas', $kelasNames)
+            ->where('is_active', true)
+            ->get(['id']);
+
+        $count = 0;
+        foreach ($siswaList as $siswa) {
+            if (self::notify($siswa->id, $title, $description, $type, $link, true)) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
      * Notifikasi keterlambatan/alpha siswa → siswa, orang tua, wali kelas.
      */
     public static function notifyStudentLate(

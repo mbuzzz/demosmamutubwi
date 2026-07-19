@@ -119,13 +119,75 @@ export function useDeleteSoal() {
   });
 }
 
-// 6. Get Sesi Ujian List
+// 6. Get Sesi Ujian List (Laravel pagination: { data: [...] })
 export function useSesiUjianList() {
   return useQuery({
     queryKey: ['sesi-ujian'],
     queryFn: async () => {
-      const res = await api.get<{ data: SesiUjian[] }>('/cbt/sesi');
-      return res.data.data;
+      const res = await api.get<any>('/cbt/sesi');
+      const raw = res.data?.data ?? res.data;
+      return Array.isArray(raw) ? raw : [];
+    },
+  });
+}
+
+// Live monitor one session
+export function useCbtMonitor(sesiId: number | string | null) {
+  return useQuery({
+    queryKey: ['cbt-monitor', sesiId],
+    enabled: !!sesiId,
+    refetchInterval: 8 * 1000,
+    queryFn: async () => {
+      const res = await api.get(`/cbt/sesi/${sesiId}/monitor`);
+      return res.data as {
+        sesi: any;
+        peserta: Array<{
+          siswa_id: number;
+          name: string;
+          nip_nisn: string;
+          status: string;
+          dijawab: number;
+          total_soal: number;
+          nilai_pg?: number | null;
+          hasil_ujian_id?: number | null;
+        }>;
+        stats: { total: number; selesai: number; mengerjakan: number; belum: number };
+      };
+    },
+  });
+}
+
+export function useForceSelesaiUjian() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sesiId, siswaId }: { sesiId: number | string; siswaId: number }) => {
+      const res = await api.post(`/cbt/sesi/${sesiId}/force-selesai/${siswaId}`);
+      return res.data;
+    },
+    onSuccess: (_, { sesiId }) => {
+      queryClient.invalidateQueries({ queryKey: ['cbt-monitor', sesiId] });
+      toast.success('Ujian siswa dipaksa selesai');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Gagal force submit');
+    },
+  });
+}
+
+export function useEndSesiUjian() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (sesiId: number | string) => {
+      const res = await api.post(`/cbt/sesi/${sesiId}/end`);
+      return res.data;
+    },
+    onSuccess: (_, sesiId) => {
+      queryClient.invalidateQueries({ queryKey: ['cbt-monitor', sesiId] });
+      queryClient.invalidateQueries({ queryKey: ['sesi-ujian'] });
+      toast.success('Sesi ujian diakhiri');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Gagal mengakhiri sesi');
     },
   });
 }
@@ -151,9 +213,10 @@ export function useUjianAktifList() {
   return useQuery({
     queryKey: ['ujian-aktif'],
     queryFn: async () => {
-      // Assuming a specific endpoint for student active exams
-      const res = await api.get<{ data: SesiUjian[] }>('/cbt/ujian/sesi-aktif');
-      return res.data.data;
+      // Backend returns array directly (not always wrapped)
+      const res = await api.get<any>('/cbt/ujian/sesi-aktif');
+      const raw = res.data?.data ?? res.data;
+      return Array.isArray(raw) ? raw : [];
     },
   });
 }

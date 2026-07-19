@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Materi;
 use App\Models\KomentarLms;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -108,14 +109,28 @@ class LmsMateriController extends Controller
         }
 
         $materi = Materi::create($data);
-        if ($request->has('kelas_ids')) {
-            $materi->kelas()->sync($request->kelas_ids);
+        $kelasIds = $request->input('kelas_ids', []);
+        if (!empty($kelasIds)) {
+            $materi->kelas()->sync($kelasIds);
+        }
+
+        try {
+            $guruNama = $user?->name ?? 'Guru';
+            NotificationService::notifyKelasSiswa(
+                $kelasIds,
+                'Materi baru: ' . ($materi->judul ?? 'Tanpa judul'),
+                sprintf('%s menambahkan materi baru. Silakan dibuka di Bank Materi.', $guruNama),
+                '/panel/siswa/materi',
+                'info'
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal notifikasi materi baru: ' . $e->getMessage());
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Materi berhasil ditambahkan',
-            'data' => $materi
+            'data' => $materi->load(['guru', 'mapel', 'kelas'])
         ], 201);
     }
 

@@ -203,7 +203,7 @@ export default function AdminUjianList() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {s.status === 'published' && (
-                          <Link to="/panel/cbt/monitor" className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-colors border border-indigo-100 dark:border-indigo-500/30">
+                          <Link to={`/panel/cbt/monitor?sesi_id=${s.id}`} className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-colors border border-indigo-100 dark:border-indigo-500/30">
                             <MonitorPlay className="w-3.5 h-3.5" /> Monitor
                           </Link>
                         )}

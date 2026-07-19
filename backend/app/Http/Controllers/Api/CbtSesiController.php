@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\HasilUjian;
+use App\Models\JawabanSiswa;
 use App\Models\SesiUjian;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -170,6 +173,158 @@ class CbtSesiController extends Controller
         return response()->json([
             'message' => 'Token berhasil diperbarui',
             'token' => $sesiUjian->token
+        ]);
+    }
+
+    /**
+     * Live monitor peserta ujian (polling FE).
+     */
+    public function monitor(Request $request, SesiUjian $sesiUjian)
+    {
+        $user = $request->user();
+        $sesiUjian->load(['bankSoal.mapel', 'bankSoal.soals', 'kelas', 'hasilUjians.siswa', 'pengawas', 'template']);
+
+        if ($user && $sesiUjian->bankSoal && $user->shouldScopeAsGuru()) {
+            $isOwner = (int) $sesiUjian->bankSoal->guru_id === (int) $user->id;
+            $isPengawas = $sesiUjian->pengawas->contains('id', $user->id);
+            if (!$isOwner && !$isPengawas) {
+                abort(403, 'Anda tidak memiliki akses monitor sesi ini.');
+            }
+        }
+
+        $kelasNama = $sesiUjian->kelas?->nama;
+        $totalSoal = $sesiUjian->bankSoal?->soals?->count() ?? 0;
+
+        $siswaList = User::whereHasAnyRole(['siswa'])
+            ->when($kelasNama, fn ($q) => $q->where('kelas', $kelasNama))
+            ->orderBy('name')
+            ->get();
+
+        $hasilBySiswa = $sesiUjian->hasilUjians->keyBy('siswa_id');
+
+        $peserta = $siswaList->map(function ($s) use ($hasilBySiswa, $totalSoal) {
+            $h = $hasilBySiswa->get($s->id);
+            $dijawab = 0;
+            if ($h) {
+                $dijawab = JawabanSiswa::where('hasil_ujian_id', $h->id)->count();
+            }
+
+            return [
+                'siswa_id' => $s->id,
+                'name' => $s->name,
+                'nip_nisn' => $s->nip_nisn,
+                'status' => $h?->status ?? 'belum',
+                'dijawab' => $dijawab,
+                'total_soal' => $totalSoal,
+                'nilai_pg' => $h?->nilai_pg,
+                'total_nilai' => $h?->total_nilai,
+                'waktu_mulai' => $h?->waktu_mulai,
+                'waktu_selesai' => $h?->waktu_selesai,
+                'hasil_ujian_id' => $h?->id,
+            ];
+        })->values();
+
+        $now = now();
+        $sisaDetik = null;
+        if ($sesiUjian->waktu_selesai) {
+            $sisaDetik = max(0, $now->diffInSeconds($sesiUjian->waktu_selesai, false));
+            if ($sisaDetik < 0) {
+                $sisaDetik = 0;
+            }
+        }
+
+        return response()->json([
+            'sesi' => [
+                'id' => $sesiUjian->id,
+                'nama_sesi' => $sesiUjian->nama_sesi,
+                'kelas' => $sesiUjian->kelas?->nama,
+                'mapel' => $sesiUjian->bankSoal?->mapel?->nama,
+                'token' => $sesiUjian->token,
+                'is_aktif' => $sesiUjian->is_aktif,
+                'waktu_mulai' => $sesiUjian->waktu_mulai,
+                'waktu_selesai' => $sesiUjian->waktu_selesai,
+                'durasi_menit' => $sesiUjian->durasi_menit,
+                'total_soal' => $totalSoal,
+                'sisa_detik' => $sisaDetik,
+            ],
+            'peserta' => $peserta,
+            'stats' => [
+                'total' => $peserta->count(),
+                'selesai' => $peserta->where('status', 'selesai')->count(),
+                'mengerjakan' => $peserta->where('status', 'mengerjakan')->count(),
+                'belum' => $peserta->where('status', 'belum')->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Paksa selesaikan ujian 1 siswa.
+     */
+    public function forceSelesai(Request $request, SesiUjian $sesiUjian, $siswaId)
+    {
+        $user = $request->user();
+        $sesiUjian->load(['bankSoal', 'pengawas']);
+
+        if ($user && $sesiUjian->bankSoal && $user->shouldScopeAsGuru()) {
+            $isOwner = (int) $sesiUjian->bankSoal->guru_id === (int) $user->id;
+            $isPengawas = $sesiUjian->pengawas->contains('id', $user->id);
+            if (!$isOwner && !$isPengawas) {
+                abort(403, 'Anda tidak berhak memaksa selesai ujian ini.');
+            }
+        }
+
+        $hasil = HasilUjian::where('sesi_ujian_id', $sesiUjian->id)
+            ->where('siswa_id', $siswaId)
+            ->first();
+
+        if (!$hasil) {
+            return response()->json(['message' => 'Siswa belum memulai ujian.'], 422);
+        }
+
+        if ($hasil->status === 'selesai') {
+            return response()->json(['message' => 'Siswa sudah selesai ujian.', 'data' => $hasil]);
+        }
+
+        $hasil->update([
+            'status' => 'selesai',
+            'waktu_selesai' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Ujian siswa dipaksa selesai.',
+            'data' => $hasil,
+        ]);
+    }
+
+    /**
+     * Nonaktifkan sesi (akhiri ujian massal).
+     */
+    public function endSesi(Request $request, SesiUjian $sesiUjian)
+    {
+        $user = $request->user();
+        $sesiUjian->load(['bankSoal', 'pengawas']);
+
+        if ($user && $sesiUjian->bankSoal && $user->shouldScopeAsGuru()) {
+            $isOwner = (int) $sesiUjian->bankSoal->guru_id === (int) $user->id;
+            $isPengawas = $sesiUjian->pengawas->contains('id', $user->id);
+            if (!$isOwner && !$isPengawas) {
+                abort(403, 'Anda tidak berhak mengakhiri sesi ini.');
+            }
+        }
+
+        $sesiUjian->update(['is_aktif' => false]);
+
+        // Force-finish all in progress
+        HasilUjian::where('sesi_ujian_id', $sesiUjian->id)
+            ->where('status', 'mengerjakan')
+            ->update([
+                'status' => 'selesai',
+                'waktu_selesai' => now(),
+            ]);
+
+        return response()->json([
+            'message' => 'Sesi ujian diakhiri. Semua peserta yang masih mengerjakan dipaksa selesai.',
+            'data' => $sesiUjian->fresh(),
         ]);
     }
 

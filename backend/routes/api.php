@@ -306,6 +306,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::apiResource('cbt/sesi', CbtSesiController::class);
         Route::post('cbt/sesi/{sesiUjian}/refresh-token', [CbtSesiController::class, 'refreshToken']);
+        Route::get('cbt/sesi/{sesiUjian}/monitor', [CbtSesiController::class, 'monitor']);
+        Route::post('cbt/sesi/{sesiUjian}/force-selesai/{siswaId}', [CbtSesiController::class, 'forceSelesai']);
+        Route::post('cbt/sesi/{sesiUjian}/end', [CbtSesiController::class, 'endSesi']);
         Route::apiResource('cbt/templates', CbtTemplateController::class);
     });
 
