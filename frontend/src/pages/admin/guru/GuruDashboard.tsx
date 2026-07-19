@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award, UserCheck, ClipboardList } from 'lucide-react';
+import { CalendarDays, FileText, Bell, ArrowRight, Users, BookOpen, AlertCircle, TrendingUp, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useGuruClasses } from '../../../hooks/usePenugasan';
 import { useDashboardStats } from '../../../hooks/useDashboard';

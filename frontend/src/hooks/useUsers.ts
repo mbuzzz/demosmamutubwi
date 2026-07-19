@@ -16,6 +16,7 @@ export interface UserRecord {
   is_active?: boolean;
   siswa_id?: number | null;
   foto?: string | null;
+  roles?: string[] | null;
 }
 
 export function useUsers(role?: string, search?: string, kelas?: string) {

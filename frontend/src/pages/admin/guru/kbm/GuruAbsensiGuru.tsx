@@ -2,7 +2,7 @@ import { useState } from 'react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import {
   UserCheck, Clock, AlertTriangle, UserX, Calendar,
-  Search, Download, ChevronLeft, ChevronRight
+  Search, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../../lib/api';
