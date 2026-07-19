@@ -92,9 +92,9 @@ class PembayaranController extends Controller
         $query = TagihanSiswa::with(['siswa', 'jenisPembayaran', 'transaksi']);
 
         if ($user) {
-            if ($user->role === 'siswa') {
+            if ($user->isSiswa()) {
                 $query->where('siswa_id', $user->id);
-            } elseif ($user->role === 'orang_tua') {
+            } elseif ($user->isOrangTua()) {
                 $query->where('siswa_id', $user->siswa_id);
             } else {
                 $studentId = $request->input('siswa_id') ?: $request->input('user_id');
@@ -394,7 +394,7 @@ class PembayaranController extends Controller
     {
         $kartu = \App\Models\KartuRfid::where('uid', $uid)->with('user')->first();
         
-        if (!$kartu || !$kartu->user || $kartu->user->role !== 'siswa') {
+        if (!$kartu || !$kartu->user || !$kartu->user->isSiswa()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Kartu RFID tidak terdaftar atau tidak aktif sebagai siswa.'

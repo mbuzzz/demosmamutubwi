@@ -15,10 +15,10 @@ class JadwalController extends Controller
         $kelasId = $request->kelas_id;
 
         if (!$kelasId && $user) {
-            if ($user->role === 'siswa') {
+            if ($user->isSiswa()) {
                 $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
                 $kelasId = $kelasObj ? $kelasObj->id : null;
-            } elseif ($user->role === 'orang_tua') {
+            } elseif ($user->isOrangTua()) {
                 $siswa = $user->siswa;
                 if ($siswa) {
                     $kelasObj = \App\Models\Kelas::where('nama', $siswa->kelas)->first();
@@ -35,8 +35,13 @@ class JadwalController extends Controller
 
         if ($kelasId) {
             $query->where('kelas_id', $kelasId);
-        } else if ($user && $user->role === 'guru') {
+        } else if ($user && $user->shouldScopeAsGuru()) {
             $query->where('guru_id', $user->id);
+        } else if ($user && $user->isAcademicOversight()) {
+            // Admin/kurikulum/kepsek butuh kelas_id
+            return response()->json([
+                'message' => 'Kelas ID diperlukan.'
+            ], 422);
         } else {
             return response()->json([
                 'message' => 'Kelas ID diperlukan.'

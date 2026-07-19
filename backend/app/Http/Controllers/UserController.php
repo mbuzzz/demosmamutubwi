@@ -40,7 +40,7 @@ class UserController extends Controller
 
     private function syncSiswaRiwayat(User $user): void
     {
-        if ($user->role !== 'siswa' || !$user->kelas) {
+        if (!$user->isSiswa() || !$user->kelas) {
             return;
         }
 

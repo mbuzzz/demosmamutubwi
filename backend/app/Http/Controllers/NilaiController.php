@@ -17,9 +17,9 @@ class NilaiController extends Controller
         $user = Auth::user();
         $query = Nilai::with(['siswa', 'guru']);
 
-        if ($user->role === 'siswa') {
+        if ($user->isSiswa()) {
             $query->where('siswa_id', $user->id);
-        } elseif ($user->role === 'orang_tua') {
+        } elseif ($user->isOrangTua()) {
             $query->where('siswa_id', $user->siswa_id);
         } else {
             if ($request->has('siswa_id')) {
@@ -43,7 +43,7 @@ class NilaiController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        if ($user->role === 'siswa') {
+        if ($user->isSiswa() || $user->isOrangTua()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -88,7 +88,7 @@ class NilaiController extends Controller
         \DB::beginTransaction();
         try {
             foreach ($request->scores as $score) {
-                if ($user->role === 'guru') {
+                if ($user->shouldScopeAsGuru()) {
                     $student = \App\Models\User::find($score['siswa_id']);
                     if (!$student || !$student->kelas) continue;
 

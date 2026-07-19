@@ -17,7 +17,7 @@ class JurnalController extends Controller
         $user = $request->user();
         $query = Jurnal::with(['kelas', 'mapel', 'guru']);
 
-        if ($user->role === 'guru') {
+        if ($user->shouldScopeAsGuru()) {
             $query->where('guru_id', $user->id);
         }
 
@@ -45,8 +45,8 @@ class JurnalController extends Controller
             'kehadiran_json' => 'nullable|array',
         ]);
 
-        // If guru, verify they teach this mapel in this class
-        if ($user->role === 'guru') {
+        // Multi-role: staf pengajar diverifikasi penugasan mapel×kelas
+        if ($user->shouldScopeAsGuru()) {
             $config = SistemKonfigurasi::first();
             $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
             $hasPenugasan = Penugasan::where('guru_id', $user->id)
@@ -60,7 +60,9 @@ class JurnalController extends Controller
             }
         }
 
-        $validated['guru_id'] = $user->role === 'guru' ? $user->id : ($request->input('guru_id') ?: $user->id);
+        $validated['guru_id'] = $user->shouldScopeAsGuru()
+            ? $user->id
+            : ($request->input('guru_id') ?: $user->id);
 
         $jurnal = Jurnal::create($validated);
 

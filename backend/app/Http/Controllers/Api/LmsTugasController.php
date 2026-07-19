@@ -17,7 +17,7 @@ class LmsTugasController extends Controller
     public function index(Request $request)
     {
         $query = Tugas::with(['guru', 'mapel', 'kelas', 'pengumpulanTugas' => function($q) use ($request) {
-            if ($request->user() && $request->user()->role === 'siswa') {
+            if ($request->user() && $request->user()->isSiswa()) {
                 $q->where('siswa_id', $request->user()->id);
             }
         }]);
@@ -25,10 +25,10 @@ class LmsTugasController extends Controller
 
         if ($user) {
             $targetKelasId = null;
-            if ($user->role === 'siswa') {
+            if ($user->isSiswa()) {
                 $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
                 if ($kelasObj) $targetKelasId = $kelasObj->id;
-            } elseif ($user->role === 'orang_tua') {
+            } elseif ($user->isOrangTua()) {
                 $siswa = $user->siswa;
                 if ($siswa) {
                     $kelasObj = \App\Models\Kelas::where('nama', $siswa->kelas)->first();
@@ -386,7 +386,7 @@ class LmsTugasController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
         }
 
-        $siswaId = $user->role === 'orang_tua' ? $user->siswa_id : $user->id;
+        $siswaId = $user->isOrangTua() ? $user->siswa_id : $user->id;
 
         if (!$siswaId) {
             return response()->json(['status' => 'error', 'message' => 'Siswa tidak ditemukan.'], 404);

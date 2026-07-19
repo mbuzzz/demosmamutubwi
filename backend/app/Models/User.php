@@ -67,6 +67,54 @@ class User extends Authenticatable
         return false;
     }
 
+    /** Superadmin / admin panel */
+    public function isElevatedAdmin(): bool
+    {
+        return $this->hasRole(['superadmin', 'admin']);
+    }
+
+    /**
+     * Oversight akademik (lihat semua data guru, bukan hanya penugasan sendiri).
+     */
+    public function isAcademicOversight(): bool
+    {
+        return $this->hasRole(['superadmin', 'admin', 'kurikulum', 'kepala_sekolah']);
+    }
+
+    /**
+     * Staf pengajar yang harus di-scope ke data sendiri (jurnal/nilai/jadwal).
+     * Multi-role: guru+bendahara dengan primary bendahara tetap di-scope sebagai guru.
+     */
+    public function shouldScopeAsGuru(): bool
+    {
+        if ($this->isAcademicOversight()) {
+            return false;
+        }
+
+        return $this->hasRole(['guru', 'walikelas']);
+    }
+
+    public function isSiswa(): bool
+    {
+        return $this->hasRole(['siswa']);
+    }
+
+    public function isOrangTua(): bool
+    {
+        return $this->hasRole(['orang_tua']);
+    }
+
+    /** Scope query users yang punya salah satu role (primary atau multi-role JSON). */
+    public function scopeWhereHasAnyRole($query, array $roles)
+    {
+        return $query->where(function ($q) use ($roles) {
+            $q->whereIn('role', $roles);
+            foreach ($roles as $role) {
+                $q->orWhereJsonContains('roles', $role);
+            }
+        });
+    }
+
     /**
      * Mendapatkan semua list role yang dimiliki user (primary + tambahan).
      */

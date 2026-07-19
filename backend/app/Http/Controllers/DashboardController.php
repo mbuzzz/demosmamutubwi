@@ -17,15 +17,16 @@ class DashboardController extends Controller
     public function getStats(Request $request)
     {
         $user = $request->user();
+        // Primary role for dashboard branch; multi-role checked via hasRole()
         $role = $user->role;
 
         $stats = [];
 
-        if (in_array($role, ['superadmin', 'kepala_sekolah'])) {
-            // Total Users
-            $stats['total_siswa'] = User::where('role', 'siswa')->count();
-            $stats['total_guru'] = User::where('role', 'guru')->count();
-            $stats['total_admin'] = User::where('role', 'admin')->count();
+        if ($user->hasRole(['superadmin', 'kepala_sekolah'])) {
+            // Total Users (multi-role aware)
+            $stats['total_siswa'] = User::whereHasAnyRole(['siswa'])->count();
+            $stats['total_guru'] = User::whereHasAnyRole(['guru', 'walikelas', 'kepala_sekolah', 'kurikulum'])->count();
+            $stats['total_admin'] = User::whereHasAnyRole(['admin', 'superadmin'])->count();
 
             // Total Kelas
             $stats['total_kelas'] = Kelas::count();
@@ -75,7 +76,7 @@ class DashboardController extends Controller
                 ['name' => 'Alpha/Izin/Sakit', 'value' => $stats['kehadiran_hari_ini']['alpha'], 'color' => '#EF4444'],
             ];
             
-        } elseif (in_array($role, ['guru', 'walikelas'])) {
+        } elseif ($user->hasRole(['guru', 'walikelas', 'kurikulum'])) {
             $guruId = $user->id;
             
             $stats['total_kelas_diajar'] = Penugasan::where('guru_id', $guruId)->distinct('kelas_id')->count('kelas_id');
@@ -104,7 +105,7 @@ class DashboardController extends Controller
                 // Get attendance for wali kelas's students today
                 // Users store kelas as a string name (e.g. "X IPA 1"), matching kelas.nama
                 $today = Carbon::today()->toDateString();
-                $siswaIds = User::where('role', 'siswa')
+                $siswaIds = User::whereHasAnyRole(['siswa'])
                     ->where('kelas', $walikelasKelas->nama)
                     ->pluck('id');
 
@@ -128,7 +129,7 @@ class DashboardController extends Controller
                 ];
             }
 
-        } elseif ($role === 'siswa') {
+        } elseif ($user->isSiswa()) {
             $siswaId = $user->id;
             
             $tagihanBelumLunas = TagihanSiswa::where('siswa_id', $siswaId)
@@ -160,7 +161,7 @@ class DashboardController extends Controller
                 ],
             ];
 
-        } elseif ($role === 'bendahara') {
+        } elseif ($user->hasRole(['bendahara'])) {
             $bulanIni = Carbon::now()->month;
             $tahunIni = Carbon::now()->year;
             
@@ -192,7 +193,7 @@ class DashboardController extends Controller
                     'color' => 'bg-red-500'
                 ],
             ];
-        } elseif ($role === 'orang_tua') {
+        } elseif ($user->isOrangTua()) {
             $siswaId = $user->siswa_id;
             
             if ($siswaId) {

@@ -2,9 +2,25 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown, Users, Download, Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
-import { useAuth } from './auth/AuthContext';
+import { useAuth, getUserRoles, userHasRole } from './auth/AuthContext';
 import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
 import { getFileUrl } from '../lib/api';
+
+function resolveDashboardPath(user: ReturnType<typeof useAuth>['user']): string {
+  if (!user) return '/login';
+  if (userHasRole(user, 'siswa')) return '/panel/siswa';
+  if (userHasRole(user, 'orang_tua')) return '/panel/siswa';
+  if (userHasRole(user, ['superadmin', 'admin'])) return '/panel';
+  if (userHasRole(user, 'bendahara') && !userHasRole(user, ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'])) {
+    return '/panel/bendahara';
+  }
+  if (userHasRole(user, ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'])) return '/panel/guru';
+  if (userHasRole(user, 'bendahara')) return '/panel/bendahara';
+  // Fallback primary role
+  const roles = getUserRoles(user);
+  if (roles.includes('bendahara')) return '/panel/bendahara';
+  return '/panel';
+}
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +28,8 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const { data: config } = useSistemKonfigurasi();
+  const { isAuthenticated, user } = useAuth();
+  const dashboardPath = resolveDashboardPath(user);
 
   // Menutup dropdown saat klik di luar area
   useEffect(() => {
@@ -33,7 +51,6 @@ export default function Navbar() {
   }, [location.pathname]);
 
   const { theme, setTheme } = useTheme();
-  const { isAuthenticated, user } = useAuth();
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
   const isDirektoriActive = location.pathname === '/guru' || location.pathname === '/unduhan';
@@ -140,7 +157,7 @@ export default function Navbar() {
 
             {isAuthenticated ? (
               <Link 
-                to={user?.role === 'siswa' ? '/panel/siswa' : user?.role === 'bendahara' ? '/panel/bendahara' : ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(user?.role || '') ? '/panel/guru' : '/panel'}
+                to={dashboardPath}
                 className="ml-2 bg-brand-teal hover:bg-brand-teal/90 text-white font-bold px-5 py-2.5 rounded-[15px] text-sm shadow-sm transition-all duration-200"
               >
                 Ke Dashboard
@@ -247,7 +264,7 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <Link
-              to={user?.role === 'siswa' ? '/panel/siswa' : user?.role === 'bendahara' ? '/panel/bendahara' : ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(user?.role || '') ? '/panel/guru' : '/panel'}
+              to={dashboardPath}
               className="block text-center mt-2 bg-brand-teal hover:bg-brand-teal/90 text-white font-bold px-4 py-3.5 rounded-[15px] text-base shadow-sm"
             >
               Ke Dashboard

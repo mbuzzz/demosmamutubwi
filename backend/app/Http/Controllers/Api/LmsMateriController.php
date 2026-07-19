@@ -18,10 +18,10 @@ class LmsMateriController extends Controller
 
         if ($user) {
             $targetKelasId = null;
-            if ($user->role === 'siswa') {
+            if ($user->isSiswa()) {
                 $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
                 if ($kelasObj) $targetKelasId = $kelasObj->id;
-            } elseif ($user->role === 'orang_tua') {
+            } elseif ($user->isOrangTua()) {
                 $siswa = $user->siswa;
                 if ($siswa) {
                     $kelasObj = \App\Models\Kelas::where('nama', $siswa->kelas)->first();

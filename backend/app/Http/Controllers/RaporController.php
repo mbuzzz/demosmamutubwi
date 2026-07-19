@@ -20,9 +20,9 @@ class RaporController extends Controller
         $query = Rapor::with(['siswa', 'nilaiEkskuls.ekskul']);
 
         if ($user) {
-            if ($user->role === 'siswa') {
+            if ($user->isSiswa()) {
                 $query->where('siswa_id', $user->id);
-            } elseif ($user->role === 'orang_tua') {
+            } elseif ($user->isOrangTua()) {
                 $query->where('siswa_id', $user->siswa_id);
             }
         }
@@ -58,10 +58,10 @@ class RaporController extends Controller
 
         $user = auth()->user();
         if ($user) {
-            if ($user->role === 'siswa' && $rapor->siswa_id != $user->id) {
+            if ($user->isSiswa() && $rapor->siswa_id != $user->id) {
                 abort(403, 'Unauthorized');
             }
-            if ($user->role === 'orang_tua' && $rapor->siswa_id != $user->siswa_id) {
+            if ($user->isOrangTua() && $rapor->siswa_id != $user->siswa_id) {
                 abort(403, 'Unauthorized');
             }
         }
@@ -198,10 +198,10 @@ class RaporController extends Controller
         $rapor = Rapor::with('siswa')->findOrFail($id);
         $user = auth()->user();
         if ($user) {
-            if ($user->role === 'siswa' && $rapor->siswa_id != $user->id) {
+            if ($user->isSiswa() && $rapor->siswa_id != $user->id) {
                 abort(403, 'Unauthorized');
             }
-            if ($user->role === 'orang_tua' && $rapor->siswa_id != $user->siswa_id) {
+            if ($user->isOrangTua() && $rapor->siswa_id != $user->siswa_id) {
                 abort(403, 'Unauthorized');
             }
         }

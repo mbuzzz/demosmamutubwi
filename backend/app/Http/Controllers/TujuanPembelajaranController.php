@@ -28,7 +28,7 @@ class TujuanPembelajaranController extends Controller
     private function checkGuruPenugasan($mapelId)
     {
         $user = Auth::user();
-        if ($user->role === 'guru') {
+        if ($user->shouldScopeAsGuru()) {
             $config = SistemKonfigurasi::first();
             $tahunAjaranAktif = $config ? $config->tahun_ajaran_aktif : '2025/2026'; // fallback
 

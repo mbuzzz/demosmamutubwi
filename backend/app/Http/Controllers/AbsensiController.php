@@ -37,9 +37,9 @@ class AbsensiController extends Controller
 
         $user = $request->user();
         if ($user) {
-            if ($user->role === 'siswa') {
+            if ($user->isSiswa()) {
                 $query->where('siswa_id', $user->id);
-            } elseif ($user->role === 'orang_tua') {
+            } elseif ($user->isOrangTua()) {
                 $query->where('siswa_id', $user->siswa_id);
             } else {
                 // Filter by class name (users.kelas is a string column)
@@ -139,7 +139,7 @@ class AbsensiController extends Controller
             // already only siswa_id from absensi; optionally drop non-siswa
             $result = $result->filter(function ($r) use ($users) {
                 $u = $users->get($r['user_id']);
-                return $u && $u->role === 'siswa';
+                return $u && $u->isSiswa();
             })->values();
         }
 
@@ -150,10 +150,10 @@ class AbsensiController extends Controller
     {
         $user = auth()->user();
         if ($user) {
-            if ($user->role === 'siswa' && $user->id != $id) {
+            if ($user->isSiswa() && $user->id != $id) {
                 abort(403, 'Unauthorized');
             }
-            if ($user->role === 'orang_tua' && $user->siswa_id != $id) {
+            if ($user->isOrangTua() && $user->siswa_id != $id) {
                 abort(403, 'Unauthorized');
             }
         }

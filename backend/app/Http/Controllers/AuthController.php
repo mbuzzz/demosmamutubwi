@@ -19,7 +19,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $user = Auth::user();
-            if ($user->role === 'orang_tua') {
+            if ($user->isOrangTua()) {
                 $user->load('siswa');
             }
             return response()->json([
@@ -47,7 +47,7 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         $user = $request->user();
-        if ($user && $user->role === 'orang_tua') {
+        if ($user && $user->isOrangTua()) {
             $user->load('siswa');
         }
         return response()->json($user);
@@ -97,7 +97,7 @@ class AuthController extends Controller
         $user->update($validated);
 
         $freshUser = $user->fresh();
-        if ($freshUser && $freshUser->role === 'orang_tua') {
+        if ($freshUser && $freshUser->isOrangTua()) {
             $freshUser->load('siswa');
         }
 

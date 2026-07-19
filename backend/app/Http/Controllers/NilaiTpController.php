@@ -35,7 +35,7 @@ class NilaiTpController extends Controller
             ->get();
 
         $user = Auth::user();
-        if ($user->role === 'guru') {
+        if ($user->shouldScopeAsGuru()) {
             $config = SistemKonfigurasi::first();
             $tahunAjaranAktif = $config ? $config->tahun_ajaran_aktif : '2025/2026';
             $hasPenugasan = Penugasan::where('guru_id', $user->id)
@@ -93,8 +93,8 @@ class NilaiTpController extends Controller
         ]);
 
         $user = Auth::user();
-        if ($user->role === 'guru') {
-            // Because store receives array of scores, we need to check if the guru teaches this mapel
+        if ($user->shouldScopeAsGuru()) {
+            // Multi-role: cek penugasan mapel tahun aktif
             $hasPenugasan = Penugasan::where('guru_id', $user->id)
                 ->where('mapel_id', $mapelId)
                 ->where('tahun_ajaran', $config->tahun_ajaran_aktif)

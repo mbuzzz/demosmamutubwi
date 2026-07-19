@@ -15,7 +15,7 @@ class NotificationController extends Controller
         }
 
         $userIds = [$user->id];
-        if ($user->role === 'orang_tua' && $user->siswa_id) {
+        if ($user->isOrangTua() && $user->siswa_id) {
             $userIds[] = $user->siswa_id;
         }
 
@@ -37,7 +37,7 @@ class NotificationController extends Controller
         }
 
         $userIds = [$user->id];
-        if ($user->role === 'orang_tua' && $user->siswa_id) {
+        if ($user->isOrangTua() && $user->siswa_id) {
             $userIds[] = $user->siswa_id;
         }
 
