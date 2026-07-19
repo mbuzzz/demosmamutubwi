@@ -155,8 +155,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/absensi/siswa/{id}', [AbsensiController::class, 'rekapSiswa']);
     });
 
-    // Absensi Guru (RFID & manual) — semua staf pengajar bisa lihat, admin bisa edit
-    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah')->group(function () {
+    // Absensi Guru: staf lihat milik sendiri; kepsek/admin/kurikulum lihat semua
+    Route::middleware('role:superadmin,admin,guru,walikelas,kurikulum,kepala_sekolah,bendahara')->group(function () {
         Route::get('/absensi-guru', [AbsensiController::class, 'indexGuru']);
         Route::get('/absensi-guru/rekap', [AbsensiController::class, 'rekapGuru']);
     });
@@ -267,13 +267,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/spmb/form-fields/{id}', [SPMBController::class, 'destroyFormField']);
     });
 
-    // 11. PEMBAYARAN (Superadmin, Admin, Bendahara, Siswa, Orang Tua)
+    // 11. PEMBAYARAN
+    // Tagihan: siswa/ortu (milik sendiri) + finance staff (semua)
     Route::middleware('role:superadmin,admin,bendahara,siswa,orang_tua')->group(function () {
         Route::get('/pembayaran/tagihan', [PembayaranController::class, 'getTagihanSiswa']);
-        Route::get('/pembayaran/rfid/{uid}', [PembayaranController::class, 'getStudentByRfid']);
     });
 
+    // RFID lookup tagihan: HANYA finance (cegah siswa lookup kartu orang lain)
     Route::middleware('role:superadmin,admin,bendahara')->group(function () {
+        Route::get('/pembayaran/rfid/{uid}', [PembayaranController::class, 'getStudentByRfid']);
+
         // Jenis Pembayaran
         Route::get('/pembayaran/jenis', [PembayaranController::class, 'getJenisPembayaran']);
         Route::post('/pembayaran/jenis', [PembayaranController::class, 'storeJenisPembayaran']);

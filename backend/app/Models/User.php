@@ -81,6 +81,18 @@ class User extends Authenticatable
         return $this->hasRole(['superadmin', 'admin', 'kurikulum', 'kepala_sekolah']);
     }
 
+    /** Bisa lihat rekap absensi seluruh staf (bukan hanya absensi sendiri). */
+    public function isAttendanceOversight(): bool
+    {
+        return $this->hasRole(['superadmin', 'admin', 'kurikulum', 'kepala_sekolah']);
+    }
+
+    /** Bisa kelola keuangan (tagihan, bayar, RFID tap bayar). */
+    public function isFinanceStaff(): bool
+    {
+        return $this->hasRole(['superadmin', 'admin', 'bendahara']);
+    }
+
     /**
      * Staf pengajar yang harus di-scope ke data sendiri (jurnal/nilai/jadwal).
      * Multi-role: guru+bendahara dengan primary bendahara tetap di-scope sebagai guru.

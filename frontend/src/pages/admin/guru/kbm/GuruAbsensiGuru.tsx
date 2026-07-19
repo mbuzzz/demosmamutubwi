@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../../lib/api';
+import { useAuth, userHasRole } from '../../../../components/auth/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,10 @@ function useRekapGuru(bulan: number, tahun: number) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function GuruAbsensiGuru() {
+  const { user } = useAuth();
+  // Oversight: lihat semua staf; selain itu hanya absensi sendiri (API juga membatasi)
+  const canSeeAll = userHasRole(user, ['superadmin', 'admin', 'kepala_sekolah', 'kurikulum']);
+
   const today = new Date().toISOString().split('T')[0];
   const [tab, setTab] = useState<'harian' | 'rekap'>('harian');
   const [tanggal, setTanggal] = useState(today);
@@ -129,7 +134,12 @@ export default function GuruAbsensiGuru() {
   const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 
   return (
-    <AdminLayout title="Absensi Guru & Staf">
+    <AdminLayout title={canSeeAll ? 'Absensi Guru & Staf' : 'Absensi Saya (Staf)'}>
+      {!canSeeAll && (
+        <div className="mb-4 rounded-xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-3 text-xs text-indigo-800 dark:text-indigo-200 font-semibold">
+          Anda melihat <strong>absensi pribadi</strong>. Rekap seluruh staf tersedia untuk Kepala Sekolah / Kurikulum / Admin.
+        </div>
+      )}
       {/* ── Stat Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[

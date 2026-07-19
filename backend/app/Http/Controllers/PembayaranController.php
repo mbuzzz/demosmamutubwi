@@ -96,11 +96,22 @@ class PembayaranController extends Controller
                 $query->where('siswa_id', $user->id);
             } elseif ($user->isOrangTua()) {
                 $query->where('siswa_id', $user->siswa_id);
-            } else {
+            } elseif ($user->isFinanceStaff()) {
+                // Bendahara / admin: filter opsional by siswa / kelas
                 $studentId = $request->input('siswa_id') ?: $request->input('user_id');
                 if ($studentId) {
                     $query->where('siswa_id', $studentId);
                 }
+                $kelas = $request->input('kelas');
+                if ($kelas) {
+                    $query->whereHas('siswa', fn ($q) => $q->where('kelas', $kelas));
+                }
+            } else {
+                // Bukan finance & bukan siswa/ortu
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Anda tidak memiliki akses data tagihan.',
+                ], 403);
             }
         }
 
@@ -138,6 +149,17 @@ class PembayaranController extends Controller
 
         $jenis = JenisPembayaran::findOrFail($request->jenis_pembayaran_id);
         $nominal = $request->nominal_tagihan ?? $jenis->nominal_default;
+
+        // Pastikan semua ID benar-benar role siswa
+        $invalid = User::whereIn('id', $request->siswa_ids)
+            ->get()
+            ->filter(fn ($u) => !$u->isSiswa());
+        if ($invalid->isNotEmpty()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Beberapa ID bukan akun siswa: ' . $invalid->pluck('name')->implode(', '),
+            ], 422);
+        }
 
         DB::beginTransaction();
         try {
@@ -390,8 +412,16 @@ class PembayaranController extends Controller
         }
     }
 
-    public function getStudentByRfid($uid)
+    public function getStudentByRfid(Request $request, $uid)
     {
+        $actor = $request->user();
+        if ($actor && !$actor->isFinanceStaff()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hanya bendahara/admin yang dapat lookup RFID pembayaran.',
+            ], 403);
+        }
+
         $kartu = \App\Models\KartuRfid::where('uid', $uid)->with('user')->first();
         
         if (!$kartu || !$kartu->user || !$kartu->user->isSiswa()) {

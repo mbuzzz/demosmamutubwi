@@ -464,9 +464,11 @@ class AbsensiController extends Controller
 
     /**
      * List absensi guru — harian atau rentang tanggal.
+     * Staf biasa: hanya absensi sendiri. Oversight: semua staf.
      */
     public function indexGuru(Request $request)
     {
+        $auth = $request->user();
         $query = AbsensiGuru::with('user');
 
         $tanggal   = $request->query('tanggal');
@@ -482,8 +484,15 @@ class AbsensiController extends Controller
             $query->whereDate('tanggal', Carbon::today()->toDateString());
         }
 
+        // Multi-role: guru/wali/bendahara hanya lihat diri sendiri
+        if ($auth && !$auth->isAttendanceOversight()) {
+            $query->where('user_id', $auth->id);
+        } elseif ($request->filled('user_id')) {
+            $query->where('user_id', $request->query('user_id'));
+        }
+
         $search = $request->query('search');
-        if ($search) {
+        if ($search && $auth && $auth->isAttendanceOversight()) {
             $query->whereHas('user', fn ($q) =>
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('nip_nisn', 'like', "%{$search}%")
@@ -498,10 +507,11 @@ class AbsensiController extends Controller
      */
     public function rekapGuru(Request $request)
     {
+        $auth = $request->user();
         $bulan = (int) $request->query('bulan', Carbon::now()->month);
         $tahun = (int) $request->query('tahun', Carbon::now()->year);
 
-        $rows = AbsensiGuru::query()
+        $query = AbsensiGuru::query()
             ->select(
                 'user_id',
                 DB::raw("COUNT(CASE WHEN status_masuk = 'hadir' THEN 1 END) as hadir"),
@@ -511,9 +521,13 @@ class AbsensiController extends Controller
                 DB::raw("COUNT(CASE WHEN status_masuk = 'terlambat' THEN 1 END) as terlambat")
             )
             ->whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
-            ->groupBy('user_id')
-            ->get();
+            ->whereYear('tanggal', $tahun);
+
+        if ($auth && !$auth->isAttendanceOversight()) {
+            $query->where('user_id', $auth->id);
+        }
+
+        $rows = $query->groupBy('user_id')->get();
 
         $userIds = $rows->pluck('user_id')->filter()->unique()->values();
         $users   = User::whereIn('id', $userIds)->get()->keyBy('id');
@@ -525,6 +539,7 @@ class AbsensiController extends Controller
                 'name'            => $u?->name ?? '—',
                 'nip_nisn'        => $u?->nip_nisn ?? '',
                 'role'            => $u?->role ?? '',
+                'roles'           => $u?->all_roles ?? [],
                 'jabatan'         => $u?->jabatan ?? '',
                 'total_hadir'     => (int) $row->hadir,
                 'total_izin'      => (int) $row->izin,
@@ -555,6 +570,13 @@ class AbsensiController extends Controller
             'status_masuk'=> 'required|in:hadir,izin,sakit,alpha,terlambat',
             'catatan'     => 'nullable|string',
         ]);
+
+        $target = User::findOrFail($validated['user_id']);
+        if ($target->isSiswa() || $target->isOrangTua()) {
+            return response()->json([
+                'message' => 'Target absensi harus staf/pegawai, bukan siswa atau orang tua.',
+            ], 422);
+        }
 
         if (!empty($validated['jam_masuk']) && strlen($validated['jam_masuk']) === 5) {
             $validated['jam_masuk'] .= ':00';
