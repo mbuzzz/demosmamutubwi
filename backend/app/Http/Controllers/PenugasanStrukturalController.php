@@ -83,6 +83,7 @@ class PenugasanStrukturalController extends Controller
 
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+        $validated['tahun_ajaran'] = $tahunAjaran;
 
         // Multi jabatan: boleh beberapa struktural/user/tahun, tapi unik per role_akses
         // (kecuali walikelas: unik per kelas)
@@ -165,6 +166,7 @@ class PenugasanStrukturalController extends Controller
 
         $config = SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
+        $validated['tahun_ajaran'] = $tahunAjaran;
 
         $dupQuery = PenugasanStruktural::where('user_id', $validated['user_id'])
             ->where('tahun_ajaran', $tahunAjaran)
