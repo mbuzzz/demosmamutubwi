@@ -31,6 +31,12 @@ class DashboardController extends Controller
             // Total Kelas
             $stats['total_kelas'] = Kelas::count();
 
+            // Pendaftar SPMB
+            $stats['total_pendaftar'] = \App\Models\Pendaftar::count();
+            $stats['total_pendaftar_inden'] = \App\Models\Pendaftar::whereHas('gelombang', function($q) {
+                $q->where('nama', 'like', '%inden%');
+            })->count();
+
             // Total Tagihan / Kas Masuk (simplification: total sum of successful transactions)
             $stats['total_kas_masuk'] = TransaksiPembayaran::where('status', 'berhasil')->sum('jumlah_bayar');
 
@@ -61,6 +67,18 @@ class DashboardController extends Controller
                     'value' => $stats['total_kelas'],
                     'icon' => 'BookOpen',
                     'color' => 'bg-purple-500'
+                ],
+                [
+                    'name' => 'Total Pendaftar',
+                    'value' => $stats['total_pendaftar'],
+                    'icon' => 'UserPlus',
+                    'color' => 'bg-indigo-500'
+                ],
+                [
+                    'name' => 'Pendaftar Inden',
+                    'value' => $stats['total_pendaftar_inden'],
+                    'icon' => 'Users',
+                    'color' => 'bg-pink-500'
                 ],
                 [
                     'name' => 'Kas Masuk',

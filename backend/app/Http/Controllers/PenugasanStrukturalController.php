@@ -59,10 +59,12 @@ class PenugasanStrukturalController extends Controller
             'kepala_sekolah' => 1,
             'superadmin'     => 2,
             'kurikulum'      => 3,
-            'walikelas'      => 4,
-            'bendahara'      => 5,
-            'admin'          => 6,
-            'guru'           => 7,
+            'waka_kesiswaan' => 4,
+            'waka_humas'     => 5,
+            'walikelas'      => 6,
+            'bendahara'      => 7,
+            'admin'          => 8,
+            'guru'           => 9,
         ];
 
         $sorted = $result->sortBy(fn ($item) => $roleOrder[$item['role_akses']] ?? 99)->values();
@@ -74,7 +76,7 @@ class PenugasanStrukturalController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'role_akses' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,admin',
+            'role_akses' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,waka_kesiswaan,waka_humas,bendahara,admin',
             'jabatan' => 'required_unless:role_akses,walikelas|string|max:255|nullable',
             'kelas_id' => 'required_if:role_akses,walikelas|exists:kelas,id|nullable',
         ]);
@@ -156,7 +158,7 @@ class PenugasanStrukturalController extends Controller
 
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'role_akses' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,bendahara,admin',
+            'role_akses' => 'required|string|in:superadmin,guru,walikelas,kepala_sekolah,kurikulum,waka_kesiswaan,waka_humas,bendahara,admin',
             'jabatan' => 'required_unless:role_akses,walikelas|string|max:255|nullable',
             'kelas_id' => 'required_if:role_akses,walikelas|exists:kelas,id|nullable',
         ]);

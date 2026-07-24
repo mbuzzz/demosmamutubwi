@@ -124,23 +124,17 @@ export function usePendaftar(id: string | undefined) {
 export function useCreatePendaftar() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: {
-      gelombang_id: string;
-      nisn: string;
-      nama_lengkap: string;
-      asal_sekolah: string;
-      email: string;
-      no_hp: string;
-      alamat: string;
-      data_form?: Record<string, unknown>;
-    }) => {
+    mutationFn: async (data: FormData | any) => {
+      if (data instanceof FormData) {
+        const res = await api.post('/spmb/daftar', data, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return res.data;
+      }
       const res = await api.post('/spmb/daftar', data);
       return res.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['spmb-pendaftar'] }),
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['spmb_pendaftar'] }),
   });
 }
 

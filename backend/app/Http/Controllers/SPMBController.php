@@ -111,7 +111,6 @@ class SPMBController extends Controller
             'email' => 'required|email|max:255',
             'no_hp' => 'required|string|max:20',
             'alamat' => 'required|string',
-            'data_form' => 'nullable|array',
         ]);
 
         $gelombang = GelombangPendaftaran::findOrFail($validated['gelombang_id']);
@@ -129,9 +128,27 @@ class SPMBController extends Controller
             return response()->json(['message' => 'Kuota pendaftaran sudah penuh.'], 422);
         }
 
+        // Handle dynamic form data including files
+        $dataForm = [];
+        $formFields = \App\Models\FormField::where('gelombang_id', $gelombang->id)
+            ->orWhereNull('gelombang_id')
+            ->get();
+
+        foreach ($formFields as $field) {
+            $key = $field->label;
+            
+            if ($field->field_type === 'file' && $request->hasFile($key)) {
+                $path = $request->file($key)->store('spmb_files', 'public');
+                $dataForm[$key] = '/storage/' . $path;
+            } else if ($request->has($key)) {
+                $dataForm[$key] = $request->input($key);
+            }
+        }
+
+        $validated['data_form'] = !empty($dataForm) ? $dataForm : null;
         $validated['status'] = 'baru';
 
-        $pendaftar = Pendaftar::create($validated);
+        $pendaftar = \App\Models\Pendaftar::create($validated);
 
         return response()->json([
             'message' => 'Pendaftaran berhasil dikirim',

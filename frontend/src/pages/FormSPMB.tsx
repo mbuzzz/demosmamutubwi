@@ -33,12 +33,22 @@ export default function FormSPMB() {
     e.preventDefault();
     if (!gelombangId) return;
 
+    const payload = new FormData();
+    payload.append('gelombang_id', gelombangId);
+    Object.entries(formData).forEach(([key, value]) => {
+      payload.append(key, value);
+    });
+
+    Object.entries(extraData).forEach(([key, value]) => {
+      if (value instanceof File) {
+        payload.append(key, value);
+      } else if (value) {
+        payload.append(key, String(value));
+      }
+    });
+
     try {
-      await createPendaftar.mutateAsync({
-        gelombang_id: gelombangId,
-        ...formData,
-        data_form: Object.keys(extraData).length > 0 ? extraData : undefined,
-      });
+      await createPendaftar.mutateAsync(payload);
       toast.success('Pendaftaran Berhasil! Silakan cek email untuk informasi selanjutnya.');
       if (gelombang.redirect_url) {
         window.location.href = gelombang.redirect_url;
@@ -168,7 +178,7 @@ export default function FormSPMB() {
                       required={field.is_required}
                       onChange={e => {
                         const file = e.target.files?.[0];
-                        if (file) setExtraData({ ...extraData, [field.label]: file.name });
+                        if (file) setExtraData({ ...extraData, [field.label]: file });
                       }}
                       className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] focus:ring-2 focus:ring-brand-teal focus:outline-none transition-all"
                     />

@@ -26,6 +26,8 @@ const ROLE_LABELS: Record<string, string> = {
   kurikulum: 'Kurikulum',
   bendahara: 'Bendahara',
   admin: 'Staf Admin / TU',
+  waka_kesiswaan: 'Waka Kesiswaan',
+  waka_humas: 'Waka Humas',
 };
 
 export default function AdminPenugasanList() {
@@ -404,6 +406,8 @@ export default function AdminPenugasanList() {
                     <option value="walikelas">Wali Kelas</option>
                     <option value="kepala_sekolah">Kepala Sekolah</option>
                     <option value="kurikulum">Waka Kurikulum</option>
+                    <option value="waka_kesiswaan">Waka Kesiswaan</option>
+                    <option value="waka_humas">Waka Humas</option>
                     <option value="bendahara">Bendahara</option>
                     <option value="admin">Staf Admin / TU</option>
                   </select>
