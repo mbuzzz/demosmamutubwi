@@ -1,48 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Save, CreditCard, QrCode, FileText } from 'lucide-react';
-import { useBankSettings, updateBankSettings } from '../../../stores/bankSettingsStore';
+import { Save, CreditCard, QrCode, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSistemKonfigurasi, useUpdateSistemKonfigurasi } from '../../../hooks/useSistemKonfigurasi';
+import { getFileUrl } from '../../../lib/api';
 
 export default function AdminSettingsBank() {
-  const settings = useBankSettings();
-  const [bankName, setBankName] = useState(settings.bankName);
-  const [noRekening, setNoRekening] = useState(settings.noRekening);
-  const [atasNama, setAtasNama] = useState(settings.atasNama);
-  const [qrisImage, setQrisImage] = useState(settings.qrisImage);
+  const { data: settings, isLoading } = useSistemKonfigurasi();
+  const updateSettings = useUpdateSistemKonfigurasi();
+  
+  const [bankName, setBankName] = useState('');
+  const [noRekening, setNoRekening] = useState('');
+  const [atasNama, setAtasNama] = useState('');
+  const [qrisImage, setQrisImage] = useState<File | null>(null);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (settings) {
+      setBankName(settings.bank_nama || '');
+      setNoRekening(settings.bank_rekening || '');
+      setAtasNama(settings.bank_atas_nama || '');
+    }
+  }, [settings]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bankName || !noRekening || !atasNama) {
       toast.error('Lengkapi semua data transfer bank');
       return;
     }
-    updateBankSettings({
-      bankName,
-      noRekening,
-      atasNama,
-      qrisImage
-    });
-    toast.success('Pengaturan Transfer & QRIS berhasil disimpan');
+
+    try {
+      const payload = new FormData();
+      payload.append('bank_nama', bankName);
+      payload.append('bank_rekening', noRekening);
+      payload.append('bank_atas_nama', atasNama);
+      if (qrisImage) {
+        payload.append('qris_image', qrisImage);
+      }
+      
+      await updateSettings.mutateAsync(payload);
+      toast.success('Pengaturan Transfer & QRIS berhasil disimpan');
+    } catch {
+      toast.error('Gagal menyimpan pengaturan');
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Simulate file upload by setting a mock data URL or standard local name
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setQrisImage(reader.result);
-          toast.success('QRIS berhasil diunggah (Mock)');
-        }
-      };
-      reader.readAsDataURL(file);
+      setQrisImage(file);
     }
   };
 
   return (
     <AdminLayout title="Pengaturan Rekening & QRIS">
+      {isLoading ? (
+        <div className="flex justify-center p-10"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>
+      ) : (
       <div className="max-w-3xl space-y-6">
         <form onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -95,11 +109,10 @@ export default function AdminSettingsBank() {
               
               <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-800/30 text-center space-y-3">
                 <img 
-                  src={qrisImage} 
+                  src={qrisImage ? URL.createObjectURL(qrisImage) : (settings?.qris_image ? getFileUrl(settings.qris_image) : 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=SMAS-MUHAMMADIYAH-1-BANYUWANGI')} 
                   alt="QRIS Barcode" 
                   className="w-40 h-40 object-contain rounded-lg border border-slate-200 dark:border-slate-700 bg-white"
                   onError={(e) => {
-                    // fall back to default mock QRIS
                     (e.target as HTMLImageElement).src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=SMAS-MUHAMMADIYAH-1-BANYUWANGI';
                   }}
                 />
@@ -128,12 +141,13 @@ export default function AdminSettingsBank() {
           </div>
 
           <div className="flex justify-end">
-            <button type="submit" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95">
-              <Save className="w-4 h-4" /> Simpan Pengaturan Bank & QRIS
+            <button type="submit" disabled={updateSettings.isPending} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 disabled:opacity-50">
+              {updateSettings.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Simpan Pengaturan Bank & QRIS
             </button>
           </div>
         </form>
       </div>
+      )}
     </AdminLayout>
   );
 }

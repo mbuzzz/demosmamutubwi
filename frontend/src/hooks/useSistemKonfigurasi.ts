@@ -24,6 +24,10 @@ export interface SistemKonfigurasiRecord {
   spmb_alur_tes?: string;
   spmb_alur_pengumuman?: string;
   spmb_biaya_info?: string;
+  bank_nama?: string;
+  bank_rekening?: string;
+  bank_atas_nama?: string;
+  qris_image?: string;
   kurikulum_aktif?: {
     id: string;
     nama: string;
@@ -70,6 +74,9 @@ export function useUpdateSistemKonfigurasi() {
               | 'spmb_alur_tes'
               | 'spmb_alur_pengumuman'
               | 'spmb_biaya_info'
+              | 'bank_nama'
+              | 'bank_rekening'
+              | 'bank_atas_nama'
             >
           >
     ) => {

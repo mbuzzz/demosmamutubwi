@@ -43,6 +43,10 @@ class SistemKonfigurasiController extends Controller
             'spmb_alur_tes' => 'sometimes|nullable|string',
             'spmb_alur_pengumuman' => 'sometimes|nullable|string',
             'spmb_biaya_info' => 'sometimes|nullable|string',
+            // Bank Settings
+            'bank_nama' => 'sometimes|nullable|string',
+            'bank_rekening' => 'sometimes|nullable|string',
+            'bank_atas_nama' => 'sometimes|nullable|string',
         ]);
 
         $config = SistemKonfigurasi::first();
@@ -60,6 +64,11 @@ class SistemKonfigurasiController extends Controller
         if ($request->hasFile('kop_surat')) {
             $path = $request->file('kop_surat')->store('images', 'public');
             $config->update(['kop_surat' => '/storage/' . $path]);
+        }
+
+        if ($request->hasFile('qris_image')) {
+            $path = $request->file('qris_image')->store('images', 'public');
+            $config->update(['qris_image' => '/storage/' . $path]);
         }
 
         return response()->json([
