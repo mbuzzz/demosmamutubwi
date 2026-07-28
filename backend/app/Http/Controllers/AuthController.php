@@ -17,11 +17,27 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
             $user = Auth::user();
             if ($user->isOrangTua()) {
                 $user->load('siswa');
             }
+
+            // Mobile clients (React Native / Expo) authenticate via Bearer token
+            // because cookie-based sessions are not reliable outside the browser.
+            $isMobile = $request->header('X-Client') === 'mobile';
+
+            if ($isMobile) {
+                $token = $user->createToken('mobile-app')->plainTextToken;
+
+                return response()->json([
+                    'message' => 'Login successful',
+                    'token' => $token,
+                    'user' => $user,
+                ]);
+            }
+
+            $request->session()->regenerate();
+
             return response()->json([
                 'message' => 'Login successful',
                 'user' => $user,
@@ -35,6 +51,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Token-based (mobile): revoke the current access token only.
+        $token = $request->user()?->currentAccessToken();
+        if ($token && !($token instanceof \Laravel\Sanctum\TransientToken)) {
+            $token->delete();
+
+            return response()->json([
+                'message' => 'Logged out successfully',
+            ]);
+        }
+
+        // Session-based (web SPA): full session invalidation.
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

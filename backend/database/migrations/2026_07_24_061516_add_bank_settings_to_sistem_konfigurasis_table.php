@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sistem_konfigurasis', function (Blueprint $table) {
+        Schema::table('sistem_konfigurasi', function (Blueprint $table) {
             $table->string('bank_nama')->nullable();
             $table->string('bank_rekening')->nullable();
             $table->string('bank_atas_nama')->nullable();
@@ -21,7 +21,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('sistem_konfigurasis', function (Blueprint $table) {
+        Schema::table('sistem_konfigurasi', function (Blueprint $table) {
             $table->dropColumn(['bank_nama', 'bank_rekening', 'bank_atas_nama', 'qris_image']);
         });
     }

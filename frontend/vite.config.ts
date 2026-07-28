@@ -43,6 +43,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 5000000, // 5 MB
         // SPA navigate fallback
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/sanctum/, /^\/storage/],

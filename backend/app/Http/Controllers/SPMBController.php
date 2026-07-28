@@ -136,12 +136,13 @@ class SPMBController extends Controller
 
         foreach ($formFields as $field) {
             $key = $field->label;
+            $requestKey = str_replace(' ', '_', $key); // PHP converts spaces to underscores in file/post keys
             
-            if ($field->field_type === 'file' && $request->hasFile($key)) {
-                $path = $request->file($key)->store('spmb_files', 'public');
+            if ($field->field_type === 'file' && $request->hasFile($requestKey)) {
+                $path = $request->file($requestKey)->store('spmb_files', 'public');
                 $dataForm[$key] = '/storage/' . $path;
-            } else if ($request->has($key)) {
-                $dataForm[$key] = $request->input($key);
+            } else if ($request->has($requestKey)) {
+                $dataForm[$key] = $request->input($requestKey);
             }
         }
 

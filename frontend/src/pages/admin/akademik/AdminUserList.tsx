@@ -1,5 +1,5 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Plus, Search, Edit, Trash2, Download } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Download, ScanLine } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -73,7 +73,8 @@ export default function AdminUserList() {
   const filteredUsers = users.filter((u: any) => 
     u.name.toLowerCase().includes(search.toLowerCase()) || 
     u.email.toLowerCase().includes(search.toLowerCase()) ||
-    (u.nip_nisn && u.nip_nisn.includes(search))
+    (u.nip_nisn && u.nip_nisn.includes(search)) ||
+    (u.uid_rfid && u.uid_rfid.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -116,7 +117,7 @@ export default function AdminUserList() {
                 type="text" 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Cari nama, email, NIP/NISN..." 
+                placeholder="Cari nama, email, NIP/NISN, UID RFID..." 
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium dark:text-white transition-all"
               />
             </div>
@@ -185,16 +186,22 @@ export default function AdminUserList() {
                             })}
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-300">
-                          <div className="flex flex-col gap-0.5">
-                            <span>{u.kelas ? `Kelas ${u.kelas}` : u.jabatan || '—'}</span>
-                            {mapelSummary && (
-                              <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold" title={mapelSummary}>
-                                Mapel: {mapelSummary.length > 48 ? mapelSummary.slice(0, 48) + '…' : mapelSummary}
-                              </span>
-                            )}
-                          </div>
-                        </td>
+                         <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-300">
+                           <div className="flex flex-col gap-0.5">
+                             <span>{u.kelas ? `Kelas ${u.kelas}` : u.jabatan || '—'}</span>
+                             {u.uid_rfid && (
+                               <span className="inline-flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                                 <ScanLine className="w-3 h-3" />
+                                 {u.uid_rfid}
+                               </span>
+                             )}
+                             {mapelSummary && (
+                               <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold" title={mapelSummary}>
+                                 Mapel: {mapelSummary.length > 48 ? mapelSummary.slice(0, 48) + '…' : mapelSummary}
+                               </span>
+                             )}
+                           </div>
+                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Link to={`/panel/users/edit/${u.id}`} className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"><Edit className="w-4 h-4" /></Link>

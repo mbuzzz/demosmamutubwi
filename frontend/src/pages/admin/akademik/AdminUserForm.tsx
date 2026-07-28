@@ -68,10 +68,6 @@ export default function AdminUserForm() {
   const canHaveMapel = ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(role)
     || roles.some((r) => ['guru', 'walikelas', 'kurikulum', 'kepala_sekolah'].includes(r));
 
-  const randomUid = () => {
-    return 'RF:' + Array.from({length: 4}, () => Math.floor(Math.random()*256).toString(16).padStart(2, '0').toUpperCase()).join(':');
-  };
-
   const handleRoleCheckboxChange = (r: string) => {
     if (r === role) return; // primary always checked
     if (roles.includes(r)) {
@@ -307,28 +303,20 @@ export default function AdminUserForm() {
             
             {role === 'siswa' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">UID Kartu RFID</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={rfidUid}
-                      onChange={e => setRfidUid(e.target.value)}
-                      placeholder="RF:XX:XX:XX:XX" 
-                      className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono dark:text-white" 
-                    />
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        setRfidUid(randomUid());
-                        toast.success('Kartu RFID Terdeteksi (Mock)!');
-                      }}
-                      className="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-bold px-4 rounded-lg text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap dark:bg-indigo-950 dark:border-indigo-900 dark:text-indigo-400"
-                    >
-                      <ScanLine className="w-4 h-4" /> Scan
-                    </button>
-                  </div>
-                </div>
+                 <div>
+                   <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">UID Kartu RFID</label>
+                   <div className="relative">
+                     <ScanLine className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                     <input 
+                       type="text" 
+                       value={rfidUid}
+                       onChange={e => setRfidUid(e.target.value)}
+                       placeholder="Contoh: A1B2C3D4 atau RF:XX:XX:XX:XX" 
+                       className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono dark:text-white" 
+                     />
+                   </div>
+                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Masukkan UID kartu RFID yang sudah terdaftar di mesin tap. Kosongkan jika belum ada kartu.</p>
+                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">NIS / NISN</label>
                   <input type="text" value={nipNisn} onChange={e => setNipNisn(e.target.value)} placeholder="Nomor Induk Siswa Nasional" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
@@ -366,28 +354,20 @@ export default function AdminUserForm() {
                   <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">NIP / NBM</label>
                   <input type="text" value={nipNisn} onChange={e => setNipNisn(e.target.value)} placeholder="Nomor Induk Pegawai" className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">UID Kartu RFID (Staf)</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={rfidUid}
-                      onChange={e => setRfidUid(e.target.value)}
-                      placeholder="RF:XX:XX:XX:XX" 
-                      className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono dark:text-white" 
-                    />
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        setRfidUid(randomUid());
-                        toast.success('Kartu RFID Terdeteksi (Mock)!');
-                      }}
-                      className="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-bold px-4 rounded-lg text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap dark:bg-indigo-950 dark:border-indigo-900 dark:text-indigo-400"
-                    >
-                      <ScanLine className="w-4 h-4" /> Scan
-                    </button>
-                  </div>
-                </div>
+                 <div>
+                   <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">UID Kartu RFID (Staf)</label>
+                   <div className="relative">
+                     <ScanLine className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                     <input 
+                       type="text" 
+                       value={rfidUid}
+                       onChange={e => setRfidUid(e.target.value)}
+                       placeholder="Contoh: A1B2C3D4 atau RF:XX:XX:XX:XX" 
+                       className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono dark:text-white" 
+                     />
+                   </div>
+                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Masukkan UID kartu RFID yang sudah terdaftar di mesin tap. Kosongkan jika belum ada kartu.</p>
+                 </div>
                 {isStaffRole && (
                   <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-indigo-900 dark:text-indigo-300 mb-1.5">

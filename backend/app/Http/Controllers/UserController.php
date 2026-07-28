@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\KartuRfid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -93,6 +94,40 @@ class UserController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * Sinkronkan uid_rfid user ke tabel kartu_rfids.
+     * Jika uid_rfid diisi → buat/update kartu aktif.
+     * Jika uid_rfid dihapus/dikosongkan → nonaktifkan kartu lama.
+     */
+    private function syncRfidCard(User $user, ?string $uidRfid): void
+    {
+        // Nonaktifkan kartu lama untuk user ini
+        KartuRfid::where('siswa_id', $user->id)->orWhere('user_id', $user->id)
+            ->update(['status' => 'nonaktif']);
+
+        if (!$uidRfid) return;
+
+        // Tentukan kolom relasi: siswa → siswa_id, staf/guru → user_id
+        $isSiswa = $user->isSiswa();
+        $data = [
+            'uid'    => $uidRfid,
+            'status' => 'aktif',
+        ];
+        if ($isSiswa) {
+            $data['siswa_id'] = $user->id;
+            $data['user_id'] = null;
+        } else {
+            $data['user_id'] = $user->id;
+            $data['siswa_id'] = null;
+        }
+
+        // Update kartu yang sudah ada dengan UID ini, atau buat baru
+        KartuRfid::updateOrCreate(
+            ['uid' => $uidRfid],
+            $data
+        );
+    }
+
     public function index(Request $request)
     {
         $query = User::query()->with(['penugasans.mapel', 'penugasans.kelas']);
@@ -111,7 +146,8 @@ class UserController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('username', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('nip_nisn', 'like', "%{$search}%");
+                  ->orWhere('nip_nisn', 'like', "%{$search}%")
+                  ->orWhere('uid_rfid', 'like', "%{$search}%");
             });
         }
 
@@ -142,6 +178,7 @@ class UserController extends Controller
         $user = User::create($validated);
 
         $this->syncSiswaRiwayat($user);
+        $this->syncRfidCard($user, $user->uid_rfid);
 
         $user->load(['penugasans.mapel', 'penugasans.kelas']);
 
@@ -207,6 +244,7 @@ class UserController extends Controller
 
         $user->update($validated);
         $this->syncSiswaRiwayat($user->fresh());
+        $this->syncRfidCard($user->fresh(), $user->uid_rfid);
 
         $user->load(['penugasans.mapel', 'penugasans.kelas', 'siswa']);
 
@@ -219,6 +257,11 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+        
+        // Nonaktifkan kartu RFID terkait
+        KartuRfid::where('siswa_id', $user->id)->orWhere('user_id', $user->id)
+            ->update(['status' => 'nonaktif']);
+        
         $user->delete();
 
         return response()->json([

@@ -4,10 +4,10 @@ import { toast } from 'sonner';
 
 export interface RfidCard {
   id: number;
-  user_id: number;
+  user_id: number | null;
+  siswa_id: number | null;
   uid_rfid: string;
   status: 'aktif' | 'nonaktif' | 'hilang';
-  pin?: string;
   created_at: string;
   updated_at: string;
   user?: {
