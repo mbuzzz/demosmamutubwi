@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, SmartphoneNfc, CheckCircle2, XCircle, Lock, Clock } from 'lucide-react';
+import { ArrowLeft, SmartphoneNfc, CheckCircle2, XCircle, Lock, Clock, Zap, ZapOff } from 'lucide-react';
 import { STATUS_ABSENSI_BADGE } from '../types/absensi';
 import { useVerifyGatekeeperPin } from '../hooks/useRfid';
 import { useTapAbsensi } from '../hooks/useAbsensi';
@@ -18,15 +18,32 @@ export default function TapAbsensi() {
   const rfidInputRef = useRef<HTMLInputElement>(null);
   const [scanCount, setScanCount] = useState(0);
   const [rfidValue, setRfidValue] = useState('');
+  const [autoMode, setAutoMode] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [lastScans, setLastScans] = useState<Array<{nama: string; status: string; waktu: string}>>([]);
   const rfidTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoBackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const verifyGatekeeper = useVerifyGatekeeperPin();
   const tapAbsensi = useTapAbsensi();
 
+  // Durasi tampil sukses/error sebelum kembali ke scan (ms)
+  const SUCCESS_DISPLAY_MS = 1200;
+  const ERROR_DISPLAY_MS = 2000;
+
+  const resetToScan = useCallback(() => {
+    setStep('scan');
+    setScanResult(null);
+    setScanError('');
+    setRfidValue('');
+    setIsProcessing(false);
+    setTimeout(() => rfidInputRef.current?.focus(), 100);
+  }, []);
+
   const processRfidScan = useCallback((uid: string) => {
-    if (!uid || uid.length < 4) return;
+    if (!uid || uid.length < 4 || isProcessing) return;
     const normalized = uid.toUpperCase().trim();
+    setIsProcessing(true);
 
     tapAbsensi.mutate(normalized, {
       onSuccess: (data) => {
@@ -34,24 +51,36 @@ export default function TapAbsensi() {
         setStep('success');
         setScanCount(prev => prev + 1);
         
-        if (autoBackRef.current) clearTimeout(autoBackRef.current);
-        autoBackRef.current = setTimeout(() => {
-          setStep('scan');
-          setScanResult(null);
-          setTimeout(() => rfidInputRef.current?.focus(), 100);
-        }, 3000);
+        // Tambah ke riwayat scan terakhir (max 5)
+        const nama = data.user?.name || data.nama || '—';
+        const statusLabel = STATUS_ABSENSI_BADGE[data.tipe]?.label || data.tipe || '—';
+        const jam = data.jam || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        setLastScans(prev => [{ nama, status: statusLabel, waktu: jam }, ...prev].slice(0, 5));
+        
+        if (autoMode) {
+          // Auto mode: langsung kembali ke scan setelah delay singkat
+          if (autoBackRef.current) clearTimeout(autoBackRef.current);
+          autoBackRef.current = setTimeout(resetToScan, SUCCESS_DISPLAY_MS);
+        }
       },
       onError: (error: any) => {
         const msg = error.response?.data?.message || 'Kartu RFID tidak terdaftar atau tidak aktif';
         setScanError(msg);
         setStep('error');
-        if (autoBackRef.current) clearTimeout(autoBackRef.current);
-        autoBackRef.current = setTimeout(() => setStep('scan'), 2500);
-        toast.error(msg);
+        
+        // Tambah ke riwayat dengan status error
+        setLastScans(prev => [{ nama: normalized, status: 'GAGAL', waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) }, ...prev].slice(0, 5));
+        
+        if (autoMode) {
+          if (autoBackRef.current) clearTimeout(autoBackRef.current);
+          autoBackRef.current = setTimeout(resetToScan, ERROR_DISPLAY_MS);
+        } else {
+          toast.error(msg);
+        }
       }
     });
 
-  }, []);
+  }, [isProcessing, autoMode, resetToScan]);
 
   useEffect(() => {
     if (rfidValue.length < 2) return;
@@ -69,6 +98,13 @@ export default function TapAbsensi() {
     const timer = setInterval(() => setWaktu(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Auto-focus saat masuk ke step scan
+  useEffect(() => {
+    if (step === 'scan') {
+      setTimeout(() => rfidInputRef.current?.focus(), 100);
+    }
+  }, [step]);
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,29 +125,39 @@ export default function TapAbsensi() {
 
   const handleRfidScan = (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const input = form.elements.namedItem('rfidUid') as HTMLInputElement;
-    if (input.value.trim()) {
-      processRfidScan(input.value);
+    if (rfidValue.trim()) {
+      processRfidScan(rfidValue);
       setRfidValue('');
-      input.value = '';
     }
   };
 
   const handleScanAgain = () => {
     if (autoBackRef.current) clearTimeout(autoBackRef.current);
-    setStep('scan');
-    setScanResult(null);
-    setScanError('');
-    setTimeout(() => rfidInputRef.current?.focus(), 300);
+    resetToScan();
+  };
+
+  const toggleAutoMode = () => {
+    setAutoMode(prev => !prev);
+    if (!autoMode) {
+      // Kalau baru nyalakan auto mode, langsung ke scan
+      resetToScan();
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white mb-6 transition-colors text-sm font-medium">
-          <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm font-medium">
+            <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
+          </Link>
+          {step !== 'pin' && (
+            <button onClick={toggleAutoMode} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${autoMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'}`}>
+              {autoMode ? <Zap className="w-3.5 h-3.5" /> : <ZapOff className="w-3.5 h-3.5" />}
+              {autoMode ? 'AUTO' : 'MANUAL'}
+            </button>
+          )}
+        </div>
 
         {step === 'pin' && (
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-700">
@@ -139,7 +185,7 @@ export default function TapAbsensi() {
         {step === 'scan' && (
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-700">
             <div className="text-center mb-8">
-              <div className="w-28 h-28 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+              <div className={`w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg transition-all ${autoMode ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 animate-pulse' : 'bg-gradient-to-br from-indigo-500 to-indigo-600'}`}>
                 <SmartphoneNfc className="w-14 h-14 text-white" />
               </div>
               <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">Tap Kartu RFID</h1>
@@ -147,6 +193,11 @@ export default function TapAbsensi() {
               <div className="mt-3 inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full text-sm font-semibold text-slate-600 dark:text-slate-300">
                 <Clock className="w-4 h-4" /> {waktu}
               </div>
+              {autoMode && (
+                <div className="mt-2 inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  <Zap className="w-3 h-3" /> Mode Auto — Siap tap terus
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleRfidScan}>
@@ -155,6 +206,26 @@ export default function TapAbsensi() {
                 placeholder="Scan RFID di sini..." />
               <p className="text-[10px] text-slate-400 text-center mt-2">Pembaca RFID akan mendeteksi kartu secara otomatis — tanpa perlu Enter</p>
             </form>
+
+            {/* Riwayat Scan Terakhir */}
+            {lastScans.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 text-center">Scan Terakhir</h4>
+                <div className="space-y-1">
+                  {lastScans.map((s, i) => (
+                    <div key={i} className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs ${s.status === 'GAGAL' ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400'}`}>
+                      <span className="font-semibold truncate flex-1">{s.nama}</span>
+                      <span className="font-mono mx-2">{s.waktu}</span>
+                      <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${s.status === 'GAGAL' ? 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400' : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'}`}>{s.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 text-center text-[10px] text-slate-400">
+              Total tap sesi ini: {scanCount}
+            </div>
           </div>
         )}
 
@@ -176,7 +247,7 @@ export default function TapAbsensi() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Waktu</span>
-                <span className="text-sm font-bold text-slate-800 dark:text-white">{scanResult.waktu_pulang || scanResult.waktu_masuk || '-'}</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-white">{scanResult.jam || scanResult.waktu_pulang || scanResult.waktu_masuk || '-'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Status</span>
@@ -186,17 +257,22 @@ export default function TapAbsensi() {
               </div>
             </div>
 
-            <div className="mt-6 space-y-3">
-              <button onClick={handleScanAgain} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]">
-                <SmartphoneNfc className="w-5 h-5 inline mr-2" /> Tap Siswa Lainnya
-              </button>
-              <Link to="/" className="block text-center text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 font-semibold transition-colors">
-                Selesai
-              </Link>
-            </div>
+            {!autoMode && (
+              <div className="mt-6 space-y-3">
+                <button onClick={handleScanAgain} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]">
+                  <SmartphoneNfc className="w-5 h-5 inline mr-2" /> Tap Siswa Lainnya
+                </button>
+              </div>
+            )}
+
+            {autoMode && (
+              <p className="mt-4 text-center text-[10px] text-emerald-500 dark:text-emerald-400 font-semibold animate-pulse">
+                Kembali ke mode scan otomatis...
+              </p>
+            )}
 
             <div className="mt-4 text-center text-[10px] text-slate-400">
-              Total tap hari ini: {scanCount}
+              Total tap sesi ini: {scanCount}
             </div>
           </div>
         )}
@@ -211,11 +287,15 @@ export default function TapAbsensi() {
               <p className="text-slate-600 dark:text-slate-300 text-sm font-semibold mt-2">{scanError}</p>
             </div>
 
-            <button onClick={handleScanAgain} className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3.5 px-4 rounded-2xl text-sm transition-all">
-              <SmartphoneNfc className="w-5 h-5 inline mr-2" /> Coba Lagi
-            </button>
+            {!autoMode && (
+              <button onClick={handleScanAgain} className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3.5 px-4 rounded-2xl text-sm transition-all">
+                <SmartphoneNfc className="w-5 h-5 inline mr-2" /> Coba Lagi
+              </button>
+            )}
 
-            <p className="text-center text-[10px] text-slate-400 mt-4">Kembali ke mode scan otomatis dalam 3 detik...</p>
+            {autoMode && (
+              <p className="text-center text-[10px] text-red-400 font-semibold animate-pulse">Kembali ke mode scan otomatis...</p>
+            )}
           </div>
         )}
 
