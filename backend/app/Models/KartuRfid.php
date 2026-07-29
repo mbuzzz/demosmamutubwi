@@ -22,19 +22,27 @@ class KartuRfid extends Model
     protected $appends = ['uid_rfid', 'resolved_user_id'];
 
     /**
-     * user() — resolves to guru/staff (user_id) OR siswa (siswa_id).
+     * Relasi ke stagg/guru.
      */
-    public function user()
+    public function userStaff()
     {
-        if ($this->user_id) {
-            return $this->belongsTo(User::class, 'user_id');
-        }
-        return $this->belongsTo(User::class, 'siswa_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Relasi ke siswa.
+     */
     public function siswa()
     {
         return $this->belongsTo(User::class, 'siswa_id');
+    }
+
+    /**
+     * Aksesor dinamis untuk get user mana pun yang ada
+     */
+    public function getUserAttribute()
+    {
+        return $this->user_id ? $this->userStaff : $this->siswa;
     }
 
     public function getUidRfidAttribute()

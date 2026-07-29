@@ -200,7 +200,7 @@ class PembayaranController extends Controller
         $validator = Validator::make($request->all(), [
             'tagihan_id' => 'required|exists:tagihan_siswa,id',
             'jumlah_bayar' => 'required|numeric|min:1',
-            'metode' => 'required|in:tunai,transfer,rfid',
+            'metode' => 'required|in:tunai,transfer,rfid,manual',
             'catatan' => 'nullable|string'
         ]);
 
@@ -422,19 +422,20 @@ class PembayaranController extends Controller
             ], 403);
         }
 
-        $kartu = \App\Models\KartuRfid::where('uid', $uid)->with('user')->first();
+        $kartu = \App\Models\KartuRfid::where('uid', $uid)->with(['userStaff', 'siswa'])->first();
         
-        if (!$kartu || !$kartu->user || !$kartu->user->isSiswa()) {
+        $user = $kartu ? $kartu->user : null;
+
+        if (!$kartu || !$user || !$user->isSiswa()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Kartu RFID tidak terdaftar atau tidak aktif sebagai siswa.'
             ], 404);
         }
 
-        $user = $kartu->user;
-
         $tagihans = TagihanSiswa::where('siswa_id', $user->id)
             ->where('status', '!=', 'lunas')
+            ->with('jenisPembayaran') // eager load to fix N+1 race condition
             ->get();
             
         $mappedTagihans = $tagihans->map(function ($t) use ($user) {

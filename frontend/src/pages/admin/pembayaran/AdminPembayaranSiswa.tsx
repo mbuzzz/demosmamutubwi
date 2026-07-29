@@ -77,7 +77,7 @@ export default function AdminPembayaranSiswa() {
     bayarMutation.mutate({
       tagihan_id: selectedBayarSiswa.id,
       nominal,
-      metode: 'manual'
+      metode: 'tunai' // Gunakan metode valid: 'tunai', 'transfer', atau 'rfid'
     }, {
       onSuccess: (data) => {
         setShowReceipt({ siswa: selectedBayarSiswa, trx: data.transaksi || {

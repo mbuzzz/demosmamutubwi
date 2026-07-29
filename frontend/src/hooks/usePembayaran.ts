@@ -81,6 +81,17 @@ export function useTagihanList(params?: any) {
           terbayar: Number(item.nominal_terbayar ?? item.terbayar ?? 0),
           sisa: Number((item.nominal_tagihan ?? item.nominal ?? 0) - (item.nominal_terbayar ?? item.terbayar ?? 0)),
           status: item.status === 'sebagian' ? 'cicil' : item.status,
+          siswa: item.siswa ? {
+            ...item.siswa,
+            nama: item.siswa.name || item.siswa.nama
+          } : undefined,
+          transaksi: item.transaksi ? item.transaksi.map((t: any) => ({
+            ...t,
+            nominal: Number(t.jumlah_bayar ?? t.nominal ?? 0),
+            tanggal: t.tanggal_bayar ?? t.tanggal,
+            keterangan: t.catatan ?? t.keterangan,
+            petugas: t.diterima_oleh_id ? 'Petugas' : 'Sistem'
+          })) : [],
         }));
       }
       return rawData;
@@ -130,7 +141,17 @@ export function useTransaksiList(params?: any) {
     queryKey: ['transaksi', params],
     queryFn: async () => {
       const res = await api.get<any>('/pembayaran/transaksi', { params });
-      return res.data.data || res.data;
+      const rawData = res.data.data || res.data;
+      if (Array.isArray(rawData)) {
+        return rawData.map((t: any) => ({
+            ...t,
+            nominal: Number(t.jumlah_bayar ?? t.nominal ?? 0),
+            tanggal: t.tanggal_bayar ?? t.tanggal,
+            keterangan: t.catatan ?? t.keterangan,
+            petugas: t.penerima?.name || 'Sistem'
+        }));
+      }
+      return rawData;
     },
   });
 }

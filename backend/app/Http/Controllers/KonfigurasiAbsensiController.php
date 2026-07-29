@@ -62,10 +62,44 @@ class KonfigurasiAbsensiController extends Controller
 
         $config = KonfigurasiAbsensi::first();
 
+        // Warning: in production, hash the pin
         if (!$config || $config->pin !== $request->pin) {
-            return response()->json(['message' => 'PIN tidak valid'], 401);
+            return response()->json(['message' => 'PIN absensi tidak valid'], 401);
         }
 
         return response()->json(['message' => 'PIN valid']);
+    }
+
+    public function verifyPinPembayaran(Request $request)
+    {
+        $request->validate([
+            'pin' => 'required|string'
+        ]);
+
+        $config = \App\Models\SistemKonfigurasi::first();
+        $pinPembayaran = $config ? $config->pin_pembayaran : '654321';
+
+        // Timing safe string comparison
+        if (!hash_equals($pinPembayaran, $request->pin)) {
+            return response()->json(['message' => 'PIN terminal pembayaran salah'], 401);
+        }
+
+        // Issue a temporary token for the terminal (valid for 8 hours)
+        // Since the terminal itself is not a specific user, we can create a mock token
+        // Or better: require a real Bendahara to login, but for the kiosk flow 
+        // we'll find a generic Bendahara or Superadmin to assign this terminal to.
+        
+        $bendahara = \App\Models\User::whereHasAnyRole(['bendahara', 'superadmin'])->first();
+        if (!$bendahara) {
+            return response()->json(['message' => 'Tidak ada akun bendahara/admin di sistem untuk menampung transaksi terminal.'], 500);
+        }
+
+        $token = $bendahara->createToken('terminal-pembayaran', ['pembayaran:kiosk'], now()->addHours(8))->plainTextToken;
+
+        return response()->json([
+            'message' => 'Terminal berhasil diaktifkan',
+            'token' => $token,
+            'petugas' => $bendahara->name
+        ]);
     }
 }
