@@ -10,7 +10,20 @@ export function useJenisPembayaranList() {
     queryKey: ['jenis-pembayaran'],
     queryFn: async () => {
       const res = await api.get<any>('/pembayaran/jenis');
-      return res.data.data || res.data;
+      const raw = res.data.data || res.data;
+      if (Array.isArray(raw)) {
+        return raw.map((item: any) => ({
+          id: item.id,
+          nama: item.nama,
+          nominal: Number(item.nominal_default ?? 0),
+          tipe: item.is_wajib ? 'wajib' : 'sukarela',
+          periode: item.tipe_siklus === 'bulanan' ? 'Bulanan' : item.tipe_siklus === 'tahunan' ? 'Tahunan' : 'Sekali',
+          deskripsi: item.deskripsi || '',
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+        }));
+      }
+      return raw;
     },
   });
 }
@@ -19,8 +32,29 @@ export function useCreateJenisPembayaran() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<JenisPembayaran>) => {
-      const res = await api.post('/pembayaran/jenis', data);
-      return res.data;
+      const payload = {
+        nama: data.nama,
+        nominal_default: Number(data.nominal ?? 0),
+        tipe_siklus: (data.periode || '').toLowerCase().includes('bulan') 
+          ? 'bulanan' 
+          : (data.periode || '').toLowerCase().includes('tahun') 
+            ? 'tahunan' 
+            : 'sekali',
+        is_wajib: data.tipe === 'wajib',
+        deskripsi: data.deskripsi || '',
+      };
+      const res = await api.post('/pembayaran/jenis', payload);
+      const item = res.data.data || res.data;
+      return {
+        id: item.id,
+        nama: item.nama,
+        nominal: Number(item.nominal_default ?? 0),
+        tipe: item.is_wajib ? 'wajib' : 'sukarela',
+        periode: item.tipe_siklus === 'bulanan' ? 'Bulanan' : item.tipe_siklus === 'tahunan' ? 'Tahunan' : 'Sekali',
+        deskripsi: item.deskripsi || '',
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      };
     },
     onSuccess: () => {
       toast.success('Jenis pembayaran berhasil ditambahkan');
@@ -36,7 +70,20 @@ export function useUpdateJenisPembayaran() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string | number; data: Partial<JenisPembayaran> }) => {
-      const res = await api.put(`/pembayaran/jenis/${id}`, data);
+      const payload: any = {};
+      if (data.nama !== undefined) payload.nama = data.nama;
+      if (data.nominal !== undefined) payload.nominal_default = Number(data.nominal ?? 0);
+      if (data.periode !== undefined) {
+        payload.tipe_siklus = (data.periode || '').toLowerCase().includes('bulan') 
+          ? 'bulanan' 
+          : (data.periode || '').toLowerCase().includes('tahun') 
+            ? 'tahunan' 
+            : 'sekali';
+      }
+      if (data.tipe !== undefined) payload.is_wajib = data.tipe === 'wajib';
+      if (data.deskripsi !== undefined) payload.deskripsi = data.deskripsi || '';
+
+      const res = await api.put(`/pembayaran/jenis/${id}`, payload);
       return res.data;
     },
     onSuccess: () => {
@@ -84,6 +131,14 @@ export function useTagihanList(params?: any) {
           siswa: item.siswa ? {
             ...item.siswa,
             nama: item.siswa.name || item.siswa.nama
+          } : undefined,
+          jenis_pembayaran: item.jenis_pembayaran ? {
+            id: item.jenis_pembayaran.id,
+            nama: item.jenis_pembayaran.nama,
+            nominal: Number(item.jenis_pembayaran.nominal_default ?? 0),
+            tipe: item.jenis_pembayaran.is_wajib ? 'wajib' : 'sukarela',
+            periode: item.jenis_pembayaran.tipe_siklus === 'bulanan' ? 'Bulanan' : item.jenis_pembayaran.tipe_siklus === 'tahunan' ? 'Tahunan' : 'Sekali',
+            deskripsi: item.jenis_pembayaran.deskripsi || '',
           } : undefined,
           transaksi: item.transaksi ? item.transaksi.map((t: any) => ({
             ...t,
