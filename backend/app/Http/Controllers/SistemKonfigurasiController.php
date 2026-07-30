@@ -47,6 +47,7 @@ class SistemKonfigurasiController extends Controller
             'bank_nama' => 'sometimes|nullable|string',
             'bank_rekening' => 'sometimes|nullable|string',
             'bank_atas_nama' => 'sometimes|nullable|string',
+            'pin_pembayaran' => 'sometimes|nullable|string|max:6',
         ]);
 
         $config = SistemKonfigurasi::first();

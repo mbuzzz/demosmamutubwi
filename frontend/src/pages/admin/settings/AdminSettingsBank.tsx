@@ -12,6 +12,7 @@ export default function AdminSettingsBank() {
   const [bankName, setBankName] = useState('');
   const [noRekening, setNoRekening] = useState('');
   const [atasNama, setAtasNama] = useState('');
+  const [pinPembayaran, setPinPembayaran] = useState('');
   const [qrisImage, setQrisImage] = useState<File | null>(null);
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export default function AdminSettingsBank() {
       setBankName(settings.bank_nama || '');
       setNoRekening(settings.bank_rekening || '');
       setAtasNama(settings.bank_atas_nama || '');
+      setPinPembayaran(settings.pin_pembayaran || '654321');
     }
   }, [settings]);
 
@@ -34,6 +36,7 @@ export default function AdminSettingsBank() {
       payload.append('bank_nama', bankName);
       payload.append('bank_rekening', noRekening);
       payload.append('bank_atas_nama', atasNama);
+      payload.append('pin_pembayaran', pinPembayaran);
       if (qrisImage) {
         payload.append('qris_image', qrisImage);
       }
@@ -98,6 +101,19 @@ export default function AdminSettingsBank() {
                   placeholder="Contoh: SMAS Muhammadiyah 1 BWI" 
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" 
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5">PIN Terminal Kiosk</label>
+                <input 
+                  type="text" 
+                  maxLength={6}
+                  value={pinPembayaran} 
+                  onChange={e => setPinPembayaran(e.target.value.replace(/[^0-9]/g, ''))} 
+                  placeholder="654321" 
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" 
+                />
+                <p className="text-[10px] text-slate-400 mt-1">PIN 6 digit untuk mengaktifkan mesin kiosk pembayaran RFID</p>
               </div>
             </div>
 

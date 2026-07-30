@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Wallet, CheckCircle2, XCircle, Lock, Receipt, SmartphoneNfc, CreditCard, Loader2, Zap, ZapOff } from 'lucide-react';
+import { ArrowLeft, Wallet, CheckCircle2, Lock, Receipt, SmartphoneNfc, CreditCard, Loader2 } from 'lucide-react';
 import { useProsesPembayaran } from '../hooks/usePembayaran';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
@@ -178,7 +178,7 @@ export default function TapPembayaran() {
       metode: 'rfid',
       keterangan: `Pembayaran Kiosk RFID`
     }, {
-      onSuccess: (data) => {
+      onSuccess: () => {
         setTrxCount(c => c + 1);
         setTrxNominal(n => n + nominal);
         setLastTrx(prev => [{ nama: studentData?.nama, nominal, jenis: tagihan.jenis_pembayaran.nama, waktu: new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit'}) }, ...prev].slice(0, 5));

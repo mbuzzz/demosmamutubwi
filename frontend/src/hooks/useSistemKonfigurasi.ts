@@ -28,6 +28,7 @@ export interface SistemKonfigurasiRecord {
   bank_rekening?: string;
   bank_atas_nama?: string;
   qris_image?: string;
+  pin_pembayaran?: string;
   kurikulum_aktif?: {
     id: string;
     nama: string;
