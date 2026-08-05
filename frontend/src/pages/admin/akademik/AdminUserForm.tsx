@@ -198,28 +198,28 @@ export default function AdminUserForm() {
         {/* Kolom Kiri: Profil & Foto */}
         <div className="xl:col-span-1 space-y-6">
           <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800 text-center">
-            <div className="w-32 h-32 mx-auto bg-slate-100 dark:bg-slate-800 rounded-full border-4 border-white shadow-md relative mb-4 flex items-center justify-center overflow-hidden">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-32 h-32 mx-auto bg-slate-100 dark:bg-slate-800 rounded-full border-4 border-white shadow-md relative mb-4 flex items-center justify-center overflow-hidden cursor-pointer group"
+              title="Klik untuk pilih foto"
+            >
               {fotoPreview ? (
                 <img src={fotoPreview} alt="Preview Foto" className="w-full h-full object-cover" />
               ) : (
                 <UserIcon className="w-12 h-12 text-slate-400 dark:text-slate-500" />
               )}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm border-2 border-white cursor-pointer"
-                title="Pilih foto"
-              >
-                <Camera className="w-4 h-4" />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                onChange={handleFotoChange}
-                className="hidden"
-              />
-            </div>
+              <span className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="w-6 h-6 text-white" />
+              </span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+              onChange={handleFotoChange}
+              className="hidden"
+            />
             {fotoPreview && (
               <button
                 type="button"
@@ -233,7 +233,7 @@ export default function AdminUserForm() {
               </button>
             )}
             <h3 className="font-bold text-slate-800 dark:text-white text-lg">Foto Profil</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Format JPG/PNG, Maksimal 2MB. Rasio 1:1.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Klik lingkaran foto untuk memilih file. Format JPG/PNG, Maksimal 2MB. Rasio 1:1.</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800">
