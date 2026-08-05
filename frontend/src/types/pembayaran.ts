@@ -15,6 +15,15 @@ export interface JenisPembayaran {
   updated_at?: string;
 }
 
+export interface JenisPembayaranInput {
+  nama: string;
+  nominal: number;
+  tipe: JenisPembayaranTipe;
+  periode: string;
+  deskripsi?: string;
+  jatuh_tempo?: string;
+}
+
 export interface BeasiswaSiswa {
   id: string | number;
   siswa_id: string | number;

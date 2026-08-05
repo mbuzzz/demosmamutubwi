@@ -14,12 +14,54 @@ use Illuminate\Support\Str;
 class PembayaranController extends Controller
 {
     // === Jenis Pembayaran ===
+
+    /**
+     * Ubah periode bebas (Bulanan/Tahunan/Semester/dsb) menjadi nilai enum tipe_siklus.
+     */
+    private function mapPeriodeToSiklus(?string $periode): string
+    {
+        if (!$periode) {
+            return 'sekali';
+        }
+
+        $lower = strtolower($periode);
+
+        if (str_contains($lower, 'bulan')) {
+            return 'bulanan';
+        }
+
+        if (str_contains($lower, 'tahun') || str_contains($lower, 'semester')) {
+            return 'tahunan';
+        }
+
+        return 'sekali';
+    }
+
+    /**
+     * Format data jenis pembayaran ke bentuk yang dikonsumsi frontend.
+     */
+    private function formatJenisPembayaran(JenisPembayaran $jenis): array
+    {
+        return [
+            'id' => $jenis->id,
+            'nama' => $jenis->nama,
+            'nominal' => (float) $jenis->nominal_default,
+            'tipe' => $jenis->is_wajib ? 'wajib' : 'sukarela',
+            'periode' => $jenis->periode,
+            'deskripsi' => $jenis->deskripsi,
+            'jatuhTempo' => $jenis->jatuh_tempo,
+            'created_at' => $jenis->created_at,
+            'updated_at' => $jenis->updated_at,
+        ];
+    }
+
     public function getJenisPembayaran()
     {
         $jenis = JenisPembayaran::all();
+
         return response()->json([
             'status' => 'success',
-            'data' => $jenis
+            'data' => $jenis->map(fn (JenisPembayaran $j) => $this->formatJenisPembayaran($j))
         ]);
     }
 
@@ -27,9 +69,10 @@ class PembayaranController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
-            'nominal_default' => 'required|numeric|min:0',
-            'tipe_siklus' => 'required|in:bulanan,tahunan,sekali',
-            'is_wajib' => 'boolean',
+            'nominal' => 'required|numeric|min:0',
+            'tipe' => 'required|in:wajib,sukarela',
+            'periode' => 'nullable|string|max:255',
+            'jatuh_tempo' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string'
         ]);
 
@@ -40,11 +83,22 @@ class PembayaranController extends Controller
             ], 400);
         }
 
-        $jenis = JenisPembayaran::create($validator->validated());
+        $validated = $validator->validated();
+
+        $jenis = JenisPembayaran::create([
+            'nama' => $validated['nama'],
+            'nominal_default' => $validated['nominal'],
+            'is_wajib' => $validated['tipe'] === 'wajib',
+            'tipe_siklus' => $this->mapPeriodeToSiklus($validated['periode'] ?? null),
+            'periode' => $validated['periode'] ?? null,
+            'jatuh_tempo' => $validated['jatuh_tempo'] ?? null,
+            'deskripsi' => $validated['deskripsi'] ?? null,
+        ]);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Jenis pembayaran berhasil ditambahkan',
-            'data' => $jenis
+            'data' => $this->formatJenisPembayaran($jenis)
         ], 201);
     }
 
@@ -54,9 +108,10 @@ class PembayaranController extends Controller
 
         $validator = Validator::make($request->all(), [
             'nama' => 'sometimes|string|max:255',
-            'nominal_default' => 'sometimes|numeric|min:0',
-            'tipe_siklus' => 'sometimes|in:bulanan,tahunan,sekali',
-            'is_wajib' => 'boolean',
+            'nominal' => 'sometimes|numeric|min:0',
+            'tipe' => 'sometimes|in:wajib,sukarela',
+            'periode' => 'nullable|string|max:255',
+            'jatuh_tempo' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string'
         ]);
 
@@ -67,11 +122,23 @@ class PembayaranController extends Controller
             ], 400);
         }
 
-        $jenis->update($validator->validated());
+        $validated = $validator->validated();
+        $payload = [
+            'nama' => $validated['nama'] ?? $jenis->nama,
+            'nominal_default' => $validated['nominal'] ?? $jenis->nominal_default,
+            'is_wajib' => isset($validated['tipe']) ? $validated['tipe'] === 'wajib' : $jenis->is_wajib,
+            'tipe_siklus' => isset($validated['periode']) ? $this->mapPeriodeToSiklus($validated['periode']) : $jenis->tipe_siklus,
+            'periode' => array_key_exists('periode', $validated) ? $validated['periode'] : $jenis->periode,
+            'jatuh_tempo' => array_key_exists('jatuh_tempo', $validated) ? $validated['jatuh_tempo'] : $jenis->jatuh_tempo,
+            'deskripsi' => array_key_exists('deskripsi', $validated) ? $validated['deskripsi'] : $jenis->deskripsi,
+        ];
+
+        $jenis->update($payload);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Jenis pembayaran berhasil diperbarui',
-            'data' => $jenis
+            'data' => $this->formatJenisPembayaran($jenis)
         ]);
     }
 
@@ -79,6 +146,7 @@ class PembayaranController extends Controller
     {
         $jenis = JenisPembayaran::findOrFail($id);
         $jenis->delete();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Jenis pembayaran berhasil dihapus'

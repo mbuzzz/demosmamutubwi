@@ -255,6 +255,8 @@ class DemoDataSeeder extends Seeder
             'nominal_default' => 250000,
             'tipe_siklus' => 'bulanan',
             'is_wajib' => true,
+            'periode' => 'Bulanan',
+            'jatuh_tempo' => '10',
             'deskripsi' => 'Sumbangan Pembinaan Pendidikan'
         ]);
 
