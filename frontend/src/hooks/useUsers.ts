@@ -21,6 +21,7 @@ export interface UserRecord {
   kelas?: string | null;
   jabatan?: string | null;
   phone?: string | null;
+  alamat?: string | null;
   uid_rfid?: string | null;
   is_active?: boolean;
   siswa_id?: number | null;
@@ -104,6 +105,32 @@ export function useDeleteUser() {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    },
+  });
+}
+
+export interface IdCardUser {
+  id: string | number;
+  name: string;
+  role?: string;
+  roles?: string[] | null;
+  nip_nisn?: string | null;
+  kelas?: string | null;
+  jabatan?: string | null;
+  phone?: string | null;
+  alamat?: string | null;
+  foto?: string | null;
+}
+
+export function useIdCardUsers(role: 'siswa' | 'guru' = 'siswa', q?: string) {
+  return useQuery({
+    queryKey: ['users-id-card', role, q],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const res = await api.get<IdCardUser[]>('/users/id-card', {
+        params: { role, q: q || undefined },
+      });
+      return res.data;
     },
   });
 }

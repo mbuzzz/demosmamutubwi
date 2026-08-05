@@ -16,13 +16,8 @@ const ROLE_META: Record<
   siswa: { label: 'Siswa', short: 'Siswa', color: 'bg-violet-600', Icon: Users },
   orang_tua: { label: 'Orang Tua', short: 'Wali', color: 'bg-pink-600', Icon: Users },
 };
-
-/** Role yang bisa dipilih superadmin untuk View As */
-const SIMULATOR_ROLES: Role[] = ['superadmin', 'guru', 'walikelas', 'siswa'];
-
 /**
  * Switcher role:
- * - Superadmin/admin: full "View As" simulator
  * - Multi-role staf: hanya role miliknya ("Mode Akses")
  * - Single role: disembunyikan
  *
@@ -88,9 +83,9 @@ export default function RoleSimulator({
     </div>
   );
 
-  // Superadmin: simulator penuh
+  // Superadmin/admin: fitur "View As" dihapus dari panel
   if (isElevated) {
-    return renderButtons(SIMULATOR_ROLES, 'View As:');
+    return null;
   }
 
   // Multi-role staf: switcher hanya role miliknya

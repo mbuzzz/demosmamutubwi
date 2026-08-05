@@ -71,6 +71,12 @@ import AdminSettingsRfid from './pages/admin/settings/AdminSettingsRfid';
 import AdminEkstrakurikuler from './pages/admin/akademik/AdminEkstrakurikuler';
 import AdminSettingsBank from './pages/admin/settings/AdminSettingsBank';
 
+// Guru Piket & ID Card Pages
+import AdminJadwalPiket from './pages/admin/piket/AdminJadwalPiket';
+import AdminAbsensiPiket from './pages/admin/piket/AdminAbsensiPiket';
+import AdminLaporanPiket from './pages/admin/piket/AdminLaporanPiket';
+import AdminCetakIdCard from './pages/admin/idcard/AdminCetakIdCard';
+
 // Guru Group Pages (shared by guru, walikelas, kepsek, kurikulum)
 import GuruDashboard from './pages/admin/guru/GuruDashboard';
 import GuruJurnalPresensi from './pages/admin/guru/kbm/GuruJurnalPresensi';
@@ -194,6 +200,10 @@ export default function App() {
         <Route path="/panel/pembayaran" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminPembayaran /></ProtectedRoute>} />
         <Route path="/panel/pembayaran/jenis" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminJenisPembayaran /></ProtectedRoute>} />
         <Route path="/panel/pembayaran/siswa" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminPembayaranSiswa /></ProtectedRoute>} />
+        <Route path="/panel/id-card" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminCetakIdCard /></ProtectedRoute>} />
+        <Route path="/panel/piket/jadwal" element={<ProtectedRoute requiredRole={['superadmin', 'admin', 'kepala_sekolah', 'kurikulum', 'bendahara']}><AdminJadwalPiket /></ProtectedRoute>} />
+        <Route path="/panel/piket/absensi" element={<ProtectedRoute requiredRole={['superadmin', 'admin', 'kepala_sekolah', 'kurikulum', 'bendahara']}><AdminAbsensiPiket /></ProtectedRoute>} />
+        <Route path="/panel/piket/laporan" element={<ProtectedRoute requiredRole={['superadmin', 'admin', 'kepala_sekolah', 'kurikulum', 'bendahara']}><AdminLaporanPiket /></ProtectedRoute>} />
         <Route path="/panel/cbt/bank-soal" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminBankSoalList /></ProtectedRoute>} />
         <Route path="/panel/cbt/jadwal" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminUjianList /></ProtectedRoute>} />
         <Route path="/panel/cbt/monitor" element={<ProtectedRoute requiredRole={['superadmin', 'admin']}><AdminUjianMonitor /></ProtectedRoute>} />

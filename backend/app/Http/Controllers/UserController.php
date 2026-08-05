@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\KartuRfid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -169,12 +170,19 @@ class UserController extends Controller
             'kelas' => 'nullable|string',
             'jabatan' => 'nullable|string',
             'phone' => 'nullable|string',
+            'alamat' => 'nullable|string',
             'is_active' => 'boolean',
             'siswa_id' => 'nullable|exists:users,id',
+            'foto' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
         ]);
 
         $validated = User::normalizeRolesPayload($validated);
         $validated['password'] = Hash::make($validated['password']);
+
+        if ($request->hasFile('foto')) {
+            $validated['foto'] = $request->file('foto')->store('fotos', 'public');
+        }
+
         $user = User::create($validated);
 
         $this->syncSiswaRiwayat($user);
@@ -230,11 +238,20 @@ class UserController extends Controller
             'kelas' => 'nullable|string',
             'jabatan' => 'nullable|string',
             'phone' => 'nullable|string',
+            'alamat' => 'nullable|string',
             'is_active' => 'boolean',
             'siswa_id' => 'nullable|exists:users,id',
+            'foto' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
         ]);
 
         $validated = User::normalizeRolesPayload($validated);
+
+        if ($request->hasFile('foto')) {
+            if ($user->foto && Storage::disk('public')->exists($user->foto)) {
+                Storage::disk('public')->delete($user->foto);
+            }
+            $validated['foto'] = $request->file('foto')->store('fotos', 'public');
+        }
 
         if (isset($validated['password']) && $validated['password']) {
             $validated['password'] = Hash::make($validated['password']);
@@ -409,5 +426,59 @@ class UserController extends Controller
             'message' => "Berhasil mengimpor {$importedCount} pengguna baru.",
             'imported_count' => $importedCount,
         ]);
+    }
+
+    /**
+     * Daftar pengguna untuk cetak ID Card.
+     * ?role=siswa → siswa; ?role=guru → staf/guru; ?q= untuk pencarian.
+     */
+    public function indexIdCard(Request $request)
+    {
+        $request->validate([
+            'role' => ['nullable', 'in:siswa,guru'],
+            'q' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $query = User::query()->where('is_active', true);
+
+        if ($request->input('role', 'siswa') === 'siswa') {
+            $query->where('role', 'siswa');
+        } else {
+            $query->where(function ($q) {
+                $targets = ['guru', 'walikelas', 'kepala_sekolah', 'kurikulum', 'bendahara'];
+                $q->whereIn('role', $targets);
+                foreach ($targets as $target) {
+                    $q->orWhereJsonContains('roles', $target);
+                }
+            });
+        }
+
+        if ($q = $request->input('q')) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('nip_nisn', 'like', "%{$q}%")
+                    ->orWhere('kelas', 'like', "%{$q}%")
+                    ->orWhere('jabatan', 'like', "%{$q}%");
+            });
+        }
+
+        $users = $query->orderBy('name')->get();
+
+        $result = $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $user->role,
+                'roles' => $user->all_roles,
+                'nip_nisn' => $user->nip_nisn,
+                'kelas' => $user->kelas,
+                'jabatan' => $user->jabatan,
+                'phone' => $user->phone,
+                'alamat' => $user->alamat,
+                'foto' => $user->foto,
+            ];
+        });
+
+        return response()->json($result);
     }
 }

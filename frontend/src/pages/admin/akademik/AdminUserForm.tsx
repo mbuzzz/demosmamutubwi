@@ -1,9 +1,10 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Save, User as UserIcon, Camera, ArrowLeft, Building, Lock, Mail, Phone, ScanLine, Shield, BookOpen, ExternalLink } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { Save, User as UserIcon, Camera, ArrowLeft, Building, Lock, Mail, Phone, MapPin, ScanLine, Shield, BookOpen, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useUser, useCreateUser, useUpdateUser, useUsers } from '../../../hooks/useUsers';
 import { useKelasList } from '../../../hooks/useKelas';
+import { getFileUrl } from '../../../lib/api';
 import { toast } from 'sonner';
 
 const MULTI_ROLE_OPTIONS = [
@@ -37,9 +38,13 @@ export default function AdminUserForm() {
   const [kelas, setKelas] = useState('');
   const [jabatan, setJabatan] = useState('');
   const [phone, setPhone] = useState('');
+  const [alamat, setAlamat] = useState('');
   const [rfidUid, setRfidUid] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [siswaId, setSiswaId] = useState('');
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEdit && user) {
@@ -57,11 +62,28 @@ export default function AdminUserForm() {
       setKelas(user.kelas || '');
       setJabatan(user.jabatan || '');
       setPhone(user.phone || '');
+      setAlamat(user.alamat || '');
       setRfidUid(user.uid_rfid || '');
       setIsActive(user.is_active !== false);
       setSiswaId(user.siswa_id ? String(user.siswa_id) : '');
+      setFotoPreview(user.foto ? getFileUrl(user.foto) : null);
     }
   }, [isEdit, user]);
+
+  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'].includes(file.type)) {
+      toast.error('Format foto harus JPEG, PNG, GIF, atau WebP');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran foto maksimal 2MB');
+      return;
+    }
+    setFotoFile(file);
+    setFotoPreview(URL.createObjectURL(file));
+  };
 
   const penugasanList = useMemo(() => user?.penugasans || [], [user]);
   const isStaffRole = role !== 'siswa' && role !== 'orang_tua';
@@ -103,6 +125,7 @@ export default function AdminUserForm() {
       kelas: needsKelas ? (kelas || null) : null,
       jabatan: isStaffRole ? jabatan : null,
       phone: phone || null,
+      alamat: alamat || null,
       is_active: isActive,
       siswa_id: role === 'orang_tua' ? (siswaId ? parseInt(siswaId) : null) : null,
     };
@@ -115,13 +138,30 @@ export default function AdminUserForm() {
     }
 
     try {
-      if (isEdit) {
+      if (fotoFile) {
+        const formData = new FormData();
+        Object.entries(userData).forEach(([key, val]) => {
+          if (val === null || val === undefined) return;
+          if (Array.isArray(val)) {
+            val.forEach((item) => formData.append(`${key}[]`, String(item)));
+          } else if (typeof val === 'boolean') {
+            formData.append(key, val ? '1' : '0');
+          } else {
+            formData.append(key, String(val));
+          }
+        });
+        formData.append('foto', fotoFile);
+        if (isEdit) {
+          await updateUserMutation.mutateAsync({ id: id!, data: formData as any });
+        } else {
+          await createUserMutation.mutateAsync(formData as any);
+        }
+      } else if (isEdit) {
         await updateUserMutation.mutateAsync({ id: id!, data: userData });
-        toast.success('Data Pengguna berhasil diperbarui!');
       } else {
         await createUserMutation.mutateAsync(userData);
-        toast.success('Data Pengguna baru berhasil disimpan!');
       }
+      toast.success(isEdit ? 'Data Pengguna berhasil diperbarui!' : 'Data Pengguna baru berhasil disimpan!');
       navigate('/panel/users');
     } catch (err: any) {
       const msg =
@@ -158,12 +198,40 @@ export default function AdminUserForm() {
         {/* Kolom Kiri: Profil & Foto */}
         <div className="xl:col-span-1 space-y-6">
           <div className="bg-white dark:bg-slate-900 rounded-[15px] shadow-card dark:shadow-none p-6 border border-slate-100 dark:border-slate-800 text-center">
-            <div className="w-32 h-32 mx-auto bg-slate-100 dark:bg-slate-800 rounded-full border-4 border-white shadow-md relative mb-4 flex items-center justify-center">
-              <UserIcon className="w-12 h-12 text-slate-400 dark:text-slate-500" />
-              <button type="button" className="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm border-2 border-white">
+            <div className="w-32 h-32 mx-auto bg-slate-100 dark:bg-slate-800 rounded-full border-4 border-white shadow-md relative mb-4 flex items-center justify-center overflow-hidden">
+              {fotoPreview ? (
+                <img src={fotoPreview} alt="Preview Foto" className="w-full h-full object-cover" />
+              ) : (
+                <UserIcon className="w-12 h-12 text-slate-400 dark:text-slate-500" />
+              )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm border-2 border-white cursor-pointer"
+                title="Pilih foto"
+              >
                 <Camera className="w-4 h-4" />
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                onChange={handleFotoChange}
+                className="hidden"
+              />
             </div>
+            {fotoPreview && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFotoFile(null);
+                  setFotoPreview(null);
+                }}
+                className="text-[11px] font-semibold text-red-500 hover:text-red-600 mb-1"
+              >
+                Hapus pilihan foto
+              </button>
+            )}
             <h3 className="font-bold text-slate-800 dark:text-white text-lg">Foto Profil</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Format JPG/PNG, Maksimal 2MB. Rasio 1:1.</p>
           </div>
@@ -280,6 +348,15 @@ export default function AdminUserForm() {
                     <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="08123456789" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Alamat Domisili</label>
+                <div className="relative">
+                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input type="text" value={alamat} onChange={e => setAlamat(e.target.value)} placeholder="Contoh: Jl. Ikan Tombro No. 3, Banyuwangi" className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Tampil pada ID Card siswa/guru.</p>
               </div>
 
               <div>

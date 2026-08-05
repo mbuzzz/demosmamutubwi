@@ -26,6 +26,8 @@ import {
   CreditCard,
   ScanLine,
   Award,
+  CalendarClock,
+  IdCard,
   type LucideIcon
 } from 'lucide-react';
 import { useRoleSimulator } from '../simulator/RoleContext';
@@ -110,6 +112,15 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         ]
       },
       {
+        title: "Guru Piket & ID Card",
+        items: [
+          { name: "Jadwal Piket", path: "/panel/piket/jadwal", icon: CalendarClock },
+          { name: "Absensi Piket", path: "/panel/piket/absensi", icon: UserCheck },
+          { name: "Laporan Piket", path: "/panel/piket/laporan", icon: ClipboardList },
+          { name: "Cetak ID Card", path: "/panel/id-card", icon: IdCard },
+        ]
+      },
+      {
         title: "Web Profile Publik",
         items: [
           { name: "Halaman Beranda", path: "/panel/beranda", icon: LayoutTemplate },
@@ -164,6 +175,14 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         ]
       },
       {
+        title: "Guru Piket",
+        items: [
+          { name: "Jadwal Piket", path: "/panel/piket/jadwal", icon: CalendarClock },
+          { name: "Absensi Piket", path: "/panel/piket/absensi", icon: UserCheck },
+          { name: "Laporan Piket", path: "/panel/piket/laporan", icon: ClipboardList },
+        ]
+      },
+      {
         title: "Pengaturan",
         items: [
           { name: "Rekening & QRIS", path: "/panel/bendahara/settings", icon: Settings },
@@ -185,6 +204,14 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Rekap Absensi Siswa", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
           { name: "Laporan Absensi Guru", path: "/panel/guru/absensi/guru", icon: UserCheck },
           { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
+        ]
+      },
+      {
+        title: "Guru Piket",
+        items: [
+          { name: "Jadwal Piket", path: "/panel/piket/jadwal", icon: CalendarClock },
+          { name: "Absensi Piket", path: "/panel/piket/absensi", icon: UserCheck },
+          { name: "Laporan Piket", path: "/panel/piket/laporan", icon: ClipboardList },
         ]
       },
     ];
@@ -213,6 +240,14 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Rekap Absensi Siswa", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
           { name: "Laporan Absensi Guru", path: "/panel/guru/absensi/guru", icon: UserCheck },
           { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
+        ]
+      },
+      {
+        title: "Guru Piket",
+        items: [
+          { name: "Jadwal Piket", path: "/panel/piket/jadwal", icon: CalendarClock },
+          { name: "Absensi Piket", path: "/panel/piket/absensi", icon: UserCheck },
+          { name: "Laporan Piket", path: "/panel/piket/laporan", icon: ClipboardList },
         ]
       },
     ];

@@ -20,6 +20,7 @@ use App\Http\Controllers\RaporController;
 use App\Http\Controllers\SistemKonfigurasiController;
 use App\Http\Controllers\SPMBController;
 use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\PiketController;
 
 use App\Http\Controllers\Api\CbtBankSoalController;
 use App\Http\Controllers\Api\CbtSesiController;
@@ -95,6 +96,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('role:superadmin,admin')->group(function () {
+        // ID Card (harus sebelum apiResource users karena route :param)
+        Route::get('/users/id-card', [UserController::class, 'indexIdCard']);
+
         Route::get('/users/export/pdf', [UserController::class, 'exportPdf']);
         Route::get('/users/export/xlsx', [UserController::class, 'exportXlsx']);
         Route::post('/users/import/xlsx', [UserController::class, 'importXlsx']);
@@ -295,6 +299,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/pembayaran/transaksi/{id}', [PembayaranController::class, 'updateTransaksi']);
         Route::delete('/pembayaran/transaksi/{id}', [PembayaranController::class, 'deleteTransaksi']);
         Route::get('/pembayaran/statistik', [PembayaranController::class, 'getStatistik']);
+    });
+
+    // 11b. GURU PIKET (Jadwal, Absensi, Laporan)
+    Route::middleware('role:superadmin,admin,kepala_sekolah,kurikulum,bendahara')->group(function () {
+        Route::get('/piket/guru', [PiketController::class, 'guruPiket']);
+        Route::get('/piket/jadwal', [PiketController::class, 'indexJadwal']);
+        Route::post('/piket/jadwal', [PiketController::class, 'storeJadwal']);
+        Route::put('/piket/jadwal/{id}', [PiketController::class, 'updateJadwal']);
+        Route::delete('/piket/jadwal/{id}', [PiketController::class, 'deleteJadwal']);
+        Route::get('/piket/absensi', [PiketController::class, 'getAbsensi']);
+        Route::post('/piket/absensi', [PiketController::class, 'storeAbsensi']);
+        Route::put('/piket/absensi/{id}', [PiketController::class, 'updateAbsensi']);
+        Route::delete('/piket/absensi/{id}', [PiketController::class, 'deleteAbsensi']);
+        Route::get('/piket/laporan', [PiketController::class, 'getLaporan']);
     });
 
     // 12. CBT (Computer Based Test)
