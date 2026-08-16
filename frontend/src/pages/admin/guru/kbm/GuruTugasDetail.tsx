@@ -89,9 +89,9 @@ export default function GuruTugasDetail() {
       if (!isNaN(val)) {
         gradeSubmission.mutate({
           tugasId: id,
-          submissionId: subId,
+          siswaId: subId,
           nilai: val,
-          komentar_guru: feedbackInput[subId]
+          feedback_guru: feedbackInput[subId]
         });
       }
     });

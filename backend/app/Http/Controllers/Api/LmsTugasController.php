@@ -399,6 +399,9 @@ class LmsTugasController extends Controller
         }
 
         $pengumpulan->dikumpulkan_pada = now();
+        $pengumpulan->status = now()->greaterThan(\Carbon\Carbon::parse($tugas->tenggat_waktu))
+            ? 'telat'
+            : 'belum_dinilai';
         $pengumpulan->catatan_siswa = $request->catatan_siswa;
 
         if ($request->hasFile('file_jawaban_url')) {

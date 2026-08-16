@@ -49,9 +49,11 @@ export interface Submission {
   tugas_id: string;
   siswa_id: string;
   file_url?: string;
+  file_jawaban_url?: string;
   nilai?: number;
   komentar_guru?: string;
-  status: 'belum' | 'menunggu' | 'sudah_dinilai';
+  feedback_guru?: string;
+  status: 'belum' | 'menunggu' | 'belum_dinilai' | 'telat' | 'sudah_dinilai';
   created_at: string;
   updated_at: string;
   siswa?: { id: string; nama: string };
@@ -89,6 +91,10 @@ export function useCreateMateri() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: FormData) => {
+      if (data.has('deskripsi') && !data.has('konten')) {
+        data.set('konten', data.get('deskripsi') || '');
+        data.delete('deskripsi');
+      }
       const res = await api.post('/lms/materi', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -108,6 +114,10 @@ export function useUpdateMateri() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: FormData }) => {
+      if (data.has('deskripsi') && !data.has('konten')) {
+        data.set('konten', data.get('deskripsi') || '');
+        data.delete('deskripsi');
+      }
       const res = await api.put(`/lms/materi/${id}`, data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -188,7 +198,12 @@ export function useCreateTugas() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Omit<Tugas, 'id' | 'created_at' | 'updated_at' | 'guru' | 'kelas' | 'mapel' | 'comments'>) => {
-      const res = await api.post('/lms/tugas', data);
+      const payload: Record<string, unknown> = { ...data };
+      if (payload.deskripsi !== undefined && payload.instruksi === undefined) {
+        payload.instruksi = payload.deskripsi;
+        delete payload.deskripsi;
+      }
+      const res = await api.post('/lms/tugas', payload);
       return res.data;
     },
     onSuccess: () => {
@@ -205,7 +220,12 @@ export function useUpdateTugas() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Tugas> }) => {
-      const res = await api.put(`/lms/tugas/${id}`, data);
+      const payload: Record<string, unknown> = { ...data };
+      if (payload.deskripsi !== undefined && payload.instruksi === undefined) {
+        payload.instruksi = payload.deskripsi;
+        delete payload.deskripsi;
+      }
+      const res = await api.put(`/lms/tugas/${id}`, payload);
       return res.data;
     },
     onSuccess: (_, variables) => {
@@ -263,7 +283,28 @@ export function useGetSubmissions(tugasId?: string) {
       if (!tugasId) return [];
       const res = await api.get<any>(`/lms/tugas/${tugasId}/submissions`);
       const data = (res.data as any).data || res.data;
-      return data.map((item: any) => ({ ...item, deskripsi: item.instruksi || item.deskripsi }));
+      return data.map((item: any): Submission => {
+        const submission = item.data_pengumpulan;
+        const rawStatus = submission?.status;
+        const status = submission
+          ? (rawStatus === 'sudah_dinilai' || rawStatus === 'telat' ? rawStatus : 'menunggu')
+          : 'belum';
+
+        return {
+          id: String(item.siswa_id),
+          tugas_id: String(tugasId),
+          siswa_id: String(item.siswa_id),
+          file_url: submission?.file_jawaban_url,
+          file_jawaban_url: submission?.file_jawaban_url,
+          nilai: submission?.nilai,
+          komentar_guru: submission?.feedback_guru,
+          feedback_guru: submission?.feedback_guru,
+          status,
+          created_at: submission?.created_at || '',
+          updated_at: submission?.updated_at || '',
+          siswa: { id: String(item.siswa_id), nama: item.nama_siswa },
+        };
+      });
     },
     enabled: !!tugasId,
   });
@@ -275,7 +316,16 @@ export function useMySubmission(tugasId?: string) {
     queryFn: async () => {
       if (!tugasId) return null;
       const res = await api.get<{ data: any }>(`/lms/tugas/${tugasId}/my-submission`);
-      return (res.data as any).data || res.data;
+      const submission = (res.data as any).data || res.data;
+      if (!submission) return null;
+      return {
+        ...submission,
+        file_url: submission.file_url || submission.file_jawaban_url,
+        komentar_guru: submission.komentar_guru || submission.feedback_guru,
+        status: submission.status === 'sudah_dinilai' || submission.status === 'telat'
+          ? submission.status
+          : 'menunggu',
+      } as Submission;
     },
     enabled: !!tugasId,
   });
@@ -284,8 +334,8 @@ export function useMySubmission(tugasId?: string) {
 export function useGradeSubmission() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ tugasId, submissionId, nilai, komentar_guru }: { tugasId: string, submissionId: string, nilai: number, komentar_guru?: string }) => {
-      const res = await api.post(`/lms/tugas/${tugasId}/grade/${submissionId}`, { nilai, komentar_guru });
+    mutationFn: async ({ tugasId, siswaId, nilai, feedback_guru }: { tugasId: string, siswaId: string, nilai: number, feedback_guru?: string }) => {
+      const res = await api.post(`/lms/tugas/${tugasId}/grade/${siswaId}`, { nilai, feedback_guru });
       return res.data;
     },
     onSuccess: (_, variables) => {
