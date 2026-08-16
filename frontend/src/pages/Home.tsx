@@ -2,8 +2,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Award, BookOpen, GraduationCap, ArrowRight, Quote } from 'lucide-react';
 import { usePublicBeritaList, usePublicProfil } from '../hooks/useCms';
-import { usePrestasiList } from '../hooks/usePrestasi';
-import { useGaleriList } from '../hooks/useGaleri';
+import { usePublicPrestasiList } from '../hooks/usePrestasi';
+import { usePublicGaleriList } from '../hooks/useGaleri';
 import DOMPurify from 'dompurify';
 import { getFileUrl } from '../lib/api';
 import { useSistemKonfigurasi } from '../hooks/useSistemKonfigurasi';
@@ -15,8 +15,8 @@ export default function Home() {
   const { data: beritaList = [] } = usePublicBeritaList();
   const { data: profil } = usePublicProfil();
   const { data: config } = useSistemKonfigurasi();
-  const { data: prestasiList } = usePrestasiList();
-  const { data: galeriList = [] } = useGaleriList();
+  const { data: prestasiList } = usePublicPrestasiList();
+  const { data: galeriList = [] } = usePublicGaleriList();
 
   const latestNews = beritaList.slice(0, 6);
   

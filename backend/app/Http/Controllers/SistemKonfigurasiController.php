@@ -18,7 +18,10 @@ class SistemKonfigurasiController extends Controller
                 'kurikulum_aktif_id' => null,
             ]);
         }
-        return response()->json($config);
+        // This endpoint is public because the landing page needs school
+        // branding and academic configuration. Never expose payment secrets
+        // through the public configuration response.
+        return response()->json($config->makeHidden(['pin_pembayaran']));
     }
 
     public function update(Request $request)

@@ -21,6 +21,16 @@ export function usePrestasiList() {
   });
 }
 
+export function usePublicPrestasiList() {
+  return useQuery({
+    queryKey: ['public-prestasi'],
+    queryFn: async () => {
+      const res = await api.get<PrestasiRecord[]>('/public/prestasi');
+      return res.data;
+    },
+  });
+}
+
 export function useCreatePrestasi() {
   const qc = useQueryClient();
   return useMutation({

@@ -22,6 +22,16 @@ export function useGaleriList() {
   });
 }
 
+export function usePublicGaleriList() {
+  return useQuery({
+    queryKey: ['public-galeri'],
+    queryFn: async () => {
+      const res = await api.get<GaleriRecord[]>('/public/galeri');
+      return res.data;
+    },
+  });
+}
+
 export function useCreateGaleri() {
   const queryClient = useQueryClient();
   return useMutation({
