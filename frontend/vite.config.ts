@@ -42,6 +42,7 @@ export default defineConfig({
           },
         ],
       },
+      filename: 'sw-v2.js',
       workbox: {
         maximumFileSizeToCacheInBytes: 5000000, // 5 MB
         // SPA navigate fallback
