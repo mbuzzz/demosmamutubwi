@@ -1,14 +1,13 @@
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: sit_postgres
+    container_name: smamutubwi_postgres
     restart: always
     environment:
       POSTGRES_DB: sit_db
       POSTGRES_USER: sit_user
       POSTGRES_PASSWORD: sit_password
-    ports:
-      - "2024:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,10 +18,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: sit_redis
+    container_name: smamutubwi_redis
     restart: always
-    ports:
-      - "6379:6379"
+
     volumes:
       - redis_data:/data
     healthcheck:
@@ -33,15 +31,14 @@ services:
 
   backend:
     build: ./backend
-    container_name: sit_backend
+    container_name: smamutubwi_backend
     restart: always
-    ports:
-      - "1999:80"
+
     environment:
       APP_ENV: production
       APP_KEY: base64:aj8Ws2Bl7ID7XlVCLQOM3DMpWQORJBqsxj2829hrv3Q=
       APP_DEBUG: "false"
-      APP_URL: https://demolms.rayan.web.id
+      APP_URL: https://smamuhammadiyah1banyuwangi.sch.id
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
@@ -53,9 +50,9 @@ services:
       SESSION_DRIVER: file
       CACHE_STORE: file
       QUEUE_CONNECTION: database
-      FRONTEND_URL: https://demolms.rayan.web.id
-      SANCTUM_STATEFUL_DOMAINS: smamuhammadiyah1banyuwangi.sch.id,www.smamuhammadiyah1banyuwangi.sch.id,demolms.rayan.web.id,localhost:1999,localhost:3002,localhost,127.0.0.1,127.0.0.1:3002
-      SESSION_DOMAIN: ""
+      FRONTEND_URL: https://smamuhammadiyah1banyuwangi.sch.id
+      SANCTUM_STATEFUL_DOMAINS: smamuhammadiyah1banyuwangi.sch.id
+      SESSION_DOMAIN: smamuhammadiyah1banyuwangi.sch.id
     volumes:
       - backend_storage:/var/www/html/storage/app
     depends_on:
@@ -66,10 +63,10 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: sit_frontend
+    container_name: smamutubwi_frontend
     restart: always
     ports:
-      - "3002:80"
+      - "3004:80"
     depends_on:
       - backend
 
