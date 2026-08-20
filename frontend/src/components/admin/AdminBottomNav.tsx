@@ -58,7 +58,7 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
     ? [
         { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
         { name: "Kurikulum", path: "/panel/guru/kurikulum", icon: BookOpen },
-        { name: "Jadwal", path: "/panel/guru/jadwal", icon: FileText },
+        { name: "Laporan", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
         { name: "Nilai", path: "/panel/guru/nilai", icon: ClipboardList },
       ]
     : simulatedRole === 'guru'
@@ -131,8 +131,15 @@ export default function AdminBottomNav({ currentPath }: { currentPath: string })
             { name: "Kurikulum & Rumus", path: "/panel/guru/kurikulum/rumus", icon: Settings },
             { name: "Mata Pelajaran", path: "/panel/guru/mapel", icon: BookOpen },
             { name: "Kelas & Jurusan", path: "/panel/guru/kelas", icon: School },
-            { name: "Rekap Absensi", path: "/panel/guru/absensi/rekap", icon: UserCheck },
+          ]
+        },
+        {
+          title: "Laporan",
+          items: [
+            { name: "Rekap Absensi Siswa", path: "/panel/guru/absensi/rekap", icon: ClipboardList },
+            { name: "Laporan Absensi Guru", path: "/panel/guru/absensi/guru", icon: UserCheck },
             { name: "Rapor Siswa", path: "/panel/guru/rapor", icon: FileText },
+            { name: "Laporan Piket", path: "/panel/piket/laporan", icon: ClipboardList },
           ]
         }
       ]
