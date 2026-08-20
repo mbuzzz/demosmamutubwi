@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '../lib/errors';
 
 export interface KurikulumRecord {
   id: string;
@@ -13,9 +14,16 @@ export interface KurikulumRecord {
   bobot_tugas: number;
   bobot_uts: number;
   bobot_uas: number;
-  rumus_penilaian?: any | null;
-  rapor_template?: any | null;
-  deskripsi_config?: any | null;
+  rumus_penilaian?: unknown;
+  rapor_template?: unknown;
+  deskripsi_config?: DeskripsiConfig | null;
+}
+
+export interface DeskripsiConfig {
+  threshold_tinggi: number;
+  threshold_rendah: number;
+  template_tinggi: string;
+  template_rendah: string;
 }
 
 export function useKurikulumList() {
@@ -53,8 +61,8 @@ export function useCreateKurikulum() {
       queryClient.invalidateQueries({ queryKey: ['kurikulum'] });
       queryClient.invalidateQueries({ queryKey: ['kelas'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }
@@ -71,8 +79,8 @@ export function useUpdateKurikulum() {
       queryClient.invalidateQueries({ queryKey: ['kurikulum-detail', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['kelas'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }
@@ -87,8 +95,8 @@ export function useDeleteKurikulum() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kurikulum'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }

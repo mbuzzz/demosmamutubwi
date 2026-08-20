@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '../lib/errors';
 
 export interface RaporRecord {
   id: string;
@@ -13,7 +14,7 @@ export interface RaporRecord {
   alpha: number;
   terlambat: number;
   status: 'draft' | 'published';
-  siswa?: any | null;
+  siswa?: Record<string, unknown> | null;
 }
 
 export function useRaporList(search?: string) {
@@ -52,8 +53,8 @@ export function useCreateRapor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rapors'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }
@@ -69,8 +70,8 @@ export function useUpdateRapor() {
       queryClient.invalidateQueries({ queryKey: ['rapors'] });
       queryClient.invalidateQueries({ queryKey: ['rapor-detail', variables.id] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }
@@ -86,8 +87,8 @@ export function usePublishRapor() {
       queryClient.invalidateQueries({ queryKey: ['rapors'] });
       queryClient.invalidateQueries({ queryKey: ['rapor-detail', id] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }
@@ -103,8 +104,8 @@ export function useSaveNilaiEkskul() {
       toast.success('Nilai ekskul berhasil disimpan');
       queryClient.invalidateQueries({ queryKey: ['rapors'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan nilai ekskul');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan nilai ekskul'));
     },
   });
 }
@@ -120,8 +121,8 @@ export function useDeleteNilaiEkskul() {
       toast.success('Nilai ekskul berhasil dihapus');
       queryClient.invalidateQueries({ queryKey: ['rapors'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menghapus nilai ekskul');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menghapus nilai ekskul'));
     },
   });
 }

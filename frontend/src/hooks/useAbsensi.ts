@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '../lib/errors';
 
 export interface AbsensiRecord {
   id: number;
@@ -102,8 +103,8 @@ export function useTapAbsensi() {
       queryClient.invalidateQueries({ queryKey: ['absensi'] });
       queryClient.invalidateQueries({ queryKey: ['absensi-rekap'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }
@@ -135,8 +136,8 @@ export function useManualAbsensi() {
       queryClient.invalidateQueries({ queryKey: ['absensi'] });
       queryClient.invalidateQueries({ queryKey: ['absensi-rekap'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan data');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan data'));
     },
   });
 }

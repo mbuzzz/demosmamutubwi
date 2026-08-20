@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '../lib/errors';
 import {
   type HariPiket,
   type JadwalPiketItem,
+  type AbsensiPiketItem,
   type LaporanPiketItem,
   type RingkasanPiket,
   type StatusPiket,
@@ -45,8 +47,8 @@ export function useCreateJadwalPiket() {
       toast.success('Jadwal piket berhasil ditambahkan');
       queryClient.invalidateQueries({ queryKey: ['piket-jadwal'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menambahkan jadwal piket');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menambahkan jadwal piket'));
     },
   });
 }
@@ -62,8 +64,8 @@ export function useUpdateJadwalPiket() {
       toast.success('Jadwal piket berhasil diperbarui');
       queryClient.invalidateQueries({ queryKey: ['piket-jadwal'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal memperbarui jadwal piket');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal memperbarui jadwal piket'));
     },
   });
 }
@@ -79,8 +81,8 @@ export function useDeleteJadwalPiket() {
       toast.success('Jadwal piket berhasil dihapus');
       queryClient.invalidateQueries({ queryKey: ['piket-jadwal'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menghapus jadwal piket');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menghapus jadwal piket'));
     },
   });
 }
@@ -91,7 +93,7 @@ export function useAbsensiPiketTanggal(tanggal?: string) {
   return useQuery({
     queryKey: ['piket-absensi', tanggal],
     queryFn: async () => {
-      const res = await api.get<any>('/piket/absensi', { params: { tanggal } });
+      const res = await api.get<{ tanggal: string; hari: HariPiket; data: AbsensiPiketItem[] }>('/piket/absensi', { params: { tanggal } });
       return res.data;
     },
   });
@@ -101,7 +103,7 @@ export function useAbsensiPiketBulan(bulan?: string) {
   return useQuery({
     queryKey: ['piket-absensi-bulan', bulan],
     queryFn: async () => {
-      const res = await api.get<any>('/piket/absensi', { params: { bulan } });
+      const res = await api.get<AbsensiPiketItem[]>('/piket/absensi', { params: { bulan } });
       return res.data;
     },
     enabled: !!bulan,
@@ -119,8 +121,8 @@ export function useStoreAbsensiPiket() {
       queryClient.invalidateQueries({ queryKey: ['piket-absensi'] });
       queryClient.invalidateQueries({ queryKey: ['piket-absensi-bulan'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menyimpan absensi piket');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menyimpan absensi piket'));
     },
   });
 }
@@ -136,8 +138,8 @@ export function useUpdateAbsensiPiket() {
       queryClient.invalidateQueries({ queryKey: ['piket-absensi'] });
       queryClient.invalidateQueries({ queryKey: ['piket-absensi-bulan'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal memperbarui absensi piket');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal memperbarui absensi piket'));
     },
   });
 }
@@ -154,8 +156,8 @@ export function useDeleteAbsensiPiket() {
       queryClient.invalidateQueries({ queryKey: ['piket-absensi'] });
       queryClient.invalidateQueries({ queryKey: ['piket-absensi-bulan'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Gagal menghapus absensi piket');
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Gagal menghapus absensi piket'));
     },
   });
 }

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { api, getCsrfCookie } from '../../lib/api';
+import { getApiErrorMessage } from '../../lib/errors';
 import { useRoleSimulator, type Role } from '../simulator/RoleContext';
 
 export interface AuthUser {
@@ -19,7 +20,7 @@ export interface AuthUser {
   foto?: string | null;
   is_active?: boolean;
   siswa_id?: number | null;
-  siswa?: any | null;
+  siswa?: Record<string, unknown> | null;
   penugasans?: Array<{
     id: number | string;
     mapel_id?: number;
@@ -100,10 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const authenticatedUser = res.data.user as AuthUser;
       applyUser(authenticatedUser);
       return authenticatedUser;
-    } catch (err: any) {
+    } catch (error: unknown) {
       setUser(null);
       setIsAuthenticated(false);
-      throw new Error(err.response?.data?.message || 'Gagal login. Periksa username dan password Anda.');
+      throw new Error(getApiErrorMessage(error, 'Gagal login. Periksa username dan password Anda.'));
     } finally {
       setIsLoading(false);
     }
