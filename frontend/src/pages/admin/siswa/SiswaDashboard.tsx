@@ -1,12 +1,23 @@
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { CalendarDays, Clock, FileText, Bell, ArrowRight, AlertCircle, CheckSquare, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { useDashboardStats } from '../../../hooks/useDashboard';
+import { useJadwal } from '../../../hooks/useJadwal';
 import { useAuth } from '../../../components/auth/AuthContext';
 
 export default function SiswaDashboard() {
   const { stats, loading } = useDashboardStats();
+  const { data: schedules = [] } = useJadwal();
   const { user } = useAuth();
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+
+  // Re-evaluate the current lesson every minute using WIB, regardless of the
+  // browser/device timezone. This avoids showing a stale hardcoded lesson.
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   
   const greetingName = user?.role === 'orang_tua' ? `Wali dari ${user?.siswa?.name || 'Siswa'}` : user?.name || 'Siswa';
   const dashboardTitle = user?.role === 'orang_tua' ? "Portal Orang Tua / Wali Murid" : "Ruang Belajar Siswa";
@@ -34,12 +45,45 @@ export default function SiswaDashboard() {
     };
   }) || fallbackStats;
 
-  const todayClasses = [
-    { time: '07:00 - 08:30', mapel: 'Matematika Wajib', guru: 'Ahmad Hidayat, S.Pd', status: 'sekarang' },
-    { time: '08:30 - 10:00', mapel: 'Bahasa Inggris', guru: 'Siti Aminah, M.Pd', status: 'nanti' },
-    { time: '10:00 - 10:15', mapel: 'Istirahat', guru: '', status: 'istirahat' },
-    { time: '10:15 - 11:45', mapel: 'Fisika', guru: 'Bambang Wijaya, S.Pd', status: 'nanti' },
-  ];
+  const todayClasses = useMemo(() => {
+    const now = currentTime;
+    const weekday = new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long',
+      timeZone: 'Asia/Jakarta',
+    }).format(now);
+    const [hourNow, minuteNow] = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Asia/Jakarta',
+    }).format(now).split(':').map(Number);
+    const minutesNow = hourNow * 60 + minuteNow;
+
+    const toMinutes = (value?: string) => {
+      const [hour, minute] = (value || '').slice(0, 5).split(':').map(Number);
+      return Number.isFinite(hour) && Number.isFinite(minute) ? hour * 60 + minute : null;
+    };
+
+    return schedules
+      .filter(schedule => schedule.hari?.toLowerCase() === weekday.toLowerCase())
+      .sort((a, b) => (a.urutan_jam || 0) - (b.urutan_jam || 0))
+      .map(schedule => {
+        const start = toMinutes(schedule.jam_mulai);
+        const end = toMinutes(schedule.jam_selesai);
+        const isBreak = Boolean(schedule.is_break);
+        const status = isBreak
+          ? 'istirahat'
+          : start !== null && end !== null && minutesNow >= start && minutesNow < end
+            ? 'sekarang'
+            : 'nanti';
+        return {
+          time: `${schedule.jam_mulai?.slice(0, 5) || '--:--'} - ${schedule.jam_selesai?.slice(0, 5) || '--:--'}`,
+          mapel: isBreak ? 'Istirahat' : schedule.mapel?.nama || schedule.label || 'Mata Pelajaran',
+          guru: isBreak ? '' : schedule.guru?.name || '—',
+          status,
+        };
+      });
+  }, [schedules, currentTime]);
 
   const pendingTugas = [
     { id: 1, title: 'PR LKS Hal 24-25', mapel: 'Matematika Wajib', deadline: 'Besok, 23:59 WIB', status: 'belum' },
@@ -68,7 +112,11 @@ export default function SiswaDashboard() {
               </div>
               <div>
                 <h3 className="font-bold text-lg leading-none mb-1">Pelajaran Sedang Berlangsung</h3>
-                <p className="text-sm text-violet-100">Matematika Wajib (07:00 - 08:30) oleh Ahmad Hidayat, S.Pd</p>
+                <p className="text-sm text-violet-100">
+                  {todayClasses.find(item => item.status === 'sekarang')
+                    ? `${todayClasses.find(item => item.status === 'sekarang')!.mapel} (${todayClasses.find(item => item.status === 'sekarang')!.time}) oleh ${todayClasses.find(item => item.status === 'sekarang')!.guru}`
+                    : 'Tidak ada pelajaran yang sedang berlangsung.'}
+                </p>
               </div>
             </div>
             <Link to="/panel/siswa/materi" className="w-full sm:w-auto bg-white text-indigo-600 hover:bg-indigo-50 px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 shrink-0">
@@ -106,7 +154,9 @@ export default function SiswaDashboard() {
             </h3>
             
             <div className="space-y-4">
-              {todayClasses.map((c, i) => (
+              {todayClasses.length === 0 ? (
+                <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada jadwal untuk hari ini.</p>
+              ) : todayClasses.map((c, i) => (
                 <div key={i} className={`p-4 rounded-2xl border transition-colors ${
                   c.status === 'sekarang' 
                     ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-150 dark:border-indigo-500/20' 

@@ -326,30 +326,21 @@ export default function SiswaCbt() {
       document.exitFullscreen().catch(() => {});
     }
 
-    // Mock grading
-    let correct = 0;
-    const totalQ = selectedExam.questions.length;
-    selectedExam.questions.forEach(q => {
-      const studentAns = answers[q.id] || '';
-      if (q.tipe === 'essay') {
-        correct += 1;
-      } else if (studentAns.toLowerCase().replace(/\s+/g, '') === q.kunci.toLowerCase().replace(/\s+/g, '')) {
-        correct += 1;
-      }
-    });
-    const score = totalQ > 0 ? Math.round((correct / totalQ) * 100) : 0;
-    setFinalScore(score);
-
     // Persist to backend
     if (selectedExam.ujian_siswa_id) {
        selesaiUjian.mutate(selectedExam.ujian_siswa_id, {
-           onSuccess: () => {
+           onSuccess: (result) => {
+                const score = Math.round(Number(result.nilai_pg ?? result.total_nilai ?? 0));
+                setFinalScore(score);
                 setExams(prev => prev.filter(e => e.id !== selectedExam.id));
                 setCompleted(prev => [{ ...selectedExam, status: 'selesai', score }, ...prev]);
                 setView('result');
            }
        })
     } else {
+        // Tidak ada hasil ujian backend hanya untuk mode demo/offline.
+        const score = 0;
+        setFinalScore(score);
         setExams(prev => prev.filter(e => e.id !== selectedExam.id));
         setCompleted(prev => [{ ...selectedExam, status: 'selesai', score }, ...prev]);
         setView('result');

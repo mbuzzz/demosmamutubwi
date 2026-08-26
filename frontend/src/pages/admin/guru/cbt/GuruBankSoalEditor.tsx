@@ -325,6 +325,7 @@ export default function GuruBankSoalEditor() {
                         <CheckSquare className="w-4 h-4 text-emerald-500"/> 
                         {activeSoal.jenis === 'pg' ? 'Opsi Jawaban (Pilih 1 Kunci yang Benar)' : 'Opsi Jawaban (Centang semua kunci yang benar)'}
                       </label>
+                      <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-3">Klik radio di sebelah opsi yang benar. Nilai pilihan ganda akan dihitung otomatis setelah siswa mengumpulkan ujian.</p>
                       <div className="space-y-3">
                         {activeSoal.opsiJawabans?.map((opsi, idx) => (
                           <div key={idx} className={`flex items-start gap-3 p-3 rounded-2xl border transition-all ${opsi.is_benar ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm shadow-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'}`}>

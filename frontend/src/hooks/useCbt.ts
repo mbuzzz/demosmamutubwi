@@ -260,7 +260,9 @@ export function useSelesaiUjian() {
     const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (ujianSiswaId: number) => {
-      const res = await api.post<{ message: string }>('/cbt/ujian/selesai', { ujian_siswa_id: ujianSiswaId });
+      const res = await api.post<{ message: string; nilai_pg?: number; total_nilai?: number }>('/cbt/ujian/selesai', {
+        hasil_ujian_id: ujianSiswaId,
+      });
       return res.data;
     },
     onSuccess: () => {
