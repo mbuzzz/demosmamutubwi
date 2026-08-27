@@ -4,11 +4,15 @@ import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useDashboardStats } from '../../../hooks/useDashboard';
 import { useJadwal } from '../../../hooks/useJadwal';
+import { useTugasList } from '../../../hooks/useLms';
+import { useBeritaList } from '../../../hooks/useBerita';
 import { useAuth } from '../../../components/auth/AuthContext';
 
 export default function SiswaDashboard() {
   const { stats, loading } = useDashboardStats();
   const { data: schedules = [] } = useJadwal();
+  const { data: tugasData = [] } = useTugasList();
+  const { data: beritaData = [] } = useBeritaList({ public: true });
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
@@ -24,10 +28,10 @@ export default function SiswaDashboard() {
   const portalSub = user?.role === 'orang_tua' ? "Laporan Perkembangan Belajar Anak" : "Portal Akademik Siswa";
 
   const fallbackStats = [
-    { label: 'Rata-rata Nilai', value: '88.4', sub: 'Semester Ganjil', icon: Award, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
-    { label: 'Kehadiran', value: '98.5%', sub: 'Hadir: 65, Absen: 1', icon: Clock, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
-    { label: 'Tugas Belum Kumpul', value: '2', sub: 'Deadline terdekat: Besok', icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
-    { label: 'Ujian Aktif (CBT)', value: '1', sub: 'Token diperlukan', icon: CheckSquare, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
+    { label: 'Rata-rata Nilai', value: '—', sub: 'Belum ada data', icon: Award, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+    { label: 'Kehadiran', value: '—', sub: 'Belum ada data', icon: Clock, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+    { label: 'Tugas Belum Kumpul', value: '—', sub: 'Belum ada data', icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+    { label: 'Ujian Aktif (CBT)', value: '—', sub: 'Belum ada data', icon: CheckSquare, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
   ];
 
   const displayStats = stats?.cards?.map((card: any) => {
@@ -85,15 +89,22 @@ export default function SiswaDashboard() {
       });
   }, [schedules, currentTime]);
 
-  const pendingTugas = [
-    { id: 1, title: 'PR LKS Hal 24-25', mapel: 'Matematika Wajib', deadline: 'Besok, 23:59 WIB', status: 'belum' },
-    { id: 2, title: 'Laporan Praktikum Kinematika', mapel: 'Fisika', deadline: 'Kamis, 23:59 WIB', status: 'belum' },
-  ];
+  const pendingTugas = (Array.isArray(tugasData) ? tugasData : []).map((t: any) => ({
+    id: t.id,
+    title: t.judul || 'Tugas',
+    mapel: t.mapel?.nama || 'Mata Pelajaran',
+    deadline: t.tenggat_waktu
+      ? new Date(t.tenggat_waktu).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : 'Tanpa tenggat',
+  }));
 
-  const announcements = [
-    { tag: 'Akademik', title: 'Penilaian Tengah Semester (PTS) Ganjil dimulai tanggal 12 Oktober 2024.', date: '1 jam lalu' },
-    { tag: 'Pengumuman', title: 'Libur Maulid Nabi Muhammad SAW jatuh pada hari Senin depan.', date: 'Kemarin' },
-  ];
+  const announcements = (Array.isArray(beritaData) ? beritaData : []).slice(0, 3).map((b: any) => ({
+    tag: b.kategori?.nama || 'Berita',
+    title: b.judul || '',
+    date: b.published_at
+      ? new Date(b.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '',
+  }));
 
   return (
     <AdminLayout title={dashboardTitle}>
@@ -192,7 +203,9 @@ export default function SiswaDashboard() {
             </div>
             
             <div className="space-y-4">
-              {pendingTugas.map(t => (
+              {pendingTugas.length === 0 ? (
+                <p className="text-sm text-slate-400 italic text-center py-6">Belum ada tugas.</p>
+              ) : pendingTugas.map(t => (
                 <div key={t.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50 hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-colors">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center gap-3">
@@ -217,7 +230,9 @@ export default function SiswaDashboard() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
             <h3 className="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><Award className="w-5 h-5 text-indigo-500" /> Pengumuman Sekolah</h3>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {announcements.map((a, i) => (
+              {announcements.length === 0 ? (
+                <p className="text-sm text-slate-400 italic text-center py-6">Belum ada pengumuman.</p>
+              ) : announcements.map((a, i) => (
                 <div key={i} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 sm:px-3 py-1 bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-md whitespace-nowrap">{a.tag}</span>

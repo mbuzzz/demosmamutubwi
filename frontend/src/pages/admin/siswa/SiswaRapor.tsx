@@ -5,38 +5,6 @@ import { useAuth } from '../../../components/auth/AuthContext';
 import { useNilaiList } from '../../../hooks/useNilai';
 import { useRaporList, useRapor } from '../../../hooks/useRapor';
 
-interface GradeItem {
-  name: string;
-  mapel: string;
-  grade: number;
-  date: string;
-  feedback?: string;
-}
-
-const tugasGrades: GradeItem[] = [
-  { name: 'Tugas Rumus Eksponen', mapel: 'Matematika Wajib', grade: 90, date: '15 Jul 2024', feedback: 'Kerja bagus Agus, langkah pengerjaan teratur dan benar.' },
-  { name: 'Laporan Praktikum Kinematika', mapel: 'Fisika', grade: 82, date: '18 Jul 2024', feedback: 'Laporan lengkap, tabel pengamatan tepat.' },
-  { name: 'Analisis Paragraf', mapel: 'Bahasa Indonesia', grade: 88, date: '10 Jul 2024', feedback: 'Argumen sangat kuat dan terstruktur.' },
-];
-
-const kuisGrades: GradeItem[] = [
-  { name: 'Kuis Logaritma Dasar', mapel: 'Matematika Wajib', grade: 95, date: '12 Jul 2024' },
-  { name: 'Kuis Vektor 2D', mapel: 'Fisika', grade: 80, date: '05 Jul 2024' },
-  { name: 'Kuis Puisi Rakyat', mapel: 'Bahasa Indonesia', grade: 85, date: '28 Jun 2024' },
-];
-
-const ujianGrades: GradeItem[] = [
-  { name: 'Penilaian Tengah Semester Ganjil', mapel: 'Matematika Wajib', grade: 88, date: '22 Okt 2024' },
-  { name: 'Penilaian Tengah Semester Ganjil', mapel: 'Fisika', grade: 78, date: '24 Okt 2024' },
-  { name: 'Penilaian Tengah Semester Ganjil', mapel: 'Bahasa Indonesia', grade: 86, date: '20 Okt 2024' },
-];
-
-const finalRapor = [
-  { mapel: 'Matematika Wajib', kkm: 75, tugas: 87, kuis: 88, ujian: 88, akhir: 88, predikat: 'A-', catatan: 'Sangat baik dalam pemecahan masalah logaritma dan relasi fungsi.' },
-  { mapel: 'Fisika', kkm: 75, tugas: 81, kuis: 80, ujian: 78, akhir: 80, predikat: 'B+', catatan: 'Baik dalam praktikum gerak lurus dan pemahaman analisis vektor.' },
-  { mapel: 'Bahasa Indonesia', kkm: 75, tugas: 88, kuis: 85, ujian: 86, akhir: 86, predikat: 'A-', catatan: 'Sangat baik dalam penulisan karya ilmiah dan membaca teks prosedural.' },
-];
-
 export default function SiswaRapor() {
   const [activeTab, setActiveTab] = useState<'tugas' | 'kuis' | 'ujian' | 'rapor'>('tugas');
   const { user } = useAuth();
@@ -54,29 +22,29 @@ export default function SiswaRapor() {
   const { data: raporDetail } = useRapor(activeRaporObj?.id);
 
   // Dynamic maps
-  const dynamicTugasGrades = grades.length > 0 ? grades.map((g: any) => ({
+  const dynamicTugasGrades = grades.map((g: any) => ({
     name: 'Tugas Harian',
     mapel: g.mapel?.nama || 'Mata Pelajaran',
     grade: g.nilai_tugas ?? 0,
     date: g.updated_at ? new Date(g.updated_at).toLocaleDateString('id-ID') : '—',
     feedback: g.catatan || '—'
-  })).filter((g: any) => g.grade > 0) : tugasGrades;
+  })).filter((g: any) => g.grade > 0);
 
-  const dynamicKuisGrades = grades.length > 0 ? grades.map((g: any) => ({
+  const dynamicKuisGrades = grades.map((g: any) => ({
     name: 'Ujian Tengah Semester',
     mapel: g.mapel?.nama || 'Mata Pelajaran',
     grade: g.nilai_uts ?? 0,
     date: g.updated_at ? new Date(g.updated_at).toLocaleDateString('id-ID') : '—'
-  })).filter((g: any) => g.grade > 0) : kuisGrades;
+  })).filter((g: any) => g.grade > 0);
 
-  const dynamicUjianGrades = grades.length > 0 ? grades.map((g: any) => ({
+  const dynamicUjianGrades = grades.map((g: any) => ({
     name: 'Ujian Akhir Semester',
     mapel: g.mapel?.nama || 'Mata Pelajaran',
     grade: g.nilai_uas ?? 0,
     date: g.updated_at ? new Date(g.updated_at).toLocaleDateString('id-ID') : '—'
-  })).filter((g: any) => g.grade > 0) : ujianGrades;
+  })).filter((g: any) => g.grade > 0);
 
-  const dynamicFinalRapor = grades.length > 0 ? grades.map((g: any) => ({
+  const dynamicFinalRapor = grades.map((g: any) => ({
     mapel: g.mapel?.nama || 'Mata Pelajaran',
     kkm: g.mapel?.kkm || 75,
     tugas: g.nilai_tugas ?? '-',
@@ -85,7 +53,7 @@ export default function SiswaRapor() {
     akhir: g.nilai_akhir ?? '-',
     predikat: g.predikat || '—',
     catatan: g.catatan || '—'
-  })) : finalRapor;
+  }));
 
   const averageGrade = Math.round(dynamicFinalRapor.reduce((a, s) => a + (typeof s.akhir === 'number' ? s.akhir : 0), 0) / (dynamicFinalRapor.length || 1)) || 0;
 
@@ -117,7 +85,7 @@ export default function SiswaRapor() {
         <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex items-center justify-between transition-colors">
           <div>
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tugas Dinilai</span>
-            <h3 className="text-3xl font-black text-slate-800 dark:text-white mt-2">{tugasGrades.length}</h3>
+            <h3 className="text-3xl font-black text-slate-800 dark:text-white mt-2">{dynamicTugasGrades.length}</h3>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Semua tugas terkirim</p>
           </div>
           <FileText className="w-10 h-10 text-emerald-500 opacity-80" />
@@ -125,7 +93,7 @@ export default function SiswaRapor() {
         <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex items-center justify-between transition-colors">
           <div>
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kuis Diikuti</span>
-            <h3 className="text-3xl font-black text-slate-800 dark:text-white mt-2">{kuisGrades.length}</h3>
+            <h3 className="text-3xl font-black text-slate-800 dark:text-white mt-2">{dynamicKuisGrades.length}</h3>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Rerata kuis harian: 87</p>
           </div>
           <BarChart3 className="w-10 h-10 text-amber-500 opacity-80" />
@@ -158,7 +126,9 @@ export default function SiswaRapor() {
           {/* Nilai Tugas */}
           {activeTab === 'tugas' && (
             <div className="space-y-4">
-              {dynamicTugasGrades.map((g, i) => (
+              {dynamicTugasGrades.length === 0 ? (
+                <p className="text-sm text-slate-400 italic text-center py-8">Belum ada nilai tugas.</p>
+              ) : dynamicTugasGrades.map((g, i) => (
                 <div key={i} className="p-5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
                     <div>
@@ -181,6 +151,9 @@ export default function SiswaRapor() {
           {/* Nilai Kuis */}
           {activeTab === 'kuis' && (
             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">
+              {dynamicKuisGrades.length === 0 ? (
+                <p className="text-sm text-slate-400 italic text-center py-8">Belum ada nilai kuis.</p>
+              ) : (
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-200 dark:border-slate-700">
                   <tr>
@@ -201,12 +174,16 @@ export default function SiswaRapor() {
                   ))}
                 </tbody>
               </table>
+              )}
             </div>
           )}
 
           {/* Nilai Ujian */}
           {activeTab === 'ujian' && (
             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">
+              {dynamicUjianGrades.length === 0 ? (
+                <p className="text-sm text-slate-400 italic text-center py-8">Belum ada nilai ujian.</p>
+              ) : (
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-200 dark:border-slate-700">
                   <tr>
@@ -227,6 +204,7 @@ export default function SiswaRapor() {
                   ))}
                 </tbody>
               </table>
+              )}
             </div>
           )}
 
@@ -296,6 +274,9 @@ export default function SiswaRapor() {
                 </div>
               </div>
 
+              {dynamicFinalRapor.length === 0 ? (
+                <p className="text-sm text-slate-400 italic text-center py-8">Belum ada data rapor akhir.</p>
+              ) : (
               <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-slate-850 text-white text-xs font-bold">
@@ -326,6 +307,7 @@ export default function SiswaRapor() {
                   </tbody>
                 </table>
               </div>
+              )}
             </div>
           )}
 
