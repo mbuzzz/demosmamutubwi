@@ -15,7 +15,7 @@ class ProfilSekolahController extends Controller
         
         $data = $profil->toArray();
         $data['nama_sekolah'] = $config && $config->nama_sekolah ? $config->nama_sekolah : 'SMAS Muhammadiyah 1 Banyuwangi';
-        $data['akreditasi'] = 'A'; // Or store in SistemKonfigurasi later
+        $data['akreditasi'] = 'B'; // Akreditasi sekolah
 
         return response()->json($data);
     }

@@ -90,8 +90,8 @@ export default function Home() {
             {/* Bento Block 3: Quick Stat / Mini Feature 1 */}
             <div className="md:col-span-1 lg:col-span-1 bg-brand-teal text-white rounded-[15px] p-6 shadow-card dark:shadow-none flex flex-col justify-center">
               <Award className="w-8 h-8 text-brand-yellow mb-4" />
-              <h3 className="text-2xl font-bold mb-1">Akreditasi A</h3>
-              <p className="text-teal-100 text-sm">Terakreditasi unggul oleh BAN-SM secara konsisten.</p>
+              <h3 className="text-2xl font-bold mb-1">Akreditasi B</h3>
+              <p className="text-teal-100 text-sm">Terakreditasi oleh BAN-SM.</p>
             </div>
 
             {/* Bento Block 4: Quick Stat / Mini Feature 2 */}
@@ -169,7 +169,7 @@ export default function Home() {
             </div>
             <div className="p-6 border border-slate-100 dark:border-slate-800 rounded-[15px] shadow-card dark:shadow-none bg-white dark:bg-slate-900 hover:shadow-card dark:shadow-none-hover transition-shadow">
               <BookOpen className="h-8 w-8 text-brand-blueSlate dark:text-brand-yellow mx-auto mb-2" />
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-white">A</div>
+              <div className="text-3xl font-extrabold text-slate-900 dark:text-white">B</div>
               <div className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Akreditasi BAN-SM</div>
             </div>
             <div className="p-6 border border-slate-100 dark:border-slate-800 rounded-[15px] shadow-card dark:shadow-none bg-white dark:bg-slate-900 hover:shadow-card dark:shadow-none-hover transition-shadow">

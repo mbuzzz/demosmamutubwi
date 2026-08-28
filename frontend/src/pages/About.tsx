@@ -116,7 +116,7 @@ export default function About() {
                     </div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-xl mb-3">Akreditasi</h3>
                     <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm font-bold">
-                      Sekolah terakreditasi peringkat: {profil.akreditasi || 'A'}
+                      Sekolah terakreditasi peringkat: {profil.akreditasi || 'B'}
                     </p>
                   </div>
                 </div>
