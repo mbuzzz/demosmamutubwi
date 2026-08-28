@@ -110,6 +110,24 @@ class JadwalController extends Controller
 
             Jadwal::insert($insertData);
 
+            // Jadwal terisi menjadi sumber sinkronisasi penugasan mengajar.
+            // Slot tanpa guru tidak ditebak dan tidak dibuatkan penugasan.
+            foreach ($insertData as $item) {
+                if ($item['is_break'] || !$item['mapel_id'] || !$item['guru_id']) {
+                    continue;
+                }
+
+                \App\Models\Penugasan::firstOrCreate(
+                    [
+                        'guru_id' => $item['guru_id'],
+                        'mapel_id' => $item['mapel_id'],
+                        'kelas_id' => $item['kelas_id'],
+                        'tahun_ajaran' => $tahunAjaran,
+                    ],
+                    ['total_jam' => 2]
+                );
+            }
+
             \DB::commit();
 
             return response()->json([
