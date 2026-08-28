@@ -90,8 +90,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // 1. USER MANAGEMENT
-    // Kurikulum may list users (e.g. guru picker for jadwal) but cannot mutate.
-    Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
+    // Pendidik boleh membaca daftar siswa untuk KBM; UserController memberi scope kelas.
+    // Kurikulum/admin tetap dapat membaca daftar pengguna untuk kebutuhan manajemen.
+    Route::middleware('role:superadmin,admin,kurikulum,guru,walikelas,kepala_sekolah')->group(function () {
         Route::get('/users', [UserController::class, 'index']);
     });
 

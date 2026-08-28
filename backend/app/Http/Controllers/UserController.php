@@ -133,6 +133,18 @@ class UserController extends Controller
     {
         $query = User::query()->with(['penugasans.mapel', 'penugasans.kelas']);
 
+        // Guru/wali hanya boleh membaca siswa dari kelas yang diampu/diwalikan.
+        // Ini diperlukan oleh halaman absensi, jurnal, nilai, dan wali siswa.
+        if ($request->user()?->shouldScopeByKelas()) {
+            $allowedKelas = $request->user()->accessibleKelasNames();
+            $query->where('role', 'siswa');
+            if (empty($allowedKelas)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('kelas', $allowedKelas);
+            }
+        }
+
         if ($request->has('role') && $request->role !== 'semua') {
             $this->applyRoleFilter($query, $request->role);
         }
