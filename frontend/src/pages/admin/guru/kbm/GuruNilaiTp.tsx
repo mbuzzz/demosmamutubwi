@@ -21,9 +21,8 @@ export default function GuruNilaiTp() {
   const taughtMapelIds = new Set(selectedKelasObj ? (selectedKelasObj.mapels || []).map((m: any) => String(m.id)) : []);
   const guruMapelList = mapelList.filter(m => taughtMapelIds.has(String(m.id)));
 
-  // Find selected mapel to get its tingkat (X, XI, XII)
-  const selectedMapel = guruMapelList.find(m => m.id === selectedMapelId);
-  const tingkat = selectedMapel ? selectedMapel.tingkat : 'X';
+  // TP mengikuti tingkat kelas yang dipilih. ID dari elemen select selalu string.
+  const tingkat = selectedKelasObj?.tingkat || 'X';
 
   const { data: tpList = [] } = useTujuanPembelajaranList(selectedMapelId, tingkat);
   const { data: studentScores = [], isLoading: isScoresLoading } = useStudentTpScores(selectedKelasId, selectedMapelId, selectedTpId);
