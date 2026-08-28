@@ -116,10 +116,14 @@ class CbtUjianController extends Controller
             ];
         });
 
+        $elapsedSeconds = max(0, Carbon::parse($hasil->waktu_mulai)->diffInSeconds($now));
+        $remainingSeconds = max(0, ($sesi->durasi_menit * 60) - $elapsedSeconds);
+
         return response()->json([
             'hasil_ujian_id' => $hasil->id,
             'waktu_mulai' => $hasil->waktu_mulai,
             'durasi_menit' => $sesi->durasi_menit,
+            'durasi_tersisa_menit' => (int) ceil($remainingSeconds / 60),
             'soals' => $formattedSoals,
         ]);
     }
@@ -141,6 +145,11 @@ class CbtUjianController extends Controller
 
         if ($hasil->status === 'selesai') {
             return response()->json(['message' => 'Ujian sudah selesai'], 400);
+        }
+
+        $soalValid = $hasil->sesiUjian()->whereHas('bankSoal.soals', fn ($q) => $q->where('soals.id', $request->soal_id))->exists();
+        if (!$soalValid) {
+            return response()->json(['message' => 'Soal tidak termasuk dalam sesi ujian ini'], 422);
         }
 
         JawabanSiswa::updateOrCreate(
@@ -186,13 +195,25 @@ class CbtUjianController extends Controller
                     } else {
                         $jawaban->update(['skor' => 0]);
                     }
+                } elseif ($soal && in_array($soal->jenis, ['pg_kompleks', 'pgk'], true)) {
+                    $selected = collect(explode(',', (string) $jawaban->jawaban_essay))->filter()->map(fn ($id) => (int) trim($id))->sort()->values()->all();
+                    $correct = $soal->opsiJawabans->where('is_benar', true)->pluck('id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+                    $skor = $selected === $correct ? $soal->bobot_nilai : 0;
+                    $jawaban->update(['skor' => $skor]);
+                    $totalSkorPg += $skor;
+                } elseif ($soal && $soal->jenis === 'bs') {
+                    $correct = $soal->opsiJawabans->where('is_benar', true)->first();
+                    $isCorrect = $correct && strcasecmp(trim((string) $jawaban->jawaban_essay), trim((string) $correct->teks_opsi)) === 0;
+                    $skor = $isCorrect ? $soal->bobot_nilai : 0;
+                    $jawaban->update(['skor' => $skor]);
+                    $totalSkorPg += $skor;
                 }
                 // Essay scoring is done manually by teacher later
             }
 
             // This calculates based on max possible score or just sum of weights?
             // Usually, standard score is (Total Bobot Benar / Total Bobot Maksimal PG) * 100
-            $totalBobotMaksimalPg = $soals->where('jenis', 'pg')->sum('bobot_nilai');
+            $totalBobotMaksimalPg = $soals->whereIn('jenis', ['pg', 'pg_kompleks', 'pgk', 'bs'])->sum('bobot_nilai');
             
             $nilaiPg = 0;
             if ($totalBobotMaksimalPg > 0) {

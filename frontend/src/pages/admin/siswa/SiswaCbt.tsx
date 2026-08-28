@@ -20,6 +20,7 @@ interface Question {
   pertanyaan: string;
   options?: any[];
   kunci: string;
+  savedAnswer?: string;
 }
 
 interface Exam {
@@ -204,6 +205,7 @@ export default function SiswaCbt() {
                  pertanyaan: s.pertanyaan,
                  options: opsi ? opsi.map((o: any) => ({ id: o.id, teks_opsi: o.teks_opsi })) : undefined,
                  kunci: opsi ? opsi.filter((o: any) => o.is_benar).map((o: any) => String(o.id)).join(', ') : '',
+                 savedAnswer: s.jawaban_terpilih ? String(s.jawaban_terpilih) : (s.jawaban_essay || ''),
                };
             });
            
@@ -214,7 +216,7 @@ export default function SiswaCbt() {
            };
            setSelectedExam(examWithQuestions);
            
-           const timeToUse = data.durasi_tersisa_menit ? data.durasi_tersisa_menit * 60 : exam.timeLimit * 60;
+           const timeToUse = data.durasi_tersisa_menit !== undefined ? data.durasi_tersisa_menit * 60 : exam.timeLimit * 60;
            
            beginExam(examWithQuestions, timeToUse);
          },
@@ -246,6 +248,7 @@ export default function SiswaCbt() {
                  pertanyaan: s.pertanyaan,
                  options: opsi ? opsi.map((o: any) => ({ id: o.id, teks_opsi: o.teks_opsi })) : undefined,
                  kunci: opsi ? opsi.filter((o: any) => o.is_benar).map((o: any) => String(o.id)).join(', ') : '',
+                 savedAnswer: s.jawaban_terpilih ? String(s.jawaban_terpilih) : (s.jawaban_essay || ''),
                };
             });
             
@@ -257,7 +260,7 @@ export default function SiswaCbt() {
            setSelectedExam(examWithQuestions);
            
            // If backend provides remaining time, use it. Otherwise use timeLimit
-           const timeToUse = data.durasi_tersisa_menit ? data.durasi_tersisa_menit * 60 : selectedExam.timeLimit * 60;
+           const timeToUse = data.durasi_tersisa_menit !== undefined ? data.durasi_tersisa_menit * 60 : selectedExam.timeLimit * 60;
            
            beginExam(examWithQuestions, timeToUse);
          },
@@ -271,7 +274,7 @@ export default function SiswaCbt() {
   }
 
   function beginExam(exam: Exam, timeLimitSeconds: number) {
-    setAnswers({});
+    setAnswers(Object.fromEntries(exam.questions.filter(q => q.savedAnswer).map(q => [q.id, q.savedAnswer as string])));
     setActiveQuestionIdx(0);
     setTimeLeft(timeLimitSeconds);
     setExamSubmitted(false);
@@ -293,11 +296,12 @@ export default function SiswaCbt() {
     // Auto-save to backend
     if (selectedExam.ujian_siswa_id) {
         const isEssay = q.tipe === 'essay';
+        const isBenarSalah = q.tipe === 'bs';
         simpanJawaban.mutate({
             hasil_ujian_id: selectedExam.ujian_siswa_id,
             soal_id: q.id as number,
-            opsi_jawaban_id: isEssay ? null : Number(ans),
-            jawaban_essay: isEssay ? ans : null,
+            opsi_jawaban_id: isEssay || isBenarSalah ? null : Number(ans),
+            jawaban_essay: isEssay || isBenarSalah ? ans : null,
         });
     }
   }
@@ -305,9 +309,9 @@ export default function SiswaCbt() {
   function handleSelectMultiAnswer(ans: string) {
     if (!selectedExam) return;
     const q = selectedExam.questions[activeQuestionIdx];
-    const current = answers[q.id] ? answers[q.id].split(', ') : [];
+    const current = answers[q.id] ? answers[q.id].split(',') : [];
     const updated = current.includes(ans) ? current.filter(v => v !== ans) : [...current, ans];
-    const finalAns = updated.join(', ');
+    const finalAns = updated.join(',');
     setAnswers(prev => ({ ...prev, [q.id]: finalAns }));
     
      // Auto-save to backend
@@ -530,9 +534,9 @@ export default function SiswaCbt() {
                   <div className="space-y-3 pt-2">
                     {activeQ.options.map((opt, oIdx) => {
                       const label = ['A', 'B', 'C', 'D', 'E'][oIdx];
-                      const selected = answers[activeQ.id]?.split(', ').includes(label);
+                      const selected = answers[activeQ.id]?.split(',').includes(String(opt.id));
                       return (
-                        <div key={label} onClick={() => handleSelectMultiAnswer(label)}
+                        <div key={label} onClick={() => handleSelectMultiAnswer(String(opt.id))}
                           className={`flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all ${
                             selected
                               ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-500/10 shadow-sm'
@@ -545,7 +549,7 @@ export default function SiswaCbt() {
                           }`}>
                             {label}
                           </div>
-                          <ReactQuill value={opt || ''} readOnly theme="snow" modules={readOnlyQuillModules} className="quill-readonly flex-1" />
+                          <ReactQuill value={opt.teks_opsi || ''} readOnly theme="snow" modules={readOnlyQuillModules} className="quill-readonly flex-1" />
                         </div>
                       );
                     })}
