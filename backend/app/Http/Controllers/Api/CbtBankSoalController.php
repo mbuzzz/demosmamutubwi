@@ -151,7 +151,7 @@ class CbtBankSoalController extends Controller
             'file_media' => $validated['file_media'] ?? null,
         ]);
 
-        if ($validated['jenis'] === 'pg' && isset($validated['opsi_jawabans'])) {
+        if (isset($validated['opsi_jawabans'])) {
             $soal->opsiJawabans()->createMany($validated['opsi_jawabans']);
         }
 
@@ -180,7 +180,7 @@ class CbtBankSoalController extends Controller
             'bobot_nilai' => 'sometimes|numeric|min:1',
             'file_media' => 'nullable|string',
             'opsi_jawabans' => 'sometimes|array',
-            'opsi_jawabans.*.id' => 'nullable|exists:opsi_jawabans,id',
+            'opsi_jawabans.*.id' => 'nullable|integer',
             'opsi_jawabans.*.teks_opsi' => 'required_with:opsi_jawabans|string',
             'opsi_jawabans.*.is_benar' => 'required_with:opsi_jawabans|boolean',
         ]);
@@ -195,6 +195,11 @@ class CbtBankSoalController extends Controller
             'file_media' => array_key_exists('file_media', $validated) ? $validated['file_media'] : $soal->file_media,
         ]);
 
+        // Hapus rubrik/kunci lama saat soal diubah menjadi essay tanpa rubrik baru.
+        if (($validated['jenis'] ?? $soal->jenis) === 'essay' && !isset($validated['opsi_jawabans'])) {
+            $soal->opsiJawabans()->delete();
+        }
+
         if (isset($validated['opsi_jawabans'])) {
             $existingOpsiIds = collect($validated['opsi_jawabans'])->pluck('id')->filter()->toArray();
             
@@ -204,7 +209,9 @@ class CbtBankSoalController extends Controller
             // Update or create options
             foreach ($validated['opsi_jawabans'] as $opsiData) {
                 if (isset($opsiData['id'])) {
-                    OpsiJawaban::where('id', $opsiData['id'])->update([
+                    OpsiJawaban::where('id', $opsiData['id'])
+                        ->where('soal_id', $soal->id)
+                        ->update([
                         'teks_opsi' => $opsiData['teks_opsi'],
                         'is_benar' => $opsiData['is_benar'],
                     ]);

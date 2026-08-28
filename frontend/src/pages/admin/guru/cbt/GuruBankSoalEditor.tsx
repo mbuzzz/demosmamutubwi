@@ -2,11 +2,20 @@ import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Save, Plus, HelpCircle, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, BookMarked, X } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { useState, useEffect } from 'react';
 import { type PaketSoal, type TipeUjian, type SoalItem, type OpsiJawaban, TIPE_BADGE } from '../../../../types/cbt';
 import { useBankSoalList, useCreateBankSoal, useBankSoalDetail, useSaveSoal, useDeleteSoal, useDeleteBankSoal } from '../../../../hooks/useCbt';
 import { useMapelList } from '../../../../hooks/useMapel';
 import { useAuth } from '../../../../components/auth/AuthContext';
+
+(window as any).katex = katex;
+
+const richTextModules = {
+  toolbar: [['bold', 'italic', 'underline'], [{ script: 'sub' }, { script: 'super' }], ['formula']],
+};
+const richTextFormats = ['bold', 'italic', 'underline', 'script', 'formula'];
 
 export default function GuruBankSoalEditor() {
   const { data: bankSoalList, isLoading: isListLoading } = useBankSoalList();
@@ -117,8 +126,8 @@ export default function GuruBankSoalEditor() {
       bobot_nilai: Math.max(1, Math.floor(Number(currentSoal.bobot_nilai) || 1)),
     };
 
-    // Only send opsi_jawabans for PG type
-    if (payload.jenis === 'pg' && currentSoal.opsiJawabans && currentSoal.opsiJawabans.length > 0) {
+    // Kirim opsi/kunci untuk semua jenis yang menggunakannya, termasuk rubrik essay.
+    if (currentSoal.opsiJawabans && currentSoal.opsiJawabans.length > 0) {
       payload.opsi_jawabans = currentSoal.opsiJawabans.map(o => ({
         id: o.id,
         teks_opsi: o.teks_opsi,
@@ -161,8 +170,8 @@ export default function GuruBankSoalEditor() {
       const newArr = [...prev];
       newArr[activeSoalIdx] = { ...newArr[activeSoalIdx], ...updates };
       
-      // If switching jenis to pg, ensure 5 options exist
-      if (updates.jenis === 'pg' && (!newArr[activeSoalIdx].opsiJawabans || newArr[activeSoalIdx].opsiJawabans!.length < 2)) {
+      // Jenis pilihan membutuhkan opsi jawaban.
+      if (['pg', 'pg_kompleks', 'pgk', 'bs'].includes(updates.jenis || '') && (!newArr[activeSoalIdx].opsiJawabans || newArr[activeSoalIdx].opsiJawabans!.length < 2)) {
         newArr[activeSoalIdx].opsiJawabans = [
           { teks_opsi: '', is_benar: false },
           { teks_opsi: '', is_benar: false },
@@ -286,6 +295,8 @@ export default function GuruBankSoalEditor() {
                         className="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition-colors"
                       >
                         <option value="pg">Pilihan Ganda (PG)</option>
+                        <option value="pg_kompleks">Pilihan Ganda Kompleks (Multi Jawaban)</option>
+                        <option value="bs">Benar / Salah</option>
                         <option value="essay">Uraian / Essay</option>
                       </select>
                     </div>
@@ -310,6 +321,8 @@ export default function GuruBankSoalEditor() {
                     <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden quill-custom-dark transition-colors">
                       <ReactQuill 
                         theme="snow" 
+                        modules={richTextModules}
+                        formats={richTextFormats}
                         value={activeSoal.pertanyaan || ''}
                         onChange={val => updateLocalSoal({ pertanyaan: val })} 
                         className="h-40 pb-10" 
@@ -342,12 +355,14 @@ export default function GuruBankSoalEditor() {
                               <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black border transition-colors ${opsi.is_benar ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
                                 {opsiLables[idx] || idx+1}
                               </div>
-                              <input 
-                                type="text" 
+                              <ReactQuill
+                                theme="snow"
                                 value={opsi.teks_opsi || ''}
-                                onChange={e => updateOpsiJawaban(idx, { teks_opsi: e.target.value })} 
-                                placeholder={`Ketik teks opsi ${opsiLables[idx] || idx+1}...`} 
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium dark:text-white transition-colors" 
+                                onChange={val => updateOpsiJawaban(idx, { teks_opsi: val })}
+                                modules={richTextModules}
+                                formats={richTextFormats}
+                                placeholder={`Ketik teks opsi ${opsiLables[idx] || idx+1}...`}
+                                className="w-full bg-white dark:bg-slate-900 rounded-xl quill-option"
                               />
                             </div>
                           </div>
@@ -383,19 +398,21 @@ export default function GuruBankSoalEditor() {
                       <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"><Type className="w-4 h-4 text-amber-500"/> Rubrik / Kunci Jawaban Essay (Panduan Korektor)</label>
                       <div className="bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4">
                         {/* We use first option of opsiJawabans for essay rubric or add a special field in db. Assuming opsiJawabans[0].teks_opsi for now. */}
-                        <textarea 
-                          rows={4} 
+                        <ReactQuill
+                          theme="snow"
                           value={activeSoal.opsiJawabans?.[0]?.teks_opsi || ''}
-                          onChange={(e) => {
+                          onChange={(val) => {
                              if (!activeSoal.opsiJawabans?.length) {
-                                updateLocalSoal({ opsiJawabans: [{ teks_opsi: e.target.value, is_benar: true }] });
+                                updateLocalSoal({ opsiJawabans: [{ teks_opsi: val, is_benar: true }] });
                              } else {
-                                updateOpsiJawaban(0, { teks_opsi: e.target.value });
+                                updateOpsiJawaban(0, { teks_opsi: val });
                              }
                           }}
+                          modules={richTextModules}
+                          formats={richTextFormats}
                           placeholder="Ketik kata kunci atau langkah-langkah yang harus ada untuk mendapat nilai penuh..." 
-                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white transition-colors"
-                        ></textarea>
+                          className="bg-white dark:bg-slate-900 rounded-lg quill-option"
+                        />
                         <p className="text-xs text-amber-600 dark:text-amber-500/80 font-medium mt-2">Siswa akan diberikan kotak teks kosong untuk mengetik jawaban mereka. Kunci ini hanya panduan untuk Anda saat menilai manual.</p>
                       </div>
                     </div>

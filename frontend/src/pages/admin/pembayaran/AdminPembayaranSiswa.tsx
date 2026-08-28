@@ -80,7 +80,7 @@ export default function AdminPembayaranSiswa() {
       metode: 'tunai' // Gunakan metode valid: 'tunai', 'transfer', atau 'rfid'
     }, {
       onSuccess: (data) => {
-        setShowReceipt({ siswa: selectedBayarSiswa, trx: data.transaksi || {
+        setShowReceipt({ siswa: selectedBayarSiswa, trx: data.data || data.transaksi || {
           id: `trx-${Date.now()}`,
           tanggal: new Date().toISOString().split('T')[0],
           nominal,
@@ -282,7 +282,7 @@ export default function AdminPembayaranSiswa() {
                   <input type="number" value={nominalBayar} onChange={e => setNominalBayar(e.target.value)} className="w-full pl-8 pr-3 py-2 bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-600 rounded-lg text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
               </div>
-              <button onClick={handleBayar} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2 rounded-lg text-sm transition-all whitespace-nowrap">
+              <button onClick={handleBayar} disabled={bayarMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-wait text-white font-bold px-6 py-2 rounded-lg text-sm transition-all whitespace-nowrap">
                 <Banknote className="w-4 h-4 inline mr-1.5" />Bayar {nominalBayar ? rupiah(Number(nominalBayar)) : ''}
               </button>
               <button onClick={() => { setSelectedBayarSiswa(null); setNominalBayar(''); }} className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold px-4 py-2 rounded-lg text-sm transition-all">
