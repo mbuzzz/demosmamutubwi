@@ -5,6 +5,13 @@ import { type SesiUjian, type TipeUjian, CBT_CONFIG, TIPE_BADGE } from '../../..
 import { useUjianAktifList, useMulaiUjian, useSimpanJawaban, useSelesaiUjian } from '../../../hooks/useCbt';
 import { useAuth } from '../../../components/auth/AuthContext';
 import { getFileUrl } from '../../../lib/api';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
+
+(window as any).katex = katex;
+const readOnlyQuillModules = { toolbar: false };
 
 interface Question {
   id: number;
@@ -484,7 +491,7 @@ export default function SiswaCbt() {
                 </div>
 
               <div className="p-6 lg:p-8 space-y-6">
-                <div className="text-sm font-bold text-slate-800 dark:text-white leading-relaxed">{activeQ.pertanyaan}</div>
+                <ReactQuill value={activeQ.pertanyaan || ''} readOnly theme="snow" modules={readOnlyQuillModules} className="quill-readonly" />
 
                 {/* PG Options */}
                 {activeQ.tipe === 'pg' && activeQ.options && (
@@ -510,7 +517,7 @@ export default function SiswaCbt() {
                           {isImage ? (
                             <img src={getFileUrl(opt.teks_opsi)} alt={label} className="max-h-24 object-contain rounded-lg border border-slate-100 dark:border-slate-855 bg-white p-1" />
                           ) : (
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{opt.teks_opsi}</span>
+                            <ReactQuill value={opt.teks_opsi || ''} readOnly theme="snow" modules={readOnlyQuillModules} className="quill-readonly flex-1" />
                           )}
                         </div>
                       );
@@ -538,7 +545,7 @@ export default function SiswaCbt() {
                           }`}>
                             {label}
                           </div>
-                          <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{opt}</span>
+                          <ReactQuill value={opt || ''} readOnly theme="snow" modules={readOnlyQuillModules} className="quill-readonly flex-1" />
                         </div>
                       );
                     })}

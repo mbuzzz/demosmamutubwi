@@ -83,6 +83,23 @@
   .dark .quill-custom-dark .ql-picker {
     color: hsl(var(--foreground)) !important;
   }
+  .quill-readonly .ql-toolbar {
+    display: none !important;
+  }
+  .quill-readonly .ql-container,
+  .quill-option .ql-container {
+    border: 0 !important;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  .quill-readonly .ql-editor {
+    padding: 0 !important;
+    min-height: 0 !important;
+    font-weight: inherit;
+  }
+  .quill-option .ql-editor {
+    min-height: 44px;
+  }
 }
 
 @layer base {
