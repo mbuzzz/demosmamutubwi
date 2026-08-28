@@ -2,7 +2,6 @@ import { useState } from 'react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Plus, Pencil, Trash2, X, BookOpen, Award } from 'lucide-react';
 import { useTujuanPembelajaranList, useCreateTujuanPembelajaran, useUpdateTujuanPembelajaran, useDeleteTujuanPembelajaran } from '../../../../hooks/useTujuanPembelajaran';
-import { useMapelList } from '../../../../hooks/useMapel';
 import { useGuruClasses } from '../../../../hooks/usePenugasan';
 import { toast } from 'sonner';
 
@@ -17,12 +16,11 @@ export default function GuruTujuanPembelajaran() {
   const [deskripsi, setDeskripsi] = useState('');
 
   const { data: guruClasses = [] } = useGuruClasses();
-  // Queries
-  const { data: mapelList = [] } = useMapelList();
 
-  // Filter mapelList based on what the teacher teaches
-  const taughtMapelIds = new Set(guruClasses.flatMap(k => (k.mapels || []).map((m: any) => String(m.id))));
-  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(String(m.id)));
+  // Sumber mapel langsung dari penugasan guru, digabung unik lintas kelas.
+  const guruMapelList = Array.from(new Map(
+    guruClasses.flatMap(k => k.mapels || []).map((m: any) => [String(m.id), m])
+  ).values());
 
   const { data: tpList = [], isLoading } = useTujuanPembelajaranList(selectedMapelId, selectedTingkat);
 
@@ -32,7 +30,7 @@ export default function GuruTujuanPembelajaran() {
 
   // Set first mapel as default when loaded
   if (!selectedMapelId && guruMapelList.length > 0) {
-    setSelectedMapelId(guruMapelList[0].id);
+    setSelectedMapelId(String(guruMapelList[0].id));
   }
 
   const openNew = () => {

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import { Save, AlertCircle, FileText, User } from 'lucide-react';
-import { useMapelList } from '../../../../hooks/useMapel';
 import { useGuruClasses } from '../../../../hooks/usePenugasan';
 import { useTujuanPembelajaranList } from '../../../../hooks/useTujuanPembelajaran';
 import { useStudentTpScores, useSaveTpScores } from '../../../../hooks/useNilaiTp';
@@ -14,12 +13,11 @@ export default function GuruNilaiTp() {
 
   // Queries & Mutations
   const { data: kelasList = [] } = useGuruClasses();
-  const { data: mapelList = [] } = useMapelList();
   
-  // Filter mapelList based on what the teacher teaches in the selected class
+  // Gunakan mapel yang dikirim bersama penugasan kelas agar dropdown tidak
+  // kosong saat request /mapels terlambat atau terfilter berbeda.
   const selectedKelasObj = kelasList.find(k => String(k.id) === selectedKelasId);
-  const taughtMapelIds = new Set(selectedKelasObj ? (selectedKelasObj.mapels || []).map((m: any) => String(m.id)) : []);
-  const guruMapelList = mapelList.filter(m => taughtMapelIds.has(String(m.id)));
+  const guruMapelList = selectedKelasObj?.mapels || [];
 
   // TP mengikuti tingkat kelas yang dipilih. ID dari elemen select selalu string.
   const tingkat = selectedKelasObj?.tingkat || 'X';
