@@ -14,6 +14,15 @@ class TujuanPembelajaranController extends Controller
     {
         $query = TujuanPembelajaran::with('mapel');
 
+        $user = $request->user();
+        if ($user?->shouldScopeAsGuru()) {
+            $tahun = optional(SistemKonfigurasi::first())->tahun_ajaran_aktif ?: '2025/2026';
+            $allowedMapelIds = Penugasan::where('guru_id', $user->id)
+                ->where('tahun_ajaran', $tahun)
+                ->pluck('mapel_id');
+            $query->whereIn('mapel_id', $allowedMapelIds);
+        }
+
         if ($request->has('mapel_id') && $request->mapel_id) {
             $query->where('mapel_id', $request->mapel_id);
         }

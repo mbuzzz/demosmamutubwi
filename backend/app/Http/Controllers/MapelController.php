@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mapel;
+use App\Models\Penugasan;
+use App\Models\SistemKonfigurasi;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -16,10 +18,22 @@ class MapelController extends Controller
     {
         $query = Mapel::query();
 
+        // Guru/wali hanya boleh melihat mapel yang benar-benar ditugaskan.
+        $user = $request->user();
+        if ($user?->shouldScopeAsGuru()) {
+            $tahun = optional(SistemKonfigurasi::first())->tahun_ajaran_aktif ?: '2025/2026';
+            $mapelIds = Penugasan::where('guru_id', $user->id)
+                ->where('tahun_ajaran', $tahun)
+                ->pluck('mapel_id');
+            $query->whereIn('id', $mapelIds);
+        }
+
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where('nama', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('kode', 'like', "%{$search}%");
+            });
         }
 
         return response()->json($query->orderBy('nama')->get());
@@ -45,7 +59,22 @@ class MapelController extends Controller
     public function show($id)
     {
         $mapel = Mapel::findOrFail($id);
+        $this->ensureGuruMapelAccess(request()->user(), $mapel->id);
         return response()->json($mapel);
+    }
+
+    private function ensureGuruMapelAccess($user, int $mapelId): void
+    {
+        if (!$user?->shouldScopeAsGuru()) {
+            return;
+        }
+
+        $tahun = optional(SistemKonfigurasi::first())->tahun_ajaran_aktif ?: '2025/2026';
+        $allowed = Penugasan::where('guru_id', $user->id)
+            ->where('mapel_id', $mapelId)
+            ->where('tahun_ajaran', $tahun)
+            ->exists();
+        abort_unless($allowed, 403, 'Anda tidak ditugaskan mengajar mata pelajaran ini pada tahun ajaran aktif.');
     }
 
     public function update(Request $request, $id)
