@@ -92,7 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // 1. USER MANAGEMENT
     // Pendidik boleh membaca daftar siswa untuk KBM; UserController memberi scope kelas.
     // Kurikulum/admin tetap dapat membaca daftar pengguna untuk kebutuhan manajemen.
-    Route::middleware('role:superadmin,admin,kurikulum,guru,walikelas,kepala_sekolah')->group(function () {
+    Route::middleware('role:superadmin,admin,kurikulum,guru,walikelas,kepala_sekolah,bendahara')->group(function () {
         Route::get('/users', [UserController::class, 'index']);
     });
 
@@ -115,12 +115,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/guru/classes', [PenugasanController::class, 'guruClasses']);
     });
 
+    // Bendahara perlu membaca kelas untuk filter data pembayaran, tanpa hak mutasi.
+    Route::middleware('role:superadmin,admin,kurikulum,bendahara')->group(function () {
+        Route::get('/kelas', [KelasController::class, 'index']);
+    });
+
     // 2. KELAS & JADWAL MANAGEMENT (Superadmin, Admin, Kurikulum)
     Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
         Route::get('/kelas/export/pdf', [KelasController::class, 'exportPdf']);
         Route::get('/kelas/export/xlsx', [KelasController::class, 'exportXlsx']);
         Route::post('/kelas/import/xlsx', [KelasController::class, 'importXlsx']);
-        Route::apiResource('kelas', KelasController::class);
+        Route::apiResource('kelas', KelasController::class)->except(['index']);
 
         Route::post('/jadwal/bulk', [JadwalController::class, 'storeBulk']);
     });
