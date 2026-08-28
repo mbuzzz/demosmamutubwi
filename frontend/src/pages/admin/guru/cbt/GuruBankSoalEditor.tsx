@@ -482,7 +482,7 @@ export default function GuruBankSoalEditor() {
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
                     <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                      <FileText className="w-3 h-3" /> {paket.soal?.length || 0} Soal
+                      <FileText className="w-3 h-3" /> {(paket as any).soals_count ?? paket.soal?.length ?? 0} Soal
                     </span>
                     <div className="text-right">
                       <div className="text-[10px] font-bold text-slate-400 uppercase">Estimasi</div>

@@ -92,6 +92,7 @@ export function useSaveSoal() {
     },
     onSuccess: (_, variables) => {
       if (variables.bank_soal_id) {
+        queryClient.invalidateQueries({ queryKey: ['bank-soal'] });
         queryClient.invalidateQueries({ queryKey: ['bank-soal', variables.bank_soal_id] });
       }
       toast.success('Soal berhasil disimpan');
