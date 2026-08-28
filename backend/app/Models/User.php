@@ -193,8 +193,9 @@ class User extends Authenticatable
             return $this->siswa->resolveSiswaKelasId();
         }
 
-        if ($this->kelas) {
-            $kelas = Kelas::where('nama', $this->kelas)->first();
+        $kelasNama = $this->kelasNama();
+        if ($kelasNama) {
+            $kelas = Kelas::where('nama', $kelasNama)->first();
             if ($kelas) {
                 return (int) $kelas->id;
             }
@@ -243,8 +244,9 @@ class User extends Authenticatable
             ->all();
         $names = array_merge($names, $fromPenugasan);
 
-        if ($this->kelas) {
-            $names[] = $this->kelas;
+        $kelasNama = $this->kelasNama();
+        if ($kelasNama) {
+            $names[] = $kelasNama;
         }
 
         $wali = Kelas::where('wali_kelas_id', $this->id)->pluck('nama')->all();
@@ -286,7 +288,13 @@ class User extends Authenticatable
             abort(403, 'Data siswa tidak valid.');
         }
 
-        $this->ensureAccessToKelasName($siswa->kelas);
+        $this->ensureAccessToKelasName($siswa->kelasNama());
+    }
+
+    /** Nilai kolom string `users.kelas` (menghindari benturan dengan relasi kelas()). */
+    public function kelasNama(): ?string
+    {
+        return $this->getRawOriginal('kelas');
     }
 
     /**

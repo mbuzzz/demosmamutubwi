@@ -42,14 +42,14 @@ class UserController extends Controller
 
     private function syncSiswaRiwayat(User $user): void
     {
-        if (!$user->isSiswa() || !$user->kelas) {
+        if (!$user->isSiswa() || !$user->kelasNama()) {
             return;
         }
 
         $config = \App\Models\SistemKonfigurasi::first();
         $tahunAjaran = $config ? $config->tahun_ajaran_aktif : '2025/2026';
 
-        $kelasObj = \App\Models\Kelas::where('nama', $user->kelas)->first();
+        $kelasObj = \App\Models\Kelas::where('nama', $user->kelasNama())->first();
         if ($kelasObj) {
             \App\Models\RiwayatKelas::updateOrCreate(
                 [
