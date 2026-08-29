@@ -30,6 +30,15 @@ class KartuRfid extends Model
     }
 
     /**
+     * Alias untuk user staff. Controller KartuRfidController::index
+     * menggunakan with('user'); relation ini mendelegasikan ke userStaff.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
      * Relasi ke siswa.
      */
     public function siswa()
