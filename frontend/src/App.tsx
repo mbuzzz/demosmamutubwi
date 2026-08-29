@@ -97,6 +97,8 @@ import GuruAbsensi from './pages/admin/guru/kbm/GuruAbsensi';
 import GuruAbsensiGuru from './pages/admin/guru/kbm/GuruAbsensiGuru';
 import KepsekDashboard from './pages/admin/guru/kbm/KepsekDashboard';
 import KurikulumDashboard from './pages/admin/guru/kbm/KurikulumDashboard';
+import KurikulumMonitoring from './pages/admin/guru/kbm/KurikulumMonitoring';
+import TahunAjaranList from './pages/admin/guru/kbm/TahunAjaranList';
 
 // Bendahara Pages
 import BendaharaDashboard from './pages/admin/bendahara/BendaharaDashboard';
@@ -213,6 +215,8 @@ export default function App() {
         <Route path="/panel/guru" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kepala_sekolah', 'kurikulum']}><GuruDashboard /></ProtectedRoute>} />
         <Route path="/panel/guru/kepsek" element={<ProtectedRoute requiredRole={['kepala_sekolah']}><KepsekDashboard /></ProtectedRoute>} />
         <Route path="/panel/guru/kurikulum" element={<ProtectedRoute requiredRole={['kurikulum']}><KurikulumDashboard /></ProtectedRoute>} />
+        <Route path="/panel/guru/kurikulum/monitoring" element={<ProtectedRoute requiredRole={['kurikulum', 'superadmin', 'admin', 'kepala_sekolah']}><KurikulumMonitoring /></ProtectedRoute>} />
+        <Route path="/panel/guru/kurikulum/tahun-ajaran" element={<ProtectedRoute requiredRole={['kurikulum', 'superadmin', 'admin']}><TahunAjaranList /></ProtectedRoute>} />
         <Route path="/panel/guru/jurnal" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruJurnalPresensi /></ProtectedRoute>} />
         <Route path="/panel/guru/jurnal/detail/:id" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruJurnalDetail /></ProtectedRoute>} />
         <Route path="/panel/guru/nilai" element={<ProtectedRoute requiredRole={['guru', 'walikelas', 'kurikulum']}><GuruBukuNilai /></ProtectedRoute>} />

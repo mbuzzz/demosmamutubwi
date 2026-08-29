@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BankSoal;
 use App\Models\OpsiJawaban;
 use App\Models\Soal;
+use App\Services\WaliKelasSyncService;
 use Illuminate\Http\Request;
 
 class CbtBankSoalController extends Controller
@@ -57,6 +58,7 @@ class CbtBankSoalController extends Controller
         }
 
         $validated['guru_id'] = $user->id;
+        $validated['tahun_ajaran'] = WaliKelasSyncService::getTahunAjaran();
 
         $bankSoal = BankSoal::create($validated);
 

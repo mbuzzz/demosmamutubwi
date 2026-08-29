@@ -17,6 +17,7 @@ class BankSoal extends Model
         'tipe',
         'deskripsi',
         'waktu_pengerjaan',
+        'tahun_ajaran',
         'status'
     ];
 

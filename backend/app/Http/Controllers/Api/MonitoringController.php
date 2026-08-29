@@ -179,7 +179,9 @@ class MonitoringController extends Controller
             })->values();
 
         // 2) Partisipasi per tugas: total siswa di kelas tugas vs pengumpulan
-        $tugasPartisipasi = Tugas::with(['kelas', 'pengumpulanTugas'])->get()->map(function ($t) {
+        $tugasPartisipasi = Tugas::with(['kelas', 'pengumpulanTugas'])
+            ->where('tahun_ajaran', $tahunAjaran)
+            ->get()->map(function ($t) {
             $kelasNames = $t->kelas->pluck('nama')->all();
             $totalSiswa = User::whereHasAnyRole(['siswa'])
                 ->whereIn('kelas', $kelasNames)

@@ -222,6 +222,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
         items: [
           { name: "Dashboard", path: "/panel/guru", icon: LayoutDashboard },
           { name: "Dashboard Kurikulum", path: "/panel/guru/kurikulum", icon: BookOpen },
+          { name: "Monitoring CBT & LMS", path: "/panel/guru/kurikulum/monitoring", icon: ClipboardList },
+          { name: "Tahun Ajaran", path: "/panel/guru/kurikulum/tahun-ajaran", icon: CalendarDays },
         ]
       },
       {

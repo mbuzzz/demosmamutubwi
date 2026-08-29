@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Services\WaliKelasSyncService;
 
 class LmsTugasController extends Controller
 {
@@ -114,6 +115,8 @@ class LmsTugasController extends Controller
             $path = $file->store('lms/tugas', 'public');
             $data['lampiran_url'] = '/storage/' . $path;
         }
+
+        $data['tahun_ajaran'] = WaliKelasSyncService::getTahunAjaran();
 
         $tugas = Tugas::create($data);
         $kelasIds = $request->input('kelas_ids', []);

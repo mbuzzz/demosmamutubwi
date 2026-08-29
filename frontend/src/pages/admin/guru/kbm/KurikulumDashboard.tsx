@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { BookOpen, CalendarDays, School, LineChart, ArrowRight, CheckCircle, Loader2, BookMarked, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, School, LineChart, ArrowRight, CheckCircle, Loader2, BookMarked, Users, ClipboardList } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../../lib/api';
 
@@ -31,6 +31,16 @@ export default function KurikulumDashboard() {
   const { data: kurikulum, isLoading } = useKurikulumAktif();
 
   const menuItems = [
+    {
+      to: '/panel/guru/kurikulum/monitoring',
+      label: 'Monitoring CBT & LMS',
+      sub: 'Pantau bank soal & pengumpulan',
+      icon: ClipboardList,
+      color: 'border-cyan-200 dark:border-cyan-500 hover:border-cyan-300',
+      iconBg: 'bg-cyan-100 dark:bg-cyan-500/20',
+      iconColor: 'text-cyan-600 dark:text-cyan-400',
+      arrowColor: 'group-hover:text-cyan-500',
+    },
     {
       to: '/panel/guru/kurikulum/rumus',
       label: 'Kurikulum',

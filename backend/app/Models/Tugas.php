@@ -18,6 +18,7 @@ class Tugas extends Model
         'instruksi',
         'lampiran_url',
         'tenggat_waktu',
+        'tahun_ajaran',
         'status',
     ];
 

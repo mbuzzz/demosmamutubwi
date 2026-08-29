@@ -1,0 +1,21 @@
+import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
+import AdminLayout from '../../../../components/admin/AdminLayout';
+import { api } from '../../../../lib/api';
+
+type Tahun = { id: number; nama: string; label?: string; status: 'draft' | 'aktif' | 'selesai'; is_active: boolean; tanggal_mulai?: string; tanggal_selesai?: string; keterangan?: string };
+
+export default function TahunAjaranList() {
+  const [items, setItems] = useState<Tahun[]>([]); const [nama, setNama] = useState(''); const [label, setLabel] = useState(''); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [message, setMessage] = useState('');
+  const load = () => api.get('/tahun-ajarans').then(r => setItems(r.data)).finally(() => setLoading(false));
+  useEffect(() => { load(); }, []);
+  const submit = async (e: FormEvent) => { e.preventDefault(); setSaving(true); setMessage(''); try { await api.post('/tahun-ajarans', { nama, label: label || `Tahun Pelajaran ${nama}`, status: 'draft' }); setNama(''); setLabel(''); setMessage('Tahun ajaran dibuat. Klik Aktifkan untuk menjadikannya tahun berjalan.'); await load(); } catch (e: any) { setMessage(e?.response?.data?.message || 'Gagal menyimpan tahun ajaran'); } finally { setSaving(false); } };
+  const activate = async (id: number) => { if (!window.confirm('Aktifkan tahun ajaran ini? Tahun aktif sebelumnya akan dinonaktifkan.')) return; setSaving(true); try { await api.post(`/tahun-ajarans/${id}/activate`); setMessage('Tahun ajaran aktif berhasil diubah.'); await load(); } catch (e: any) { setMessage(e?.response?.data?.message || 'Gagal mengaktifkan'); } finally { setSaving(false); } };
+  const remove = async (id: number) => { if (!window.confirm('Hapus tahun ajaran ini?')) return; try { await api.delete(`/tahun-ajarans/${id}`); await load(); } catch (e: any) { setMessage(e?.response?.data?.message || 'Tidak dapat menghapus'); } };
+  return <AdminLayout title="Tahun Ajaran">
+    <div className="grid lg:grid-cols-[360px_1fr] gap-5">
+      <form onSubmit={submit} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 h-fit"><h2 className="font-bold mb-4">Tambah Tahun Ajaran</h2><label className="text-xs font-semibold">Nama (contoh: 2026/2027)</label><input required pattern="[0-9]{4}/[0-9]{4}" value={nama} onChange={e => setNama(e.target.value)} className="w-full mt-1 mb-3 rounded-xl border p-2.5 bg-transparent" placeholder="2027/2028" /><label className="text-xs font-semibold">Label (opsional)</label><input value={label} onChange={e => setLabel(e.target.value)} className="w-full mt-1 mb-4 rounded-xl border p-2.5 bg-transparent" placeholder="Tahun Pelajaran 2027/2028" /><button disabled={saving} className="w-full rounded-xl bg-indigo-600 text-white py-2.5 font-bold disabled:opacity-50">{saving ? 'Menyimpan...' : 'Tambah'}</button>{message && <p className="text-sm mt-3 text-indigo-700 dark:text-indigo-300">{message}</p>}</form>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5"><h2 className="font-bold mb-4">Daftar Tahun Ajaran</h2>{loading ? <p className="text-slate-500">Memuat...</p> : <div className="space-y-3">{items.map(t => <div key={t.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${t.is_active ? 'border-emerald-300 bg-emerald-50/50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-800'}`}><div><div className="font-bold">{t.label || t.nama}</div><div className="text-xs text-slate-500">{t.nama} · status {t.status}</div></div><div className="flex gap-2">{t.is_active ? <span className="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-bold">AKTIF</span> : <button onClick={() => activate(t.id)} disabled={saving} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold">Aktifkan</button>}{!t.is_active && <button onClick={() => remove(t.id)} className="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs font-bold">Hapus</button>}</div></div>)}{!items.length && <p className="text-slate-500">Belum ada tahun ajaran.</p>}</div>}</div>
+    </div>
+  </AdminLayout>;
+}
