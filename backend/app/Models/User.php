@@ -189,6 +189,11 @@ class User extends Authenticatable
     /** ID kelas aktif siswa (string nama → id), fallback riwayat. */
     public function resolveSiswaKelasId(): ?int
     {
+        // Non-siswa (guru/admin/orang_tua tanpa siswa terkait) tidak punya kelas.
+        if (!$this->isSiswa() && !$this->isOrangTua()) {
+            return null;
+        }
+
         if ($this->isOrangTua() && $this->siswa) {
             return $this->siswa->resolveSiswaKelasId();
         }

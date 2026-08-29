@@ -18,6 +18,12 @@ class CbtUjianController extends Controller
     {
         $user = $request->user();
 
+        // Endpoint ini khusus siswa/orang_tua. Untuk guru/admin/role lain,
+        // kembalikan list kosong agar tidak membocorkan data dan tidak crash.
+        if (!$user->isSiswa() && !$user->isOrangTua()) {
+            return response()->json([]);
+        }
+
         // Kelas aktif: string users.kelas → id, fallback riwayat
         $kelasId = $user->resolveSiswaKelasId();
 

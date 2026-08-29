@@ -38,14 +38,14 @@ class DashboardController extends Controller
             })->count();
 
             // Total Tagihan / Kas Masuk (simplification: total sum of successful transactions)
-            $stats['total_kas_masuk'] = TransaksiPembayaran::where('status', 'berhasil')->sum('jumlah_bayar');
+            $stats['total_kas_masuk'] = (int) (TransaksiPembayaran::where('status', 'berhasil')->sum('jumlah_bayar') ?? 0);
 
             // Kehadiran hari ini
             $today = Carbon::today()->toDateString();
             $stats['kehadiran_hari_ini'] = [
-                'hadir'     => Absensi::whereDate('tanggal', $today)->whereIn('status_masuk', ['hadir', 'terlambat'])->count(),
-                'alpha'     => Absensi::whereDate('tanggal', $today)->where('status_masuk', 'alpha')->count(),
-                'terlambat' => Absensi::whereDate('tanggal', $today)->where('status_masuk', 'terlambat')->count(),
+                'hadir'     => (int) Absensi::whereDate('tanggal', $today)->whereIn('status_masuk', ['hadir', 'terlambat'])->count(),
+                'alpha'     => (int) Absensi::whereDate('tanggal', $today)->where('status_masuk', 'alpha')->count(),
+                'terlambat' => (int) Absensi::whereDate('tanggal', $today)->where('status_masuk', 'terlambat')->count(),
             ];
             
             // Generate some cards array format common in dashoards
