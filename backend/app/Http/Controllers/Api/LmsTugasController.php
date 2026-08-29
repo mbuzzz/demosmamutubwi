@@ -326,28 +326,50 @@ class LmsTugasController extends Controller
             $user->ensureOwnsResource($tugas->guru_id);
         }
 
-        $kelasNames = $tugas->kelas->pluck('nama')->toArray();
+        $kelasNames = $tugas->kelas->pluck('nama')->filter()->values()->all();
 
-        $query = User::whereHasAnyRole(['siswa']);
-        if (!empty($kelasNames)) {
-            $query->whereIn('kelas', $kelasNames);
-        }
-
-        $submissions = $query
+        $submissions = User::whereHasAnyRole(['siswa'])
+            ->where(function ($q) use ($kelasNames) {
+                $q->whereIn('kelas', $kelasNames);
+                if (empty($kelasNames)) {
+                    // Fallback: jika tidak ada kelas tertaut, jangan bocorkan semua siswa.
+                    $q->whereRaw('1 = 0');
+                }
+            })
             ->with(['pengumpulanTugas' => function ($q) use ($id) {
                 $q->where('tugas_id', $id);
             }])
+            ->orderBy('name')
             ->get()
             ->map(function ($siswa) {
                 $pengumpulan = $siswa->pengumpulanTugas->first();
+                $rawStatus = $pengumpulan->status ?? null;
+                $normalized = match (true) {
+                    $pengumpulan && (int) $pengumpulan->nilai !== 0 && $pengumpulan->nilai !== null => 'sudah_dinilai',
+                    $rawStatus === 'sudah_dinilai' => 'sudah_dinilai',
+                    $rawStatus === 'telat' => 'telat',
+                    $rawStatus === 'belum_dinilai' => 'menunggu',
+                    $pengumpulan => 'menunggu',
+                    default => 'belum',
+                };
+
                 return [
                     'siswa_id'           => $siswa->id,
                     'nama_siswa'         => $siswa->name,
                     'nisn'               => $siswa->nip_nisn,
+                    'status'             => $normalized,
                     'status_pengumpulan' => $pengumpulan ? true : false,
-                    'data_pengumpulan'   => $pengumpulan
+                    'nilai'              => $pengumpulan?->nilai,
+                    'feedback_guru'      => $pengumpulan?->feedback_guru,
+                    'catatan_siswa'      => $pengumpulan?->catatan_siswa,
+                    'file_jawaban_url'   => $pengumpulan?->file_jawaban_url,
+                    'file_url'           => $pengumpulan?->file_jawaban_url,
+                    'dikumpulkan_pada'   => $pengumpulan?->dikumpulkan_pada,
+                    'updated_at'         => $pengumpulan?->updated_at,
+                    'data_pengumpulan'   => $pengumpulan,
                 ];
-            });
+            })
+            ->values();
 
         return response()->json([
             'status' => 'success',
