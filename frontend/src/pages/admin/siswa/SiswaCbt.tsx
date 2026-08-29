@@ -3,8 +3,8 @@ import { FileQuestion, Clock, Search, Play, X, Key, HelpCircle, CheckCircle, Ale
 import { useState, useEffect, useRef } from 'react';
 import { type SesiUjian, type TipeUjian, CBT_CONFIG, TIPE_BADGE } from '../../../types/cbt';
 import { useUjianAktifList, useMulaiUjian, useSimpanJawaban, useSelesaiUjian } from '../../../hooks/useCbt';
-import { useAuth } from '../../../components/auth/AuthContext';
 import { getFileUrl } from '../../../lib/api';
+import { useAuth } from '../../../components/auth/AuthContext';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import katex from 'katex';
@@ -497,7 +497,31 @@ export default function SiswaCbt() {
                 </div>
 
               <div className="p-6 lg:p-8 space-y-6">
+                {/* Gambar soal (jika ada) — di-load bersama soal dari mulaiUjian */}
+                {selectedExam.questions && (() => {
+                  const soalData = (selectedExam as any).rawSoals?.find((s: any) => s.id === activeQ.id);
+                  const img = soalData?.file_media;
+                  if (!img) return null;
+                  return <img src={getFileUrl(img)} alt="lampiran soal" className="max-h-72 max-w-full rounded-xl border border-slate-200 dark:border-slate-700 object-contain bg-slate-50" />;
+                })()}
+
                 <ReactQuill value={activeQ.pertanyaan || ''} readOnly theme="snow" modules={readOnlyQuillModules} className="quill-readonly" />
+
+                {/* Gambar opsi tambahan (file_media per-opsi) */}
+                {activeQ.options && activeQ.options.some((o: any) => o.file_media) && (
+                  <div className="space-y-2">
+                    {activeQ.options.map((opt: any, oIdx: number) => {
+                      if (!opt.file_media) return null;
+                      const label = ['A', 'B', 'C', 'D', 'E'][oIdx];
+                      return (
+                        <div key={`img-${label}`} className="flex items-center gap-3 p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center font-black border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500">{label}</div>
+                          <img src={getFileUrl(opt.file_media)} alt={`opsi-${label}`} className="max-h-24 object-contain rounded-lg border border-slate-100 dark:border-slate-700 bg-white p-1" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* PG Options */}
                 {activeQ.tipe === 'pg' && activeQ.options && (

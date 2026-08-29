@@ -140,6 +140,7 @@ class CbtBankSoalController extends Controller
             'opsi_jawabans' => 'required_if:jenis,pg,pg_kompleks,pgk,bs|array',
             'opsi_jawabans.*.teks_opsi' => 'required_with:opsi_jawabans|string',
             'opsi_jawabans.*.is_benar' => 'required_with:opsi_jawabans|boolean',
+            'opsi_jawabans.*.file_media' => 'nullable|string',
         ]);
         // Cast bobot_nilai to integer for DB
         $validated['bobot_nilai'] = (int) $validated['bobot_nilai'];
@@ -152,7 +153,15 @@ class CbtBankSoalController extends Controller
         ]);
 
         if (isset($validated['opsi_jawabans'])) {
-            $soal->opsiJawabans()->createMany($validated['opsi_jawabans']);
+            $soal->opsiJawabans()->createMany(
+                collect($validated['opsi_jawabans'])->map(function ($o) {
+                    return [
+                        'teks_opsi' => $o['teks_opsi'],
+                        'is_benar' => $o['is_benar'],
+                        'file_media' => $o['file_media'] ?? null,
+                    ];
+                })->all()
+            );
         }
 
         $soal->load('opsiJawabans');
@@ -183,6 +192,7 @@ class CbtBankSoalController extends Controller
             'opsi_jawabans.*.id' => 'nullable|integer',
             'opsi_jawabans.*.teks_opsi' => 'required_with:opsi_jawabans|string',
             'opsi_jawabans.*.is_benar' => 'required_with:opsi_jawabans|boolean',
+            'opsi_jawabans.*.file_media' => 'nullable|string',
         ]);
         if (isset($validated['bobot_nilai'])) {
             $validated['bobot_nilai'] = (int) $validated['bobot_nilai'];
@@ -208,18 +218,17 @@ class CbtBankSoalController extends Controller
 
             // Update or create options
             foreach ($validated['opsi_jawabans'] as $opsiData) {
+                $payload = [
+                    'teks_opsi' => $opsiData['teks_opsi'],
+                    'is_benar' => $opsiData['is_benar'],
+                    'file_media' => $opsiData['file_media'] ?? null,
+                ];
                 if (isset($opsiData['id'])) {
                     OpsiJawaban::where('id', $opsiData['id'])
                         ->where('soal_id', $soal->id)
-                        ->update([
-                        'teks_opsi' => $opsiData['teks_opsi'],
-                        'is_benar' => $opsiData['is_benar'],
-                    ]);
+                        ->update($payload);
                 } else {
-                    $soal->opsiJawabans()->create([
-                        'teks_opsi' => $opsiData['teks_opsi'],
-                        'is_benar' => $opsiData['is_benar'],
-                    ]);
+                    $soal->opsiJawabans()->create($payload);
                 }
             }
         }

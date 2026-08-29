@@ -206,6 +206,8 @@ export default function GuruBankSoalEditor() {
         id: o.id,
         teks_opsi: o.teks_opsi,
         is_benar: !!o.is_benar,
+        // file_media per-opsi (gambar untuk opsi), null jika kosong
+        file_media: o.file_media || null,
       }));
     }
 
@@ -266,10 +268,10 @@ export default function GuruBankSoalEditor() {
       const newArr = [...prev];
       const soal = { ...newArr[activeSoalIdx] };
       const opsiList = [...(soal.opsiJawabans || [])];
-      
+
       if (opsiList[opsiIdx]) {
         opsiList[opsiIdx] = { ...opsiList[opsiIdx], ...updates };
-        
+
         // If type is pg or bs, enforce single correct answer
         if (updates.is_benar && (soal.jenis === 'pg' || soal.jenis === 'bs')) {
           for (let i = 0; i < opsiList.length; i++) {
@@ -277,11 +279,15 @@ export default function GuruBankSoalEditor() {
           }
         }
       }
-      
+
       soal.opsiJawabans = opsiList;
       newArr[activeSoalIdx] = soal;
       return newArr;
     });
+  }
+
+  function addOpsiMedia(opsiIdx: number, url: string) {
+    updateOpsiJawaban(opsiIdx, { file_media: url });
   }
 
   if (view === 'editor' && selectedPaketId) {
@@ -420,30 +426,38 @@ export default function GuruBankSoalEditor() {
                       <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-3">Klik radio di sebelah opsi yang benar. Nilai pilihan ganda akan dihitung otomatis setelah siswa mengumpulkan ujian.</p>
                       <div className="space-y-3">
                         {activeSoal.opsiJawabans?.map((opsi, idx) => (
-                          <div key={idx} className={`flex items-start gap-3 p-3 rounded-2xl border transition-all ${opsi.is_benar ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm shadow-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'}`}>
-                            <div className="mt-2.5 ml-2">
-                              <input 
-                                type={activeSoal.jenis === 'pg' ? 'radio' : 'checkbox'} 
-                                name={`kunci_${activeSoalIdx}`} 
-                                checked={opsi.is_benar || false}
-                                onChange={e => updateOpsiJawaban(idx, { is_benar: e.target.checked })} 
-                                className="w-5 h-5 text-emerald-500 focus:ring-emerald-500 cursor-pointer border-slate-300 dark:border-slate-600 rounded-sm" 
-                              />
-                            </div>
-                            <div className="flex-1 flex gap-3">
-                              <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black border transition-colors ${opsi.is_benar ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
-                                {opsiLables[idx] || idx+1}
+                          <div key={idx} className={`flex flex-col gap-2 p-3 rounded-2xl border transition-all ${opsi.is_benar ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm shadow-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'}`}>
+                            <div className="flex items-start gap-3">
+                              <div className="mt-2.5 ml-2">
+                                <input
+                                  type={activeSoal.jenis === 'pg' ? 'radio' : 'checkbox'}
+                                  name={`kunci_${activeSoalIdx}`}
+                                  checked={opsi.is_benar || false}
+                                  onChange={e => updateOpsiJawaban(idx, { is_benar: e.target.checked })}
+                                  className="w-5 h-5 text-emerald-500 focus:ring-emerald-500 cursor-pointer border-slate-300 dark:border-slate-600 rounded-sm"
+                                />
                               </div>
-                              <ReactQuill
-                                theme="snow"
-                                value={opsi.teks_opsi || ''}
-                                onChange={val => updateOpsiJawaban(idx, { teks_opsi: val })}
-                                modules={richTextModules}
-                                formats={richTextFormats}
-                                placeholder={`Ketik teks opsi ${opsiLables[idx] || idx+1}...`}
-                                className="w-full bg-white dark:bg-slate-900 rounded-xl quill-option"
-                              />
+                              <div className="flex-1 flex gap-3">
+                                <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black border transition-colors ${opsi.is_benar ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
+                                  {opsiLables[idx] || idx+1}
+                                </div>
+                                <ReactQuill
+                                  theme="snow"
+                                  value={opsi.teks_opsi || ''}
+                                  onChange={val => updateOpsiJawaban(idx, { teks_opsi: val })}
+                                  modules={richTextModules}
+                                  formats={richTextFormats}
+                                  placeholder={`Ketik teks opsi ${opsiLables[idx] || idx+1}...`}
+                                  className="w-full bg-white dark:bg-slate-900 rounded-xl quill-option"
+                                />
+                              </div>
                             </div>
+                            {/* Upload gambar untuk opsi */}
+                            <MediaUploader
+                              value={opsi.file_media}
+                              onChange={(url) => addOpsiMedia(idx, url)}
+                              label={`Gambar Opsi ${opsiLables[idx] || idx+1} (opsional)`}
+                            />
                           </div>
                         ))}
                       </div>

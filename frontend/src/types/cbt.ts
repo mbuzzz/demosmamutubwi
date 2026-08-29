@@ -7,6 +7,8 @@ export interface OpsiJawaban {
   soal_id?: number;
   teks_opsi: string;
   is_benar: boolean;
+  // URL gambar untuk opsi jawaban (relatif terhadap /storage)
+  file_media?: string | null;
 }
 
 export interface SoalItem {

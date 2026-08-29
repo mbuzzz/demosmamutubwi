@@ -145,6 +145,7 @@ class CbtUjianController extends Controller
                 return [
                     'id' => $o->id,
                     'teks_opsi' => $o->teks_opsi,
+                    'file_media' => $o->file_media,
                 ];
             });
 
