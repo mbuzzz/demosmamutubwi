@@ -26,10 +26,12 @@ class MonitoringController extends Controller
     public function cbt(Request $request)
     {
         $tahunAjaran = WaliKelasSyncService::getTahunAjaran();
+        $semester = $request->input('semester');
 
         // 1) Bank soal agregat per guru
         $bankPerGuru = BankSoal::with('guru:id,name,username', 'mapel:id,nama')
             ->where('tahun_ajaran', $tahunAjaran)
+            ->when($semester, fn ($q) => $q->where('semester', $semester))
             ->selectRaw('guru_id, mapel_id, status, COUNT(*) as total')
             ->groupBy('guru_id', 'mapel_id', 'status')
             ->get()
@@ -61,6 +63,7 @@ class MonitoringController extends Controller
         // 2) Sesi ujian agregat (per mapel & kelas) + partisipasi siswa
         $sesi = SesiUjian::with(['bankSoal.mapel', 'kelas', 'hasilUjians.siswa'])
             ->where('waktu_selesai', '>=', now()->subDays(60))
+            ->when($semester, fn ($q) => $q->where('semester', $semester))
             ->orderByDesc('waktu_mulai')
             ->get()
             ->map(function ($s) {
@@ -149,10 +152,12 @@ class MonitoringController extends Controller
     public function lms(Request $request)
     {
         $tahunAjaran = WaliKelasSyncService::getTahunAjaran();
+        $semester = $request->input('semester');
 
         // 1) Tugas per guru
         $tugasPerGuru = Tugas::with('guru:id,name,username', 'mapel:id,nama', 'kelas')
             ->where('tahun_ajaran', $tahunAjaran)
+            ->when($semester, fn ($q) => $q->where('semester', $semester))
             ->orderByDesc('id')
             ->get()
             ->groupBy('guru_id')
@@ -181,6 +186,7 @@ class MonitoringController extends Controller
         // 2) Partisipasi per tugas: total siswa di kelas tugas vs pengumpulan
         $tugasPartisipasi = Tugas::with(['kelas', 'pengumpulanTugas'])
             ->where('tahun_ajaran', $tahunAjaran)
+            ->when($semester, fn ($q) => $q->where('semester', $semester))
             ->get()->map(function ($t) {
             $kelasNames = $t->kelas->pluck('nama')->all();
             $totalSiswa = User::whereHasAnyRole(['siswa'])

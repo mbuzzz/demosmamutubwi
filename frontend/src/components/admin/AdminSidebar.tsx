@@ -224,6 +224,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: SidebarPro
           { name: "Dashboard Kurikulum", path: "/panel/guru/kurikulum", icon: BookOpen },
           { name: "Monitoring CBT & LMS", path: "/panel/guru/kurikulum/monitoring", icon: ClipboardList },
           { name: "Tahun Ajaran", path: "/panel/guru/kurikulum/tahun-ajaran", icon: CalendarDays },
+          { name: "Bank Soal Ujian", path: "/panel/guru/soal", icon: FileQuestion },
+          { name: "Sesi Ujian CBT", path: "/panel/guru/ujian", icon: MonitorPlay },
         ]
       },
       {

@@ -9,6 +9,7 @@ use App\Models\SesiUjian;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Services\NotificationService;
 
 class CbtSesiController extends Controller
 {
@@ -38,6 +39,10 @@ class CbtSesiController extends Controller
             $query->where('is_aktif', $request->is_aktif);
         }
 
+        if ($request->has('semester')) {
+            $query->where('semester', $request->semester);
+        }
+
         $sesiUjians = $query->latest()->paginate($request->per_page ?? 10);
 
         return response()->json($sesiUjians);
@@ -58,6 +63,7 @@ class CbtSesiController extends Controller
             'pengawas_ids' => 'nullable|array',
             'pengawas_ids.*' => 'exists:users,id',
             'template_id' => 'nullable|exists:template_cbts,id',
+            'semester' => 'sometimes|in:ganjil,genap',
         ]);
 
         $bankSoal = \App\Models\BankSoal::findOrFail($validated['bank_soal_id']);
@@ -70,6 +76,7 @@ class CbtSesiController extends Controller
         unset($validated['pengawas_ids']);
 
         $validated['token'] = $this->generateToken();
+        $validated['semester'] = $validated['semester'] ?? (\App\Models\SistemKonfigurasi::first()?->semester_aktif ?? 'ganjil');
 
         $sesiUjian = SesiUjian::create($validated);
 
@@ -77,6 +84,22 @@ class CbtSesiController extends Controller
             $sesiUjian->pengawas()->sync($pengawasIds);
         }
         $sesiUjian->load('pengawas');
+
+        // Jika admin/kurikulum membuat sesi untuk bank soal guru lain,
+        // kirim CTA langsung ke editor bank soal guru tersebut.
+        if ($bankSoal->guru_id && (int) $bankSoal->guru_id !== (int) ($user?->id ?? 0)) {
+            try {
+                NotificationService::notify(
+                    (int) $bankSoal->guru_id,
+                    'Ujian baru perlu disiapkan',
+                    "Sesi '{$sesiUjian->nama_sesi}' dibuat untuk semester {$sesiUjian->semester}. Silakan lengkapi bank soal sekarang.",
+                    'warning',
+                    '/panel/guru/soal?bank_soal_id=' . $bankSoal->id
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal notifikasi bank soal ujian: ' . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Sesi Ujian berhasil dibuat',

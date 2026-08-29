@@ -8,19 +8,21 @@ interface LmsRow { tugas_id: number; judul: string; guru_id: number; kelas: stri
 
 export default function KurikulumMonitoring() {
   const [tab, setTab] = useState<'cbt' | 'lms'>('cbt');
+  const [semester, setSemester] = useState<'ganjil' | 'genap'>('ganjil');
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     setLoading(true); setError('');
-    api.get(`/monitoring/${tab}`).then(r => setData(r.data)).catch(e => setError(e?.response?.data?.message || 'Gagal memuat monitoring')).finally(() => setLoading(false));
-  }, [tab]);
+    api.get(`/monitoring/${tab}`, { params: { semester } }).then(r => setData(r.data)).catch(e => setError(e?.response?.data?.message || 'Gagal memuat monitoring')).finally(() => setLoading(false));
+  }, [tab, semester]);
 
   return <AdminLayout title="Monitoring Akademik">
     <div className="flex gap-2 mb-5">
       <button onClick={() => setTab('cbt')} className={`px-4 py-2 rounded-xl text-sm font-bold ${tab === 'cbt' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}>CBT / Ujian</button>
       <button onClick={() => setTab('lms')} className={`px-4 py-2 rounded-xl text-sm font-bold ${tab === 'lms' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}>LMS / Tugas</button>
+      <select value={semester} onChange={e => setSemester(e.target.value as 'ganjil' | 'genap')} className="ml-auto px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold"><option value="ganjil">Semester Ganjil</option><option value="genap">Semester Genap</option></select>
     </div>
     {loading && <div className="p-6 text-slate-500">Memuat monitoring...</div>}
     {error && <div className="p-4 rounded-xl bg-red-50 text-red-700">{error}</div>}

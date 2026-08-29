@@ -117,6 +117,7 @@ class LmsTugasController extends Controller
         }
 
         $data['tahun_ajaran'] = WaliKelasSyncService::getTahunAjaran();
+        $data['semester'] = \App\Models\SistemKonfigurasi::first()?->semester_aktif ?? 'ganjil';
 
         $tugas = Tugas::create($data);
         $kelasIds = $request->input('kelas_ids', []);

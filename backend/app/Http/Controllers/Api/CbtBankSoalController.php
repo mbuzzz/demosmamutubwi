@@ -51,6 +51,7 @@ class CbtBankSoalController extends Controller
             'deskripsi' => 'nullable|string',
             'waktu_pengerjaan' => 'required|integer',
             'status' => 'required|in:draft,published',
+            'semester' => 'sometimes|in:ganjil,genap',
         ]);
 
         if ($user) {
@@ -59,6 +60,7 @@ class CbtBankSoalController extends Controller
 
         $validated['guru_id'] = $user->id;
         $validated['tahun_ajaran'] = WaliKelasSyncService::getTahunAjaran();
+        $validated['semester'] = $validated['semester'] ?? (\App\Models\SistemKonfigurasi::first()?->semester_aktif ?? 'ganjil');
 
         $bankSoal = BankSoal::create($validated);
 
@@ -97,6 +99,7 @@ class CbtBankSoalController extends Controller
             'deskripsi' => 'nullable|string',
             'waktu_pengerjaan' => 'sometimes|integer',
             'status' => 'sometimes|in:draft,published',
+            'semester' => 'sometimes|in:ganjil,genap',
         ]);
 
         if ($user && isset($validated['mapel_id'])) {
