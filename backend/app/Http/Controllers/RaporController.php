@@ -326,6 +326,12 @@ class RaporController extends Controller
             'logoUrl'
         ));
 
+        // Gunakan kertas A4 portrait. Catatan: di container ini Dompdf v3
+        // memerlukan config('dompdf.options.chroot') + defaultMediaType=screen
+        // agar tidak me-render halaman kosong. Pengaturan itu ada di
+        // config/dompdf.php.
+        $pdf->setPaper('a4', 'portrait');
+
         return $pdf->download("rapor_{$siswa->name}_{$rapor->semester}.pdf");
     }
 
