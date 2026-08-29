@@ -5,11 +5,13 @@ import { useGuruClasses } from '../../../hooks/usePenugasan';
 import { useDashboardStats } from '../../../hooks/useDashboard';
 import { useAuth, userHasRole } from '../../../components/auth/AuthContext';
 import { useRoleSimulator } from '../../../components/simulator/RoleContext';
+import { useNotifications } from '../../../hooks/useNotifications';
 
 export default function GuruDashboard() {
   const { data: guruClasses = [] } = useGuruClasses();
   const { stats, loading } = useDashboardStats();
   const { user } = useAuth();
+  const { data: notifications = [] } = useNotifications();
   const { simulatedRole } = useRoleSimulator();
   // Mode akses aktif dari switcher (multi-role)
   const isKurikulum = simulatedRole === 'kurikulum';
@@ -57,6 +59,9 @@ export default function GuruDashboard() {
 
   const announcements: Array<{ tag: string; title: string; date: string; id?: number }> =
     Array.isArray(stats?.pengumuman) ? stats.pengumuman : [];
+  const examPreparationNotifications = notifications.filter((n) =>
+    n.title === 'Ujian baru perlu disiapkan' && !n.read
+  );
 
   return (
     <AdminLayout title="Dashboard Ruang Guru">
@@ -88,6 +93,20 @@ export default function GuruDashboard() {
           </div>
         </div>
       </div>
+
+      {examPreparationNotifications.length > 0 && (
+        <div className="mb-8 space-y-3">
+          {examPreparationNotifications.map((n) => (
+            <div key={n.id} className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-amber-400 text-white"><Bell className="w-5 h-5" /></div>
+                <div><h3 className="font-bold text-amber-900 dark:text-amber-200">{n.title}</h3><p className="text-sm text-amber-800/80 dark:text-amber-100/80 mt-1">{n.description}</p></div>
+              </div>
+              {n.link && <Link to={n.link} className="shrink-0 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold flex items-center gap-2">Buat Soal Sekarang <ArrowRight className="w-4 h-4" /></Link>}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

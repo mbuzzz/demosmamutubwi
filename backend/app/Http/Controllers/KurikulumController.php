@@ -33,6 +33,14 @@ class KurikulumController extends Controller
             'kelas_ids.*' => 'exists:kelas,id',
         ]);
 
+        $totalBobot = $validated['bobot_tugas'] + $validated['bobot_uts'] + $validated['bobot_uas'];
+        if ($totalBobot !== 100) {
+            return response()->json([
+                'message' => 'Total bobot penilaian harus tepat 100%',
+                'total_bobot' => $totalBobot,
+            ], 422);
+        }
+
         // If setting this kurikulum to active, draft others
         if ($validated['status'] === 'aktif') {
             Kurikulum::where('status', 'aktif')->update(['status' => 'draft']);
@@ -85,6 +93,14 @@ class KurikulumController extends Controller
             'kelas_ids' => 'nullable|array',
             'kelas_ids.*' => 'exists:kelas,id',
         ]);
+
+        $totalBobot = $validated['bobot_tugas'] + $validated['bobot_uts'] + $validated['bobot_uas'];
+        if ($totalBobot !== 100) {
+            return response()->json([
+                'message' => 'Total bobot penilaian harus tepat 100%',
+                'total_bobot' => $totalBobot,
+            ], 422);
+        }
 
         if ($validated['status'] === 'aktif') {
             Kurikulum::where('id', '!=', $kurikulum->id)->where('status', 'aktif')->update(['status' => 'draft']);
