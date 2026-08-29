@@ -18,6 +18,8 @@ use App\Http\Controllers\NilaiTpController;
 use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\RaporController;
 use App\Http\Controllers\SistemKonfigurasiController;
+use App\Http\Controllers\TahunAjaranController;
+use App\Http\Controllers\Api\MonitoringController;
 use App\Http\Controllers\SPMBController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PiketController;
@@ -338,6 +340,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Upload gambar untuk soal (pertanyaan/opsi/kunci) — multi-role
         Route::post('cbt/upload-media', [CbtUjianController::class, 'uploadMedia']);
+    });
+
+    // 3b. TAHUN AJARAN CRUD (Superadmin, Admin, Kurikulum)
+    Route::middleware('role:superadmin,admin,kurikulum')->group(function () {
+        Route::apiResource('tahun-ajarans', TahunAjaranController::class);
+        Route::post('tahun-ajarans/{id}/activate', [TahunAjaranController::class, 'activate']);
+    });
+
+    // 3c. MONITORING (Superadmin, Admin, Kurikulum, Kepsek)
+    Route::middleware('role:superadmin,admin,kurikulum,kepala_sekolah')->group(function () {
+        Route::get('monitoring/cbt', [MonitoringController::class, 'cbt']);
+        Route::get('monitoring/cbt/sesi/{sesiId}', [MonitoringController::class, 'cbtSesiDetail']);
+        Route::get('monitoring/lms', [MonitoringController::class, 'lms']);
     });
 
     // LMS Shared Endpoints
