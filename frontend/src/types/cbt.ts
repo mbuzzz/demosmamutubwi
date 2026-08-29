@@ -14,6 +14,8 @@ export interface SoalItem {
   bank_soal_id: number;
   jenis: TipeSoal;
   pertanyaan: string;
+  // URL gambar utama untuk soal (relatif terhadap /storage)
+  file_media?: string | null;
   opsiJawabans?: OpsiJawaban[];
   bobot_nilai: number;
   created_at?: string;
@@ -49,10 +51,12 @@ export interface SesiUjian {
   waktu_selesai: string;
   durasi: number;
   token?: string;
-  status: 'draft' | 'published' | 'completed';
+  // 'selesai' ditambahkan untuk status per-siswa yang disuntikkan oleh
+  // CbtUjianController::getSesiAktif dari tabel hasil_ujians.
+  status: 'draft' | 'published' | 'completed' | 'selesai' | 'mengerjakan' | 'belum';
   created_at?: string;
   updated_at?: string;
-  
+
   // Relations
   bank_soal?: PaketSoal;
   pengawas?: { id: number; name: string }[];

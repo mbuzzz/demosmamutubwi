@@ -14,6 +14,39 @@ use Illuminate\Support\Facades\DB;
 
 class CbtUjianController extends Controller
 {
+    /**
+     * Upload gambar (pertanyaan / opsi / kunci) untuk soal.
+     * Frontend: gunakan multipart/form-data dengan field 'file'.
+     * Response: { url: 'storage/cbt/soal/xxx.png', full_url: 'https://...' }
+     */
+    public function uploadMedia(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $validator = \Validator::make($request->all(), [
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp,gif,svg|max:5120',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $file = $request->file('file');
+        $path = $file->store('cbt/soal', 'public');
+
+        return response()->json([
+            'message' => 'Upload berhasil',
+            'url' => '/storage/' . $path,
+            'full_url' => url('storage/' . $path),
+        ]);
+    }
+
     public function getSesiAktif(Request $request)
     {
         $user = $request->user();
@@ -39,6 +72,16 @@ class CbtUjianController extends Controller
         }
 
         $sesi = $query->get();
+
+        // Sertakan status hasil_ujian siswa saat ini (selesai/mengerjakan/belum)
+        // agar frontend dapat memisahkan ujian yang masih aktif vs yang sudah selesai.
+        $hasilStatus = \App\Models\HasilUjian::where('siswa_id', $user->id)
+            ->whereIn('sesi_ujian_id', $sesi->pluck('id'))
+            ->pluck('status', 'sesi_ujian_id');
+
+        $sesi->each(function ($s) use ($hasilStatus) {
+            $s->status = $hasilStatus[$s->id] ?? 'belum';
+        });
 
         return response()->json($sesi);
     }
@@ -242,10 +285,12 @@ class CbtUjianController extends Controller
             $semester = $config ? $config->semester_aktif : 'ganjil';
 
             $nilaiField = null;
-            if (in_array($tipeUjian, ['uts', 'ujian'])) {
+            if ($tipeUjian === 'uts' || $tipeUjian === 'ujian') {
                 $nilaiField = 'nilai_uts';
-            } elseif (in_array($tipeUjian, ['uas', 'ujian'])) {
+            } elseif ($tipeUjian === 'uas') {
                 $nilaiField = 'nilai_uas';
+            } elseif ($tipeUjian === 'ulangan_harian') {
+                $nilaiField = 'nilai_tugas';
             }
 
             if ($nilaiField && $mapelId) {

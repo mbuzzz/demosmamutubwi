@@ -231,13 +231,20 @@ export function useMulaiUjian() {
          sesi_ujian_id: data.jadwal_ujian_id,
          token: data.token,
        });
-      // Map backend response keys to frontend expected properties
+      // Map backend response keys to frontend expected properties.
+      // Backend mengembalikan: hasil_ujian_id, waktu_mulai, durasi_menit, durasi_tersisa_menit, soals.
+      const serverRemaining = res.data?.durasi_tersisa_menit;
+      const serverDuration = res.data?.durasi_menit;
       return {
         ujian_siswa: {
           id: res.data.hasil_ujian_id,
         },
         soal: res.data.soals || [],
-        durasi_tersisa_menit: res.data.durasi_menit || 0,
+        // Jika server memberikan sisa waktu, pakai itu (mencegah timer reset ke full).
+        // Jika tidak, fallback ke durasi penuh.
+        durasi_tersisa_menit: typeof serverRemaining === 'number'
+          ? serverRemaining
+          : (typeof serverDuration === 'number' ? serverDuration : 0),
       };
     },
     onSuccess: () => {

@@ -335,6 +335,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('cbt/sesi/{sesiUjian}/force-selesai/{siswaId}', [CbtSesiController::class, 'forceSelesai']);
         Route::post('cbt/sesi/{sesiUjian}/end', [CbtSesiController::class, 'endSesi']);
         Route::apiResource('cbt/templates', CbtTemplateController::class);
+
+        // Upload gambar untuk soal (pertanyaan/opsi/kunci) — multi-role
+        Route::post('cbt/upload-media', [CbtUjianController::class, 'uploadMedia']);
     });
 
     // LMS Shared Endpoints

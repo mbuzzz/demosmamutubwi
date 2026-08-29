@@ -1,16 +1,88 @@
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import { Save, Plus, HelpCircle, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, BookMarked, X } from 'lucide-react';
+import { Save, Plus, HelpCircle, AlignLeft, CheckSquare, Type, Search, Edit, Trash2, FileQuestion, ArrowLeft, Clock, FileText, BookOpen, GraduationCap, BookMarked, X, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { type PaketSoal, type TipeUjian, type SoalItem, type OpsiJawaban, TIPE_BADGE } from '../../../../types/cbt';
 import { useBankSoalList, useCreateBankSoal, useBankSoalDetail, useSaveSoal, useDeleteSoal, useDeleteBankSoal } from '../../../../hooks/useCbt';
 import { useMapelList } from '../../../../hooks/useMapel';
 import { useAuth } from '../../../../components/auth/AuthContext';
+import { api, getFileUrl } from '../../../../lib/api';
+import { toast } from 'sonner';
 
 (window as any).katex = katex;
+
+/**
+ * Komponen upload gambar inline.
+ * - value: URL gambar yang tersimpan (string, bisa kosong)
+ * - onChange: dipanggil dengan URL baru (setelah upload) atau '' (saat dihapus)
+ */
+function MediaUploader({ value, onChange, label = 'Lampirkan Gambar' }: { value?: string; onChange: (url: string) => void; label?: string }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fullUrl = value ? getFileUrl(value) : '';
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await api.post('/cbt/upload-media', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      onChange(res.data.url);
+      toast.success('Gambar berhasil diunggah');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Gagal mengunggah gambar');
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  }
+
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2 mb-2">
+        <ImageIcon className="w-4 h-4 text-indigo-500" />
+        <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{label}</span>
+      </div>
+      {fullUrl ? (
+        <div className="relative inline-block">
+          <img
+            src={fullUrl}
+            alt="lampiran"
+            className="max-h-48 max-w-full rounded-xl border border-slate-200 dark:border-slate-700 object-contain bg-slate-50"
+          />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600"
+            title="Hapus gambar"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      ) : (
+        <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-indigo-500 hover:text-indigo-600 transition-colors">
+          {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+          {uploading ? 'Mengunggah…' : 'Unggah Gambar'}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+            }}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
 
 const richTextModules = {
   toolbar: [['bold', 'italic', 'underline'], [{ script: 'sub' }, { script: 'super' }], ['formula']],
@@ -124,6 +196,8 @@ export default function GuruBankSoalEditor() {
       jenis: currentSoal.jenis || 'pg',
       pertanyaan: currentSoal.pertanyaan || '',
       bobot_nilai: Math.max(1, Math.floor(Number(currentSoal.bobot_nilai) || 1)),
+      // Lampirkan gambar untuk pertanyaan jika ada
+      file_media: currentSoal.file_media || null,
     };
 
     // Kirim opsi/kunci untuk semua jenis yang menggunakannya, termasuk rubrik essay.
@@ -319,16 +393,21 @@ export default function GuruBankSoalEditor() {
                   <div>
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2"><AlignLeft className="w-4 h-4 text-indigo-500"/> Teks Pertanyaan</label>
                     <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden quill-custom-dark transition-colors">
-                      <ReactQuill 
-                        theme="snow" 
+                      <ReactQuill
+                        theme="snow"
                         modules={richTextModules}
                         formats={richTextFormats}
                         value={activeSoal.pertanyaan || ''}
-                        onChange={val => updateLocalSoal({ pertanyaan: val })} 
-                        className="h-40 pb-10" 
+                        onChange={val => updateLocalSoal({ pertanyaan: val })}
+                        className="h-40 pb-10"
                       />
                     </div>
-                    {/* Add Image support here later if needed */}
+                    {/* Lampiran gambar untuk pertanyaan */}
+                    <MediaUploader
+                      value={activeSoal.file_media}
+                      onChange={(url) => updateLocalSoal({ file_media: url })}
+                      label="Gambar Soal (opsional)"
+                    />
                   </div>
 
                   {/* Dynamic Answer Area Based on jenisSoal */}

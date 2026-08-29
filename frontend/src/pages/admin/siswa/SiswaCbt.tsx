@@ -52,7 +52,9 @@ function buildExamFromSession(sesi: SesiUjian): Exam {
     timeLimit: sesi.durasi,
     token: sesi.token || '',
     needToken: config.needToken,
-    status: sesi.status === 'completed' ? 'selesai' : 'tersedia',
+    // Backend mengembalikan status 'mengerjakan' | 'selesai' | 'belum' untuk siswa;
+    // beberapa response legacy mengirim 'completed' — handle keduanya.
+    status: (sesi.status === 'selesai' || sesi.status === 'completed') ? 'selesai' : 'tersedia',
     score: undefined,
     questions: [], // loaded when exam starts
     template: sesi.template,
@@ -73,8 +75,8 @@ export default function SiswaCbt() {
 
   useEffect(() => {
     if (sessions.length > 0) {
-       setExams(sessions.filter(s => s.status !== 'completed').map(buildExamFromSession));
-       setCompleted(sessions.filter(s => s.status === 'completed').map(buildExamFromSession));
+       setExams(sessions.filter((s: any) => s.status !== 'selesai' && s.status !== 'completed').map(buildExamFromSession));
+       setCompleted(sessions.filter((s: any) => s.status === 'selesai' || s.status === 'completed').map(buildExamFromSession));
     }
   }, [sessions]);
   const [view, setView] = useState<'list' | 'exam' | 'result'>('list');
